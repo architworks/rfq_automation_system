@@ -1,182 +1,56 @@
-# Application Vision: The Intelligent Procurement Engine
+# Application Vision
 
----
+## Purpose
+This system is an AI-assisted procurement engine for RFQ evaluation. It is meant to help a buyer move from messy vendor submissions to a defensible award recommendation without relying on static dashboards or hardcoded conclusions.
 
-## 1. Product Philosophy
+## Core Product Idea
+The product exists because procurement teams are often not fully sure how to convert a broad scope of work into a rigorous definition of value before vendor responses arrive.
 
-The system transitions procurement from manual, opinion-based reviews to a **Framework-First automated pipeline**.
+The system should help them do two things:
 
-- Uses AI to bridge the gap between:
-  - "messy" vendor inputs
-  - "rigorous" evaluation standards
+1. Convert buyer intent into a structured evaluation model before vendors are judged.
+2. Compare qualified vendors through both a formal award basis and advisory AI insights.
 
----
+## Current Model
+The product follows a framework-first approach:
 
-## 2. System Chronology (End-to-End Flow)
+1. A buyer provides the RFQ context.
+2. AI proposes an evaluation and value model for that RFQ.
+3. The buyer reviews and locks that model before vendor evaluation.
+4. AI generates questionnaire content aligned to the locked model.
+5. Vendors submit messy documents.
+6. The system extracts and normalizes evidence from those documents.
+7. Vendors go through a technical gate.
+8. Commercial analysis is performed on qualified vendors.
+9. The prototype produces one official award outcome plus advisory scenario insights.
 
-The system follows a **strict chronological pipeline** to ensure process integrity.
+## What The System Is
+- An evidence-backed decision-support system.
+- A bridge between unstructured vendor documents and structured evaluation.
+- A product that combines procurement rules with AI-driven insight generation.
 
-1. **RFQ Input**
-   - Buyer provides:
-     - Subject
-     - Timelines
-     - Scope of Work
-     - Line Items
+## What The System Is Not
+- A freeform chatbot that evaluates vendors ad hoc.
+- A static dashboard with hardcoded outputs.
+- A system that invents evaluation logic after seeing bids.
 
-2. **Rubric Definition (The AI Architect)**
-   - AI analyzes Scope of Work
-   - Proposes an Evaluation Rubric:
-     - MAC (Pass/Fail)
-     - Technical Quality (Scored)
-   - Defines:
-     - Weights
-     - Cut-offs
+## Core Principles
+- Framework first: evaluation logic is defined before vendor evaluation.
+- Standard first, AI second: AI augments procurement logic but does not replace hard gates.
+- No black boxes: every important conclusion should be tied to visible evidence.
+- Grounded outputs: recommendations must be traceable to vendor submissions.
+- Clear separation of binding and advisory outputs: the official award logic is distinct from simulated scenarios.
 
-3. **Questionnaire Generation**
-   - AI generates questions aligned to rubric
-   - Designed to extract evidence for each metric
+## Decision Snapshot
+- The evaluation framework is derived before vendor responses are evaluated.
+- Technical disqualification removes a vendor from award eligibility.
+- The prototype's official award basis is `QCBS 70/30`.
+- Other rankings and simulations are advisory AI insights, not the formal award basis.
+- AI-generated scenarios should be contextual to the RFQ, not hardcoded into the product.
 
-4. **Vendor Response Ingestion**
-   - Vendors upload messy documents:
-     - PDF
-     - PPT
-     - Excel
-
-5. **Extraction & Normalization**
-   - AI parses data
-   - Maps snippets to:
-     - Questionnaire
-     - Rubric categories
-
-6. **Dual-Hurdle Evaluation**
-
-   - **Technical Gate**
-     - Evaluate against:
-       - MAC
-       - Quality thresholds
-
-   - **Commercial Opening**
-     - Only qualified vendors proceed
-
-7. **Protocol-Based Ranking**
-   - Applies standard protocols:
-     - LCS
-     - QCBS
-     - QBS
-
-8. **Dynamic Scenario Modeling**
-   - Generates:
-     - What-if scenarios
-     - Trade-off analyses
-   - Helps finalize recommendation
-
----
-
-## 3. The Evaluation Framework (The Golden Thread)
-
-The evaluation rubric is **immutable** once RFQ is created.
-
-Ensures alignment across:
-- Questions asked
-- Data extracted
-- Final scoring
-
-### A. Requirement Classification
-
-Each requirement is categorized into:
-
-- **MAC (Minimum Acceptance Criteria)**
-  - Binary Pass/Fail
-  - Example:
-    - Certifications
-    - Legal compliance
-
-- **Technical Quality**
-  - Scored qualitative metrics
-  - Examples:
-    - Methodology
-    - Strategic depth
-
-- **Commercials**
-  - Financial data
-  - Commercial terms
-
----
-
-### B. The Dual-Hurdle Logic
-
-#### Stage 1: Technical Gate
-
-- Evaluate all vendors against:
-  - MAC
-  - Quality thresholds
-
-Rules:
-
-- Failure of MAC → **Disqualification**
-- Failure to meet minimum technical score (e.g., 60/100) → **Disqualification**
-
-#### Stage 2: Financial Opening
-
-- Only **qualified vendors** proceed
-- Commercial bids are:
-  - Unsealed
-  - Normalized
-  - Compared
-
----
-
-## 4. Award Selection Protocols
-
-| Protocol | Description |
-|----------|------------|
-| **LCS (Least Cost Selection)** | Lowest price among technically qualified bidders wins |
-| **QCBS (Quality-Cost Based Selection)** | Weighted score (e.g., 70% Quality / 30% Cost) |
-| **QBS (Quality-Based Selection)** | Highest technical score wins |
-
----
-
-## 5. Dynamic AI Scenario Modeling
-
-Beyond standard protocols:
-
-### Emergent Scenarios
-
-- AI analyzes:
-  - RFQ context (e.g., "Child Safety", "Global Launch")
-  - Vendor strengths
-- Generates:
-  - Context-specific comparisons
-
-### Trade-off Analysis
-
-- Explains:
-  - Why a recommendation is made
-  - Risks vs costs
-
-### Grounded Evidence
-
-- Every insight must include:
-  - Direct citation
-  - Snippet from vendor documents
-
----
-
-## 6. System Design Principles
-
-- **No Black Boxes**
-  - Buyer must see:
-    - Rubric
-    - Evidence
-
-- **Standard Foundation**
-  - AI enhances process
-  - Respects procurement logic
-
-- **Process Integrity**
-  - Evaluation logic defined **before bids**
-  - Prevents bias
-
----
-
-_Source: Extracted from uploaded PDF_ fileciteturn1file0
+## Relationship To Other Docs
+- `RFQ_MODEL.md` defines the RFQ lifecycle and rubric/questionnaire flow.
+- `EVALUATION_FRAMEWORK.md` defines qualification, scoring, and award rules.
+- `SCENARIO_ENGINE.md` defines advisory scenarios.
+- `EXTRACTION_NORMALIZATION.md` defines extraction and evidence handling.
+- `OPEN_QUESTIONS.md` tracks unresolved debates.
