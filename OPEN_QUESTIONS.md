@@ -7,7 +7,7 @@
 
 ## Evaluation Framework
 - What exact technical threshold should the prototype use?
-- Should some technical parameters have individual minimum cutoffs in addition to an aggregate threshold?
+- Which technical parameters should have individual minimum cutoffs in addition to the aggregate threshold?
 - How should dual-purpose criteria be represented when they have both a mandatory floor and a scored upside?
 - Should split-award logic ever be part of the formal award engine, or remain advisory?
 

@@ -33,6 +33,22 @@ The prototype's formal award basis is `QCBS 70/30`.
   - Technical evaluation has both binary and scored logic.
   - The system must support disqualification reasons that are clear and auditable.
 
+### Individual Technical Cutoffs
+- Decision: Individual minimum cutoffs should be applied only to selected critical technical criteria, not to every scored parameter.
+- Why This Approach: Some technical dimensions are important enough to require a floor, but applying cutoffs everywhere makes the process brittle and overly bureaucratic.
+- Rejected Alternatives:
+  - Impose an individual cutoff on every scored technical parameter.
+  - Use only an aggregate technical threshold with no parameter-level floors.
+- Implications:
+  - The technical gate becomes a layered filter:
+    - MAC
+    - selected critical technical cutoffs
+    - aggregate technical threshold
+  - The product must distinguish between:
+    - scored-only criteria
+    - cutoff-backed criteria
+    - MAC criteria
+
 ### Qualified Pool Only For Award
 - Decision: Technically disqualified vendors should not be considered in the formal award recommendation.
 - Why This Approach: A buyer can benchmark against those vendors, but cannot defensibly award to them after they fail hard qualification logic.
@@ -58,6 +74,7 @@ The prototype's formal award basis is `QCBS 70/30`.
 - It aligns with the idea that the system should not blindly reward the cheapest bid.
 - It gives the prototype a formal and auditable selection basis.
 - It preserves room for scenario simulation without weakening the official award logic.
+- It avoids turning technical evaluation into an unnecessarily rigid checklist.
 
 ## Rejected Alternatives
 - `MAC only`: too weak for complex services because it can let technically mediocre vendors survive too easily.
@@ -73,6 +90,6 @@ The prototype's formal award basis is `QCBS 70/30`.
 
 ## Open Questions
 - What exact technical threshold should the prototype use?
-- Should certain technical criteria have individual cutoffs in addition to an aggregate threshold?
+- Which technical criteria should have individual cutoffs in addition to the aggregate threshold?
 - How should "dual-purpose" criteria be modeled when they have both a minimum floor and a scored upside?
 - Should split-award logic remain advisory only, or be allowed as a formal outcome in some RFQs?
