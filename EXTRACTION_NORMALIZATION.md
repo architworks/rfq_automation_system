@@ -11,6 +11,8 @@ At minimum, the normalized output should support:
 - key technical claims
 - evidence snippets linked to source documents
 
+Extraction should be guided by both the locked rubric and the linked response schedules.
+
 ## Decisions Made
 
 ### Extraction Serves Evaluation
@@ -20,7 +22,7 @@ At minimum, the normalized output should support:
   - Read vendor documents and summarize them freely.
   - Score vendors directly from raw documents without an intermediate structure.
 - Implications:
-  - The extraction layer needs knowledge of the rubric and questionnaire intents.
+  - The extraction layer needs knowledge of the rubric, questionnaire intents, and linked schedule fields.
   - Missing evidence should be visible as a first-class outcome.
 
 ### Normalization Is Mandatory
@@ -43,6 +45,27 @@ At minimum, the normalized output should support:
   - The product needs citation or snippet support in downstream evaluation screens.
   - Extraction quality is not only about field values, but also about traceability.
 
+### Rule-Mapped Missing Data Handling
+- Decision: Missing inputs should be handled according to the criterion type they support, not by a blanket policy.
+- Why This Approach: The significance of a missing field depends on whether it affects qualification, a cutoff, or only comparative scoring.
+- Rejected Alternatives:
+  - Auto-fail any missing field.
+  - Treat all missing fields as low-impact scoring issues.
+- Implications:
+  - Missing evidence for a `MAC` can fail qualification.
+  - Missing evidence for a cutoff-backed criterion can fail the cutoff.
+  - Missing evidence for a scored-only criterion reduces score and confidence without auto-disqualification.
+
+### Response State Distinctions
+- Decision: The system should explicitly distinguish between missing vendor response, missing extractable evidence, and conflicting evidence.
+- Why This Approach: These are different failure modes and should not collapse into one generic “missing data” state.
+- Rejected Alternatives:
+  - Treat every missing field as the same kind of problem.
+  - Ignore conflicting evidence once one plausible value is found.
+- Implications:
+  - Downstream evaluation can separate vendor omission from extraction uncertainty.
+  - Evidence conflicts become visible for auditability and confidence handling.
+
 ## Why This Approach
 - It creates a reliable bridge from messy documents to formal evaluation.
 - It reduces the risk of ungrounded scoring.
@@ -62,4 +85,3 @@ At minimum, the normalized output should support:
 - Should the internal data model use an explicit claims-and-evidence structure?
 - How should confidence, ambiguity, and conflicting evidence be represented?
 - How should mixed currencies, taxes, and unclear units be normalized?
-- How should missing answers versus missing evidence be distinguished?

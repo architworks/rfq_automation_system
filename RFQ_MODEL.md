@@ -5,9 +5,14 @@ The RFQ lifecycle should follow a strict sequence so that evaluation logic is es
 
 1. Buyer enters RFQ details.
 2. AI analyzes the scope of work and line items.
-3. AI proposes an evaluation and value model for that RFQ.
+3. AI proposes an evaluation and value model for that RFQ, including:
+   - criterion classifications
+   - weights
+   - thresholds and cutoffs
+   - questions
+   - structured response schedules
 4. Buyer reviews and locks the framework.
-5. AI generates questionnaires aligned to the locked framework.
+5. AI generates questionnaires and structured schedules aligned to the locked framework.
 6. Vendor responses are ingested.
 7. Extraction and normalization prepare the data for evaluation.
 8. Technical and commercial evaluation are performed using the same locked framework.
@@ -34,6 +39,16 @@ The RFQ lifecycle should follow a strict sequence so that evaluation logic is es
   - The product needs a review-and-lock step before vendor evaluation.
   - AI value starts at the design stage, not only at the document analysis stage.
 
+### Controlled Edit Before Lock
+- Decision: The buyer has controlled edit rights over the AI-proposed framework before lock.
+- Why This Approach: AI should accelerate rubric creation, but procurement ownership stays with the buyer before the RFQ is released.
+- Rejected Alternatives:
+  - Review-only approval with no meaningful edit control.
+  - Fully manual authoring with AI kept out of framework design.
+- Implications:
+  - The buyer can edit criteria, classifications, weights, thresholds, questions, and schedules before lock.
+  - After lock, the framework becomes immutable for evaluation.
+
 ### Questionnaire Serves The Rubric
 - Decision: Questions should be generated from the evaluation framework, not treated as standalone content.
 - Why This Approach: The point of the questionnaire is to gather evidence for evaluation, not simply to produce more text.
@@ -43,6 +58,25 @@ The RFQ lifecycle should follow a strict sequence so that evaluation logic is es
 - Implications:
   - Each question should correspond to a specific evaluation intent.
   - The extraction layer should know which question or criterion each piece of evidence supports.
+
+### Questions Plus Structured Schedules
+- Decision: The RFQ response package should include both freeform questions and structured response schedules.
+- Why This Approach: Questions capture qualitative evidence, while schedules improve comparability for pricing, scope, compliance, timelines, and commercial terms.
+- Rejected Alternatives:
+  - Questions only.
+  - Highly schedule-driven responses with minimal qualitative questioning.
+- Implications:
+  - The system should generate structured schedules for core comparable response areas.
+  - Missing schedule fields are evaluated according to the mapped criterion type, not failed by default.
+
+### Moderate Rubric Hierarchy
+- Decision: The rubric should use a moderate hierarchy of `section -> criterion -> evidence check`.
+- Why This Approach: It is structured enough for extraction and scoring without becoming atomized into an excessive number of micro-criteria.
+- Rejected Alternatives:
+  - Very coarse broad-criterion rubrics.
+  - Highly atomic rubrics with many fine-grained items.
+- Implications:
+  - The framework remains usable for both buyers and downstream extraction logic.
 
 ## Why This Approach
 - It creates a single golden thread from RFQ intent to final award.
@@ -60,6 +94,5 @@ The RFQ lifecycle should follow a strict sequence so that evaluation logic is es
 - Question generation, extraction, and evaluation should all operate against shared identifiers or rubric items.
 
 ## Open Questions
-- How much control should the buyer have over editing AI-proposed weights, cutoffs, and criteria?
-- Should the system generate only questionnaire items, or also structured response templates and schedules?
-- How granular should the rubric become for broad scopes of work?
+- No framework-level RFQ model questions are currently open.
+- RFQ-specific criterion design will vary by scope and evaluation intent.

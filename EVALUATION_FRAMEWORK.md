@@ -3,7 +3,10 @@
 ## Current Model
 The evaluation framework uses a dual-hurdle model:
 
-1. Technical qualification happens first.
+1. Technical qualification happens first through a layered gate:
+   - `MAC`
+   - selected critical technical cutoffs
+   - an aggregate technical threshold
 2. Only qualified vendors are eligible for the formal award.
 3. Commercial comparison and final ranking occur on the qualified pool.
 
@@ -12,7 +15,7 @@ The prototype's formal award basis is `QCBS 70/30`.
 ## Decisions Made
 
 ### Requirement Taxonomy
-- Decision: Evaluation criteria should be split into `MAC`, `Technical Scored Criteria`, and `Commercial Criteria`.
+- Decision: Evaluation criteria should be split into `MAC`, `Technical Cutoff-Backed`, `Technical Scored-Only`, and `Commercial`.
 - Why This Approach: Not every requirement serves the same purpose. Some are hard stops, some rank quality, and some govern value for money.
 - Rejected Alternatives:
   - Treat all criteria as one blended quality score.
@@ -49,6 +52,27 @@ The prototype's formal award basis is `QCBS 70/30`.
     - cutoff-backed criteria
     - MAC criteria
 
+### RFQ-Specific Technical Threshold
+- Decision: The aggregate technical threshold and selected critical cutoffs are RFQ-specific. AI proposes them and the buyer approves them before lock.
+- Why This Approach: Different RFQs have different risk profiles, so one universal threshold is too rigid.
+- Rejected Alternatives:
+  - One permanent house threshold for every RFQ.
+  - Fully manual threshold design without AI assistance.
+- Implications:
+  - Each RFQ stores its own approved technical threshold and critical cutoffs.
+  - Threshold-setting becomes part of the rubric design phase.
+
+### Dual-Purpose Criteria
+- Decision: Criteria that have both a minimum floor and a scored upside should be modeled as a single linked criterion.
+- Why This Approach: One criterion can use one evidence base to support both qualification and ranking without duplicating logic.
+- Rejected Alternatives:
+  - Split the floor and upside into separate independent criteria.
+  - Force every criterion to be only gating or only scored.
+- Implications:
+  - A single criterion can contain:
+    - a minimum qualification floor
+    - a scored quality range above that floor
+
 ### Qualified Pool Only For Award
 - Decision: Technically disqualified vendors should not be considered in the formal award recommendation.
 - Why This Approach: A buyer can benchmark against those vendors, but cannot defensibly award to them after they fail hard qualification logic.
@@ -70,6 +94,17 @@ The prototype's formal award basis is `QCBS 70/30`.
   - Commercial extraction must support comparable cost scoring.
   - Scenario outputs must be clearly separated from the formal award result.
 
+### Rule-Mapped Missing Evidence
+- Decision: Missing evidence should be handled according to the criterion type it supports, not by a blanket pass/fail rule.
+- Why This Approach: The significance of missing information depends on whether it affects qualification, a critical floor, or only comparative scoring.
+- Rejected Alternatives:
+  - Auto-fail any missing field.
+  - Treat all missing fields as low-impact scoring issues.
+- Implications:
+  - Missing evidence for a `MAC` can fail qualification.
+  - Missing evidence for a cutoff-backed criterion can fail the cutoff.
+  - Missing evidence for a scored-only criterion reduces score and confidence without auto-disqualification.
+
 ## Why This Approach
 - It aligns with the idea that the system should not blindly reward the cheapest bid.
 - It gives the prototype a formal and auditable selection basis.
@@ -89,7 +124,5 @@ The prototype's formal award basis is `QCBS 70/30`.
   - formal award vs advisory insights
 
 ## Open Questions
-- What exact technical threshold should the prototype use?
 - Which technical criteria should have individual cutoffs in addition to the aggregate threshold?
-- How should "dual-purpose" criteria be modeled when they have both a minimum floor and a scored upside?
 - Should split-award logic remain advisory only, or be allowed as a formal outcome in some RFQs?

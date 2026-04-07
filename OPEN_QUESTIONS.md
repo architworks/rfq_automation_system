@@ -1,25 +1,19 @@
 # Open Questions
 
 ## RFQ Model
-- How much editing power should the buyer have over AI-proposed criteria, weights, and cutoffs before lock?
-- Should the system generate only questions, or also structured response schedules and templates?
-- How granular should the rubric be for large scopes of work?
+- Which specific criteria in a given RFQ should be `MAC`, `critical cutoff`, or `scored only`?
 
 ## Evaluation Framework
-- What exact technical threshold should the prototype use?
-- Which technical parameters should have individual minimum cutoffs in addition to the aggregate threshold?
-- How should dual-purpose criteria be represented when they have both a mandatory floor and a scored upside?
 - Should split-award logic ever be part of the formal award engine, or remain advisory?
+- Which technical parameters in a given RFQ should have individual minimum cutoffs in addition to the aggregate threshold?
 
 ## Scenario Engine
-- Which standard scenarios, if any, should always be included alongside AI-generated ones?
-- Should the system define a scenario family before bids are received?
-- Should buyers be able to tune scenario weights interactively?
+- How many AI-generated scenarios should be surfaced by default?
+- Should buyers be able to tune advisory scenario weights interactively?
 
 ## Extraction And Normalization
 - Should the internal model be built explicitly around claims, evidence, and confidence?
 - How should conflicting evidence be represented?
-- How should missing vendor responses be separated from extraction failure?
 - How should taxes, currencies, and unclear commercial units be normalized?
 
 ## Architecture

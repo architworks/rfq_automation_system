@@ -4,7 +4,7 @@
 The product has two layers of decision support:
 
 1. A formal award engine with one official basis for the prototype: `QCBS 70/30`.
-2. An advisory scenario engine that helps the buyer explore alternate definitions of value.
+2. An advisory scenario engine that includes `LCS`, `QBS`, and RFQ-specific AI-generated scenarios.
 
 The advisory layer should never be confused with the formal award basis.
 
@@ -23,6 +23,15 @@ Procurement teams may not be fully sure which value lens matters most for a give
   - The product needs a clear distinction between official result and AI insight.
   - Standard procurement protocols remain the foundation.
 
+### Standard Advisory Comparisons
+- Decision: The advisory layer should always include `LCS` and `QBS` views alongside the official `QCBS 70/30` result, plus RFQ-specific AI-generated scenarios.
+- Why This Approach: It gives the buyer consistent baseline comparisons while preserving room for context-aware AI insight.
+- Rejected Alternatives:
+  - AI-generated scenarios only.
+  - Price-first advisory views without a quality-first comparison.
+- Implications:
+  - Advisory output includes both standard and RFQ-specific scenario lenses.
+
 ### AI-Generated Scenarios Are Contextual
 - Decision: The product should support AI-generated scenarios that emerge from the RFQ context rather than a fixed hardcoded list.
 - Why This Approach: The assignment examples such as fastest delivery or best compliance are examples, not the entire scenario model.
@@ -32,6 +41,16 @@ Procurement teams may not be fully sure which value lens matters most for a give
 - Implications:
   - The scenario engine must inspect the RFQ and qualified vendor data.
   - Different RFQs may yield different scenario sets.
+
+### Scenarios Bound To Locked Dimensions
+- Decision: Advisory scenarios must remain bound to the dimensions already locked in the rubric before bids are received.
+- Why This Approach: The system may reinterpret value, but it should not invent new evaluation dimensions after seeing vendor responses.
+- Rejected Alternatives:
+  - Fully emergent post-bid scenario logic.
+  - Scenarios introducing new criteria not present in the locked framework.
+- Implications:
+  - Scenarios may reweight or recombine locked dimensions.
+  - Scenario winners must still come from the technically qualified pool.
 
 ### Scenario Winners Must Still Be Qualified
 - Decision: Scenario comparisons may use alternate value lenses, but any recommended scenario winner should still come from the technically qualified pool.
@@ -53,6 +72,16 @@ Procurement teams may not be fully sure which value lens matters most for a give
   - The UI and explanations need a clear status distinction.
   - The reasoning engine can reference them for contrast, not selection.
 
+### Split Award Is Advisory
+- Decision: Split-award outcomes remain advisory only in the current model.
+- Why This Approach: The formal prototype award basis is a single-winner `QCBS 70/30` result, while split award is better treated as a strategic alternative.
+- Rejected Alternatives:
+  - Make split award part of the default formal award engine.
+  - Allow split-award outcomes to override the official QCBS result.
+- Implications:
+  - Split award can appear as an AI insight when justified by the RFQ and vendor mix.
+  - It does not change the formal prototype winner.
+
 ## Why This Approach
 - It preserves procurement defensibility while keeping the AI layer genuinely useful.
 - It lets the system answer both questions:
@@ -70,7 +99,5 @@ Procurement teams may not be fully sure which value lens matters most for a give
 - The same normalized data model should feed both the formal award engine and the scenario engine.
 
 ## Open Questions
-- Which standard advisory scenarios should always be shown, if any?
-- Should the system propose scenario families before bids are received?
-- How should split-award simulations be generated and constrained?
+- How many AI-generated scenarios should be surfaced by default?
 - Should the buyer be able to adjust scenario weights interactively after seeing results?
