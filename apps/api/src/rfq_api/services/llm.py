@@ -66,9 +66,6 @@ class OpenAIResponsesClient(LLMClient):
                 model=self._model,
                 instructions=instructions,
                 input=input_text,
-                max_output_tokens=4000,
-                temperature=0.2,
-                store=False,
                 text_format=RubricProposal,
             )
         except Exception as exc:  # pragma: no cover - network/runtime dependent
