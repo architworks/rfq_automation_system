@@ -1,5 +1,7 @@
 # RFQ Prototype
 
+Documentation and assignment/reference material live under `docs/`. Start with `docs/DOC_MAP.md` for the product documentation set.
+
 Phase 1 implements the seeded RFQ to locked-rubric flow:
 
 - buyer starts from the sample 8-item RFQ
@@ -14,7 +16,8 @@ Phase 1 implements the seeded RFQ to locked-rubric flow:
 - `apps/api`: FastAPI, Pydantic v2
 - browser session state: `sessionStorage`
 - backend session state: in-memory TTL store, no database
-- AI integration: Azure OpenAI via the Responses API
+- AI integration: Azure-hosted OpenAI model via the OpenAI Python SDK `OpenAI` client
+- rubric generation uses the Responses API with Structured Outputs bound to the `RubricProposal` Pydantic schema
 
 ## Local Run
 
@@ -82,4 +85,5 @@ pnpm generate:types
 ## Notes
 
 - The API returns `503` on rubric generation if Azure OpenAI environment variables are not configured.
+- Rubric generation does not rely on prompt-only JSON formatting. The backend uses `responses.parse(...)` with the `RubricProposal` schema as the structured output contract.
 - The only durable phase 1 output is the locked framework JSON artifact downloaded by the buyer.

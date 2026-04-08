@@ -6,7 +6,7 @@ FastAPI backend for phase 1 of the RFQ prototype.
 
 - create or hydrate browser-owned sessions
 - store RFQ drafts and rubric proposals in memory
-- generate rubric proposals through Azure OpenAI Responses
+- generate rubric proposals through the OpenAI Python SDK using the Responses API
 - validate and lock the final framework
 - return the downloadable locked artifact JSON
 
@@ -48,6 +48,14 @@ uv run pytest
 ```bash
 uv run python -m rfq_api.tools.export_openapi ../openapi.json
 ```
+
+## LLM Contract
+
+- the backend uses `from openai import OpenAI`, not the Azure SDK client
+- Azure hosting is handled through `base_url` plus `api_key`
+- rubric generation uses `client.responses.parse(...)`
+- output shape is enforced through Structured Outputs with the `RubricProposal` Pydantic model
+- prompt text still carries procurement logic, but output conformance does not depend on asking the model to "return JSON"
 
 ## Environment Variables
 
