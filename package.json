@@ -1,0 +1,15 @@
+{
+  "name": "rfq-prototype",
+  "private": true,
+  "packageManager": "pnpm@10.10.0",
+  "scripts": {
+    "dev:web": "pnpm --dir apps/web dev",
+    "dev:api": "cd apps/api && \"$HOME/.local/bin/uv\" run uvicorn rfq_api.main:app --app-dir src --reload",
+    "lint:web": "pnpm --dir apps/web lint",
+    "test:web": "pnpm --dir apps/web test",
+    "generate:types": "cd apps/api && \"$HOME/.local/bin/uv\" run python -m rfq_api.tools.export_openapi ../openapi.json && cd ../.. && pnpm exec openapi-typescript apps/openapi.json -o apps/web/src/lib/api/generated.ts"
+  },
+  "devDependencies": {
+    "openapi-typescript": "^7.10.1"
+  }
+}
