@@ -3,7 +3,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import cast
 
-from openai import AzureOpenAI
+from openai import OpenAI
 
 from ..config import Settings
 from ..models import OFFICIAL_AWARD_BASIS, RFQDraft, RubricProposal
@@ -23,23 +23,23 @@ class LLMClient(ABC):
         raise NotImplementedError
 
 
-class AzureOpenAIResponsesClient(LLMClient):
+class OpenAIResponsesClient(LLMClient):
     def __init__(self, settings: Settings) -> None:
         if not settings.azure_openai_endpoint:
             raise LLMConfigurationError("AZURE_OPENAI_ENDPOINT is required.")
         if not settings.azure_openai_api_key:
             raise LLMConfigurationError("AZURE_OPENAI_API_KEY is required.")
-        if not settings.azure_openai_api_version:
-            raise LLMConfigurationError("AZURE_OPENAI_API_VERSION is required.")
-        if not settings.azure_openai_deployment:
-            raise LLMConfigurationError("AZURE_OPENAI_DEPLOYMENT is required.")
+        if not settings.azure_openai_model:
+            raise LLMConfigurationError("AZURE_OPENAI_MODEL is required.")
 
         self._model = settings.azure_openai_model
-        self._client = AzureOpenAI(
+        base_url = settings.azure_openai_endpoint
+        if not base_url.endswith("/"):
+            base_url = f"{base_url}/"
+
+        self._client = OpenAI(
             api_key=settings.azure_openai_api_key,
-            api_version=settings.azure_openai_api_version,
-            azure_endpoint=settings.azure_openai_endpoint,
-            azure_deployment=settings.azure_openai_deployment,
+            base_url=base_url,
             timeout=settings.azure_openai_timeout_seconds,
         )
 

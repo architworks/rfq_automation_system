@@ -53,11 +53,9 @@ uv run python -m rfq_api.tools.export_openapi ../openapi.json
 
 - `FRONTEND_ORIGIN`: allowed browser origin for CORS, default `http://localhost:3000`
 - `SESSION_TTL_SECONDS`: in-memory session TTL, default `7200`
-- `AZURE_OPENAI_ENDPOINT`: Azure OpenAI resource endpoint
+- `AZURE_OPENAI_ENDPOINT`: Azure OpenAI base URL, for example `https://<resource>.openai.azure.com/openai/v1/`
 - `AZURE_OPENAI_API_KEY`: Azure OpenAI key
-- `AZURE_OPENAI_API_VERSION`: Azure OpenAI API version
-- `AZURE_OPENAI_DEPLOYMENT`: Azure deployment name for the Responses-capable model
-- `AZURE_OPENAI_MODEL`: logical model label, default `gpt-5.4`
+- `AZURE_OPENAI_MODEL`: the model or deployment identifier passed in the OpenAI request
 - `AZURE_OPENAI_TIMEOUT_SECONDS`: request timeout, default `60`
 
 If Azure variables are missing, `/sessions/{session_id}/rubric/generate` returns `503`.

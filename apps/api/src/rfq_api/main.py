@@ -20,7 +20,7 @@ from .models import (
     SessionSnapshot,
     SessionStatus,
 )
-from .services.llm import AzureOpenAIResponsesClient, LLMClient, LLMConfigurationError, RubricGenerationError
+from .services.llm import LLMClient, LLMConfigurationError, OpenAIResponsesClient, RubricGenerationError
 from .services.rubric_generation import RubricGenerationService
 from .services.validation import validate_rubric_proposal
 from .session_store import SessionStore
@@ -170,7 +170,7 @@ def get_session_store() -> SessionStore:
 
 def get_llm_client(settings: Settings = Depends(get_settings)) -> LLMClient:
     try:
-        return AzureOpenAIResponsesClient(settings)
+        return OpenAIResponsesClient(settings)
     except LLMConfigurationError as exc:
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc)) from exc
 

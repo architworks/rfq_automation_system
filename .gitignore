@@ -12,8 +12,11 @@ apps/openapi.json
 apps/api/.venv
 apps/web/node_modules
 apps/web/.next
+
+# env files
 .env
-.env.local
-apps/api/.env
-apps/web/.env
-apps/web/.env.local
+.env.*
+**/.env
+**/.env.*
+!.env.example
+!**/.env.example
