@@ -1,8 +1,12 @@
 import type { components } from "./generated";
 
 export type BuyerPriority = components["schemas"]["BuyerPriority"];
-export type Criterion = components["schemas"]["Criterion"];
+export type Criterion = components["schemas"]["Criterion-Output"];
+export type CriterionInput = components["schemas"]["Criterion-Input"];
 export type CriterionType = components["schemas"]["CriterionType"];
+export type DeterministicScoringGuide = components["schemas"]["DeterministicScoringGuide"];
+export type DeterministicScoringRule = components["schemas"]["DeterministicScoringRule"];
+export type DeterministicScoringType = components["schemas"]["DeterministicScoringType"];
 export type DownloadMetadata = components["schemas"]["DownloadMetadata"];
 export type EvidenceCheck = components["schemas"]["EvidenceCheck"];
 export type GeneralInfo = components["schemas"]["GeneralInfo"];

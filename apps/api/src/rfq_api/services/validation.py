@@ -6,6 +6,7 @@ from ..models import (
     OFFICIAL_AWARD_BASIS,
     Criterion,
     CriterionType,
+    DeterministicScoringType,
     RubricProposal,
     ValidationIssue,
 )
@@ -115,6 +116,9 @@ def _validate_criterion(
                 )
             )
 
+    if criterion.deterministic_scoring is not None:
+        issues.extend(_validate_deterministic_scoring(criterion=criterion, field_prefix=field_prefix))
+
     if criterion.criterion_type == CriterionType.MAC:
         if criterion.weight not in (None, 0):
             issues.append(
@@ -203,5 +207,56 @@ def _validate_criterion(
                 )
             )
         return issues
+
+    return issues
+
+
+def _validate_deterministic_scoring(*, criterion: Criterion, field_prefix: str) -> list[ValidationIssue]:
+    issues: list[ValidationIssue] = []
+    guide = criterion.deterministic_scoring
+    if guide is None:
+        return issues
+
+    if not guide.rules:
+        issues.append(
+            ValidationIssue(
+                field=f"{field_prefix}.deterministic_scoring.rules",
+                message="Deterministic scoring guides must define at least one rule.",
+            )
+        )
+        return issues
+
+    if not (criterion.linked_question_ids or criterion.linked_schedule_fields):
+        issues.append(
+            ValidationIssue(
+                field=f"{field_prefix}.deterministic_scoring",
+                message="Deterministic scoring must reference at least one linked question or schedule field.",
+            )
+        )
+
+    if guide.guide_type == DeterministicScoringType.PASS_FAIL:
+        if not any(rule.outcome == "pass" for rule in guide.rules):
+            issues.append(
+                ValidationIssue(
+                    field=f"{field_prefix}.deterministic_scoring.rules",
+                    message="Pass/fail guides must include at least one pass rule.",
+                )
+            )
+        if not any(rule.outcome == "fail" for rule in guide.rules):
+            issues.append(
+                ValidationIssue(
+                    field=f"{field_prefix}.deterministic_scoring.rules",
+                    message="Pass/fail guides must include at least one fail rule.",
+                )
+            )
+        return issues
+
+    if not any(rule.score is not None for rule in guide.rules):
+        issues.append(
+            ValidationIssue(
+                field=f"{field_prefix}.deterministic_scoring.rules",
+                message="Banded deterministic guides must define a score for at least one rule.",
+            )
+        )
 
     return issues

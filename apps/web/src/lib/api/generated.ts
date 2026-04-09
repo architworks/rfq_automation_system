@@ -142,7 +142,7 @@ export interface components {
             session_id?: string | null;
         };
         /** Criterion */
-        Criterion: {
+        "Criterion-Input": {
             /** Id */
             id: string;
             /** Section Id */
@@ -164,12 +164,64 @@ export interface components {
             linked_question_ids?: string[];
             /** Linked Schedule Fields */
             linked_schedule_fields?: string[];
+            deterministic_scoring?: components["schemas"]["DeterministicScoringGuide"] | null;
+        };
+        /** Criterion */
+        "Criterion-Output": {
+            /** Id */
+            id: string;
+            /** Section Id */
+            section_id: string;
+            /** Title */
+            title: string;
+            /** Description */
+            description: string;
+            criterion_type: components["schemas"]["CriterionType"];
+            /** Weight */
+            weight?: number | null;
+            /** Min Cutoff */
+            min_cutoff?: number | null;
+            /** Max Score */
+            max_score?: number | null;
+            /** Evidence Checks */
+            evidence_checks?: components["schemas"]["EvidenceCheck"][];
+            /** Linked Question Ids */
+            linked_question_ids?: string[];
+            /** Linked Schedule Fields */
+            linked_schedule_fields?: string[];
+            deterministic_scoring?: components["schemas"]["DeterministicScoringGuide"] | null;
         };
         /**
          * CriterionType
          * @enum {string}
          */
         CriterionType: "mac" | "technical_cutoff_backed" | "technical_scored_only" | "commercial";
+        /** DeterministicScoringGuide */
+        DeterministicScoringGuide: {
+            guide_type: components["schemas"]["DeterministicScoringType"];
+            /** Answer Format */
+            answer_format: string;
+            /** Summary */
+            summary: string;
+            /** Rules */
+            rules?: components["schemas"]["DeterministicScoringRule"][];
+        };
+        /** DeterministicScoringRule */
+        DeterministicScoringRule: {
+            /** Id */
+            id: string;
+            /** Condition */
+            condition: string;
+            /** Score */
+            score?: number | null;
+            /** Outcome */
+            outcome?: ("pass" | "fail") | null;
+        };
+        /**
+         * DeterministicScoringType
+         * @enum {string}
+         */
+        DeterministicScoringType: "pass_fail" | "numeric_banded" | "discrete_banded";
         /** DownloadMetadata */
         DownloadMetadata: {
             /** File Name */
@@ -295,7 +347,7 @@ export interface components {
             /** Sections */
             sections: components["schemas"]["RubricSection"][];
             /** Criteria */
-            criteria: components["schemas"]["Criterion"][];
+            criteria: components["schemas"]["Criterion-Input"][];
             /** Aggregate Technical Threshold */
             aggregate_technical_threshold: number;
             /** Questions */
@@ -316,7 +368,7 @@ export interface components {
             /** Sections */
             sections: components["schemas"]["RubricSection"][];
             /** Criteria */
-            criteria: components["schemas"]["Criterion"][];
+            criteria: components["schemas"]["Criterion-Output"][];
             /** Aggregate Technical Threshold */
             aggregate_technical_threshold: number;
             /** Questions */

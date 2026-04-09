@@ -9,6 +9,8 @@ import {
   type RfqApiClient,
   type Criterion,
   type CriterionType,
+  type DeterministicScoringGuide,
+  type DeterministicScoringRule,
   type EvidenceCheck,
   type LineItem,
   type LockedFrameworkArtifact,
@@ -93,6 +95,70 @@ function blobToDownload(blob: Blob, fileName: string) {
 
 function snapshotToJson(value: unknown): string {
   return JSON.stringify(value ?? null);
+}
+
+type ScheduleFieldPreview = {
+  fieldId: string;
+  scheduleId: string;
+  scheduleName: string;
+  columnId: string;
+  columnLabel: string;
+  description: string;
+  required: boolean;
+};
+
+function buildQuestionLookup(questions: Question[]): Map<string, Question> {
+  return new Map(questions.map((question) => [question.id, question]));
+}
+
+function buildScheduleFieldLookup(responseSchedules: ResponseSchedule[]): Map<string, ScheduleFieldPreview> {
+  const entries = responseSchedules.flatMap((schedule) =>
+    schedule.columns.map((column) => [
+      `${schedule.id}.${column.id}`,
+      {
+        fieldId: `${schedule.id}.${column.id}`,
+        scheduleId: schedule.id,
+        scheduleName: schedule.name,
+        columnId: column.id,
+        columnLabel: column.label,
+        description: column.description,
+        required: column.required,
+      },
+    ] as const),
+  );
+
+  return new Map(entries);
+}
+
+function formatCriterionMode(criterion: Criterion): string {
+  switch (criterion.criterion_type) {
+    case "mac":
+      return "Pass / fail gate";
+    case "technical_cutoff_backed":
+      return `Scored with cutoff${criterion.min_cutoff !== null ? ` · cutoff ${criterion.min_cutoff}/${criterion.max_score ?? "?"}` : ""}`;
+    case "technical_scored_only":
+      return `Scored criterion${criterion.max_score !== null ? ` · max ${criterion.max_score}` : ""}`;
+    case "commercial":
+      return "Commercial capture";
+    default:
+      return "Criterion";
+  }
+}
+
+function formatScoringResult(rule: DeterministicScoringRule): string {
+  if (typeof rule.score === "number") {
+    return String(rule.score);
+  }
+
+  if (rule.outcome === "pass") {
+    return "Pass";
+  }
+
+  if (rule.outcome === "fail") {
+    return "Fail";
+  }
+
+  return "Review";
 }
 
 type RfqWizardProps = {
@@ -856,6 +922,12 @@ function ProposalStep({
   onBackToInput: () => void;
   onReviewLock: () => void;
 }) {
+  const questionsById = useMemo(() => buildQuestionLookup(proposal.questions), [proposal.questions]);
+  const scheduleFieldById = useMemo(
+    () => buildScheduleFieldLookup(proposal.response_schedules),
+    [proposal.response_schedules],
+  );
+
   return (
     <div className={styles.grid}>
       <section className={styles.card}>
@@ -1009,6 +1081,8 @@ function ProposalStep({
             <CriterionEditor
               criterion={criterion}
               key={criterion.id}
+              questionsById={questionsById}
+              scheduleFieldById={scheduleFieldById}
               onChange={(mutator) =>
                 onChange((current) => {
                   mutator(current.criteria[index]);
@@ -1170,13 +1244,30 @@ function ProposalStep({
 
 function CriterionEditor({
   criterion,
+  questionsById,
+  scheduleFieldById,
   onChange,
   onRemove,
 }: {
   criterion: Criterion;
+  questionsById: Map<string, Question>;
+  scheduleFieldById: Map<string, ScheduleFieldPreview>;
   onChange: (mutator: (criterion: Criterion) => void) => void;
   onRemove: () => void;
 }) {
+  const linkedQuestions: Array<{ id: string; question: Question | null }> = (
+    criterion.linked_question_ids ?? []
+  ).map((questionId: string) => ({
+    id: questionId,
+    question: questionsById.get(questionId) ?? null,
+  }));
+  const linkedScheduleFields: Array<{ id: string; field: ScheduleFieldPreview | null }> = (
+    criterion.linked_schedule_fields ?? []
+  ).map((fieldId: string) => ({
+    id: fieldId,
+    field: scheduleFieldById.get(fieldId) ?? null,
+  }));
+
   return (
     <div className={styles.itemCard}>
       <div className={styles.itemHeader}>
@@ -1184,6 +1275,77 @@ function CriterionEditor({
         <button className={styles.dangerButton} onClick={onRemove} type="button">
           Remove
         </button>
+      </div>
+      <div className={styles.previewPanel}>
+        <div className={styles.previewHeader}>
+          <div>
+            <div className={styles.previewEyebrow}>RFQ Creator View</div>
+            <div className={styles.previewTitle}>Criterion, questionnaire, and scoring together</div>
+          </div>
+          <div className={styles.previewBadge}>{formatCriterionMode(criterion)}</div>
+        </div>
+
+        <div className={styles.previewSection}>
+          <div className={styles.previewSectionTitle}>Exact linked questions</div>
+          {linkedQuestions.length > 0 ? (
+            <div className={styles.previewList}>
+              {linkedQuestions.map(({ id, question }) => (
+                <div className={styles.previewItem} key={id}>
+                  <div className={styles.previewItemHeader}>
+                    <span className={styles.previewItemId}>{id}</span>
+                    <span className={styles.previewItemMeta}>Vendor question</span>
+                  </div>
+                  {question ? (
+                    <>
+                      <div className={styles.previewItemBody}>{question.text}</div>
+                      <div className={styles.previewItemMeta}>{question.purpose}</div>
+                    </>
+                  ) : (
+                    <div className={styles.previewItemMeta}>Question text is not resolved yet for this ID.</div>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className={styles.previewEmpty}>
+              No exact vendor question is linked yet. This criterion is currently traceable only through evidence
+              checks or schedule fields.
+            </div>
+          )}
+        </div>
+
+        {linkedScheduleFields.length > 0 ? (
+          <div className={styles.previewSection}>
+            <div className={styles.previewSectionTitle}>Structured vendor inputs used for this criterion</div>
+            <div className={styles.previewList}>
+              {linkedScheduleFields.map(({ id, field }) => (
+                <div className={styles.previewItem} key={id}>
+                  {field ? (
+                    <>
+                      <div className={styles.previewItemHeader}>
+                        <span className={styles.previewItemId}>{field.scheduleName}</span>
+                        <span className={styles.previewItemMeta}>
+                          {field.columnLabel} · {field.required ? "Required" : "Optional"}
+                        </span>
+                      </div>
+                      <div className={styles.previewItemBody}>{field.description}</div>
+                      <div className={styles.previewItemMeta}>{field.fieldId}</div>
+                    </>
+                  ) : (
+                    <>
+                      <div className={styles.previewItemHeader}>
+                        <span className={styles.previewItemId}>{id}</span>
+                        <span className={styles.previewItemMeta}>Unresolved schedule field</span>
+                      </div>
+                    </>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : null}
+
+        <DeterministicScoringPreview criterion={criterion} />
       </div>
       <div className={`${styles.fieldGrid} ${styles.threeCol}`}>
         <label className={styles.label}>
@@ -1429,6 +1591,77 @@ function CriterionEditor({
       </div>
     </div>
   );
+}
+
+function DeterministicScoringPreview({
+  criterion,
+}: {
+  criterion: Criterion;
+}) {
+  const guide = criterion.deterministic_scoring;
+
+  if (!guide) {
+    const fallbackMessage =
+      criterion.criterion_type === "mac"
+        ? "No explicit rule table is defined yet. This criterion is currently treated as a mandatory pass/fail check based on the linked evidence."
+        : criterion.criterion_type === "commercial"
+          ? "No explicit deterministic scoring table is defined yet. This criterion is currently informational and intended for downstream commercial comparison."
+          : "No explicit deterministic scoring table is defined for this criterion. This criterion is expected to rely on evaluator judgement, evidence review, and the max score / cutoff fields shown below.";
+
+    return (
+      <div className={styles.previewSection}>
+        <div className={styles.previewSectionTitle}>Grading scheme</div>
+        <div className={styles.previewEmpty}>{fallbackMessage}</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className={styles.previewSection}>
+      <div className={styles.previewSectionTitle}>Deterministic grading scheme</div>
+      <div className={styles.previewSummary}>
+        <strong>Answer format:</strong> {guide.answer_format}
+        <span className={styles.previewSeparator}>·</span>
+        <strong>Guide type:</strong> {formatGuideType(guide)}
+      </div>
+      <div className={styles.previewSummary}>{guide.summary}</div>
+      <div className={styles.tableWrap}>
+        <table className={styles.scoreTable}>
+          <thead>
+            <tr>
+              <th>Response Condition</th>
+              <th>Score / Outcome</th>
+              <th>Max Score</th>
+              <th>Cutoff</th>
+            </tr>
+          </thead>
+          <tbody>
+            {(guide.rules ?? []).map((rule: DeterministicScoringRule) => (
+              <tr key={rule.id}>
+                <td>{rule.condition}</td>
+                <td>{formatScoringResult(rule)}</td>
+                <td>{criterion.max_score ?? "N/A"}</td>
+                <td>{criterion.min_cutoff ?? (criterion.criterion_type === "mac" ? "Pass/Fail" : "N/A")}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+function formatGuideType(guide: DeterministicScoringGuide): string {
+  switch (guide.guide_type) {
+    case "pass_fail":
+      return "Pass / fail";
+    case "numeric_banded":
+      return "Numeric bands";
+    case "discrete_banded":
+      return "Discrete bands";
+    default:
+      return "Deterministic";
+  }
 }
 
 function ScheduleEditor({

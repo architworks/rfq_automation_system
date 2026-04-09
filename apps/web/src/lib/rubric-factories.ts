@@ -2,6 +2,8 @@ import type {
   BuyerPriority,
   Criterion,
   CriterionType,
+  DeterministicScoringGuide,
+  DeterministicScoringRule,
   EvidenceCheck,
   LineItem,
   Question,
@@ -63,6 +65,37 @@ export function createEvidenceCheck(): EvidenceCheck {
   };
 }
 
+export function createDeterministicScoringRule(): DeterministicScoringRule {
+  return {
+    id: createId("score_rule"),
+    condition: "New scoring condition",
+    score: 0,
+    outcome: null,
+  };
+}
+
+export function createDeterministicScoringGuide(): DeterministicScoringGuide {
+  return {
+    guide_type: "pass_fail",
+    answer_format: "Yes/No confirmation",
+    summary: "Explain how this objective answer will be graded.",
+    rules: [
+      {
+        id: createId("score_rule"),
+        condition: "Condition satisfied",
+        score: null,
+        outcome: "pass",
+      },
+      {
+        id: createId("score_rule"),
+        condition: "Condition not satisfied",
+        score: null,
+        outcome: "fail",
+      },
+    ],
+  };
+}
+
 export function createQuestion(): Question {
   return {
     id: createId("question"),
@@ -107,6 +140,7 @@ export function createCriterion(
     evidence_checks: [createEvidenceCheck()],
     linked_question_ids: [],
     linked_schedule_fields: [],
+    deterministic_scoring: null,
   };
 }
 

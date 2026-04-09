@@ -75,6 +75,26 @@ class EvidenceCheck(BaseModel):
     description: str
 
 
+class DeterministicScoringType(str, Enum):
+    PASS_FAIL = "pass_fail"
+    NUMERIC_BANDED = "numeric_banded"
+    DISCRETE_BANDED = "discrete_banded"
+
+
+class DeterministicScoringRule(BaseModel):
+    id: str
+    condition: str
+    score: float | None = None
+    outcome: Literal["pass", "fail"] | None = None
+
+
+class DeterministicScoringGuide(BaseModel):
+    guide_type: DeterministicScoringType
+    answer_format: str
+    summary: str
+    rules: list[DeterministicScoringRule] = Field(default_factory=list)
+
+
 class Question(BaseModel):
     id: str
     text: str
@@ -109,6 +129,7 @@ class Criterion(BaseModel):
     evidence_checks: list[EvidenceCheck] = Field(default_factory=list)
     linked_question_ids: list[str] = Field(default_factory=list)
     linked_schedule_fields: list[str] = Field(default_factory=list)
+    deterministic_scoring: DeterministicScoringGuide | None = None
 
 
 class RubricProposal(BaseModel):
@@ -158,4 +179,3 @@ class SessionSnapshot(BaseModel):
 
 class CreateSessionRequest(BaseModel):
     session_id: str | None = None
-

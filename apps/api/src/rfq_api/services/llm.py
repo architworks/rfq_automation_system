@@ -13,6 +13,9 @@ from ..models import (
     OFFICIAL_AWARD_BASIS,
     Criterion,
     CriterionType,
+    DeterministicScoringGuide,
+    DeterministicScoringRule,
+    DeterministicScoringType,
     EvidenceCheck,
     Question,
     ResponseSchedule,
@@ -39,15 +42,18 @@ class LLMClient(ABC):
 
 Identifier = Annotated[str, Field(min_length=2, max_length=40, pattern=r"^[a-z][a-z0-9_]*$")]
 ShortTitle = Annotated[str, Field(min_length=3, max_length=72)]
-BodyText = Annotated[str, Field(min_length=8, max_length=180)]
-PurposeText = Annotated[str, Field(min_length=8, max_length=120)]
-ReasonText = Annotated[str, Field(min_length=8, max_length=160)]
+DescriptionText = Annotated[str, Field(min_length=8, max_length=220)]
+QuestionText = Annotated[str, Field(min_length=12, max_length=500)]
+PurposeText = Annotated[str, Field(min_length=8, max_length=140)]
+ReasonText = Annotated[str, Field(min_length=8, max_length=220)]
+FormatText = Annotated[str, Field(min_length=3, max_length=120)]
+ConditionText = Annotated[str, Field(min_length=3, max_length=220)]
 
 
 class GeneratedSection(BaseModel):
     id: Identifier
     title: ShortTitle
-    description: BodyText
+    description: DescriptionText
 
 
 class GeneratedEvidenceCheck(BaseModel):
@@ -56,21 +62,36 @@ class GeneratedEvidenceCheck(BaseModel):
     description: PurposeText
 
 
+class GeneratedDeterministicScoringRule(BaseModel):
+    id: Identifier
+    condition: ConditionText
+    score: float | None = Field(default=None, ge=0, le=100)
+    outcome: Literal["pass", "fail"] | None = None
+
+
+class GeneratedDeterministicScoringGuide(BaseModel):
+    guide_type: DeterministicScoringType
+    answer_format: FormatText
+    summary: PurposeText
+    rules: list[GeneratedDeterministicScoringRule] = Field(default_factory=list, min_length=1, max_length=6)
+
+
 class CriterionDraft(BaseModel):
     id: Identifier
     section_id: Identifier
     title: ShortTitle
-    description: BodyText
+    description: DescriptionText
     criterion_type: CriterionType
     weight: float | None = Field(default=None, ge=0, le=100)
     min_cutoff: float | None = Field(default=None, ge=0, le=100)
     max_score: float | None = Field(default=None, ge=0, le=100)
     evidence_checks: list[GeneratedEvidenceCheck] = Field(default_factory=list, min_length=1, max_length=1)
+    deterministic_scoring: GeneratedDeterministicScoringGuide | None = None
 
 
 class GeneratedQuestion(BaseModel):
     id: Identifier
-    text: BodyText
+    text: QuestionText
     purpose: PurposeText
     linked_criteria: list[Identifier] = Field(default_factory=list, min_length=1, max_length=3)
 
@@ -139,6 +160,11 @@ class OpenAIResponsesClient(LLMClient):
             "Every criterion must include exactly one evidence check. "
             "Questions must be mutually distinct and collectively cover the criteria without unnecessary overlap. "
             "Schedules must capture structured vendor inputs a buyer can compare later. "
+            "Vendor-facing question text must be complete and readable, not clipped mid-sentence. "
+            "When a criterion can be evaluated directly from a binary answer, a numeric count, or a discrete stated choice, "
+            "include a deterministic_scoring guide with explicit rules. "
+            "Use deterministic scoring mainly for objective compliance, completeness, count, or threshold checks. "
+            "Leave deterministic_scoring null for narrative or evaluator-judgement criteria. "
             "Keep titles short, descriptions concise, and avoid repeating the RFQ narrative."
         )
         input_text = (
@@ -176,6 +202,7 @@ class OpenAIResponsesClient(LLMClient):
                 "Retry in ultra-compact mode. "
                 "Use the smallest valid response that still satisfies the schema. "
                 "Prefer 2 sections, 6 criteria, 5 questions, 2 schedules, and 2 rationale bullets. "
+                "Keep question text complete even in compact mode. "
                 "Keep titles short, keep descriptions under 80 characters, avoid duplicate phrasing, "
                 "and do not include extra narrative."
             )
@@ -323,6 +350,24 @@ class OpenAIResponsesClient(LLMClient):
                     ],
                     linked_question_ids=OpenAIResponsesClient._dedupe(question_links[criterion.id]),
                     linked_schedule_fields=OpenAIResponsesClient._dedupe(schedule_links[criterion.id]),
+                    deterministic_scoring=(
+                        DeterministicScoringGuide(
+                            guide_type=criterion.deterministic_scoring.guide_type,
+                            answer_format=criterion.deterministic_scoring.answer_format,
+                            summary=criterion.deterministic_scoring.summary,
+                            rules=[
+                                DeterministicScoringRule(
+                                    id=rule.id,
+                                    condition=rule.condition,
+                                    score=rule.score,
+                                    outcome=rule.outcome,
+                                )
+                                for rule in criterion.deterministic_scoring.rules
+                            ],
+                        )
+                        if criterion.deterministic_scoring is not None
+                        else None
+                    ),
                 )
             )
 

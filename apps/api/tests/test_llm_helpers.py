@@ -1,6 +1,8 @@
 from rfq_api.seeds import build_seed_rfq
 from rfq_api.services.llm import (
     CriterionDraft,
+    GeneratedDeterministicScoringGuide,
+    GeneratedDeterministicScoringRule,
     GeneratedEvidenceCheck,
     GeneratedQuestion,
     GeneratedResponseSchedule,
@@ -9,7 +11,7 @@ from rfq_api.services.llm import (
     LLMRubricProposal,
     OpenAIResponsesClient,
 )
-from rfq_api.models import CriterionType
+from rfq_api.models import CriterionType, DeterministicScoringType
 
 
 def test_build_rfq_brief_is_readable_text() -> None:
@@ -24,6 +26,11 @@ def test_build_rfq_brief_is_readable_text() -> None:
 
 
 def test_compose_rubric_backfills_question_and_schedule_links() -> None:
+    long_question_text = (
+        "Describe your governance approach across strategy, creative, production, media, compliance, "
+        "stakeholder reviews, escalation handling, and launch decision-making, including named owners, "
+        "approval forums, and how delivery risks would be surfaced before launch readiness."
+    )
     generated = LLMRubricProposal(
         sections=[
             GeneratedSection(
@@ -128,13 +135,30 @@ def test_compose_rubric_backfills_question_and_schedule_links() -> None:
                         description="Provide pricing evidence.",
                     )
                 ],
+                deterministic_scoring=GeneratedDeterministicScoringGuide(
+                    guide_type=DeterministicScoringType.PASS_FAIL,
+                    answer_format="Yes/No confirmation",
+                    summary="Pricing completeness can be checked directly.",
+                    rules=[
+                        GeneratedDeterministicScoringRule(
+                            id="rule_pass",
+                            condition="All applicable line items are quoted clearly.",
+                            outcome="pass",
+                        ),
+                        GeneratedDeterministicScoringRule(
+                            id="rule_fail",
+                            condition="Any applicable line item is missing or unclear.",
+                            outcome="fail",
+                        ),
+                    ],
+                ),
             ),
         ],
         aggregate_technical_threshold=70,
         questions=[
             GeneratedQuestion(
                 id="q_1",
-                text="Describe governance.",
+                text=long_question_text,
                 purpose="Check governance.",
                 linked_criteria=["crit_1", "unknown_criterion"],
             ),
@@ -205,4 +229,7 @@ def test_compose_rubric_backfills_question_and_schedule_links() -> None:
     assert proposal.criteria[0].linked_schedule_fields == ["pricing_schedule.total_fee"]
     assert proposal.criteria[1].linked_question_ids == []
     assert proposal.criteria[1].linked_schedule_fields == ["pricing_schedule.total_fee"]
+    assert proposal.criteria[5].deterministic_scoring is not None
+    assert proposal.criteria[5].deterministic_scoring.rules[0].outcome == "pass"
+    assert proposal.questions[0].text == long_question_text
     assert proposal.questions[0].linked_criteria == ["crit_1"]

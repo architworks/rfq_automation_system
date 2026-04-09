@@ -1,5 +1,9 @@
 #%%
 
+import time
+
+from time import time
+
 from openai import OpenAI
 from rfq_api.models import (
     OFFICIAL_AWARD_BASIS,
@@ -291,20 +295,22 @@ input_text = (
     "Generate an RFQ evaluation rubric for the following draft.\n"
     f"{rfq_text}"
 )
-#%%
 print(input_text)
 
-
-
 #%%
+import time
+# time this call to see how long it takes for the model to generate the rubric proposal
+start = time.time()
 response = client.responses.parse(
-    model="gpt-5.4",  # e.g. gpt-5.4
+    model="gpt-5-nano",  # e.g. gpt-5.4
     instructions=instructions,
     input=input_text,
     text_format=RubricProposal,
+    reasoning = {"effort": "minimal"}
 )
 
-
+end = time.time()
+print(f"Rubric proposal generation took {end - start:.2f} seconds.")
 
 #%%
 proposal = response.output_parsed

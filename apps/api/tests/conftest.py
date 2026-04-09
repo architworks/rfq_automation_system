@@ -7,6 +7,9 @@ from rfq_api.main import app, get_llm_client, get_session_store
 from rfq_api.models import (
     Criterion,
     CriterionType,
+    DeterministicScoringGuide,
+    DeterministicScoringRule,
+    DeterministicScoringType,
     EvidenceCheck,
     Question,
     ResponseSchedule,
@@ -104,6 +107,23 @@ def build_valid_rubric_proposal() -> RubricProposal:
                     )
                 ],
                 linked_schedule_fields=["pricing_schedule.total_fee"],
+                deterministic_scoring=DeterministicScoringGuide(
+                    guide_type=DeterministicScoringType.PASS_FAIL,
+                    answer_format="Schedule completeness",
+                    summary="Pass if the commercial schedule is complete enough for downstream comparison.",
+                    rules=[
+                        DeterministicScoringRule(
+                            id="rule_complete",
+                            condition="All required commercial fields are populated.",
+                            outcome="pass",
+                        ),
+                        DeterministicScoringRule(
+                            id="rule_incomplete",
+                            condition="Any required commercial field is missing.",
+                            outcome="fail",
+                        ),
+                    ],
+                ),
             ),
         ],
         aggregate_technical_threshold=65,

@@ -39,6 +39,13 @@ def test_technical_weights_must_total_one_hundred() -> None:
     assert any(issue.field == "criteria" for issue in issues)
 
 
+def test_deterministic_scoring_requires_rules() -> None:
+    proposal = build_valid_rubric_proposal()
+    proposal.criteria[3].deterministic_scoring.rules = []
+    issues = validate_rubric_proposal(proposal)
+    assert any(issue.field == "criteria[3].deterministic_scoring.rules" for issue in issues)
+
+
 def test_session_ttl_cleanup_removes_stale_records() -> None:
     from datetime import UTC, datetime, timedelta
 

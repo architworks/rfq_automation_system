@@ -155,6 +155,17 @@ function createRubricProposal(): RubricProposal {
         ],
         linked_question_ids: ["question_experience"],
         linked_schedule_fields: ["schedule_team.lead_experience"],
+        deterministic_scoring: {
+          guide_type: "numeric_banded",
+          answer_format: "Comparable launches in last 3 years",
+          summary: "Score experience from the number of comparable launches disclosed by the vendor.",
+          rules: [
+            { id: "rule_experience_1", condition: "5 or more launches", score: 10, outcome: null },
+            { id: "rule_experience_2", condition: "3 to 4 launches", score: 8, outcome: null },
+            { id: "rule_experience_3", condition: "2 launches", score: 6, outcome: null },
+            { id: "rule_experience_4", condition: "0 to 1 launch", score: 0, outcome: null },
+          ],
+        },
       },
       {
         id: "criterion_governance",
@@ -174,12 +185,13 @@ function createRubricProposal(): RubricProposal {
         ],
         linked_question_ids: ["question_governance"],
         linked_schedule_fields: ["schedule_team.program_lead"],
+        deterministic_scoring: null,
       },
       {
         id: "criterion_pricing",
         section_id: "section_commercial",
-        title: "Commercial submission",
-        description: "Commercial schedules will feed the downstream QCBS step.",
+        title: "Complete pricing response",
+        description: "Quotes all applicable line items and states exclusions clearly.",
         criterion_type: "commercial",
         weight: null,
         min_cutoff: null,
@@ -191,15 +203,34 @@ function createRubricProposal(): RubricProposal {
             description: "All commercial fields populated.",
           },
         ],
-        linked_question_ids: [],
+        linked_question_ids: ["question_pricing"],
         linked_schedule_fields: ["schedule_commercial.total_fee"],
+        deterministic_scoring: {
+          guide_type: "pass_fail",
+          answer_format: "Pricing completeness confirmation",
+          summary: "Pass if the buyer can clearly tell that all applicable line items are quoted and exclusions are stated.",
+          rules: [
+            {
+              id: "rule_pricing_pass",
+              condition: "All applicable line items are quoted and exclusions are stated clearly.",
+              score: null,
+              outcome: "pass",
+            },
+            {
+              id: "rule_pricing_fail",
+              condition: "Any applicable line item is missing or exclusions are unclear.",
+              score: null,
+              outcome: "fail",
+            },
+          ],
+        },
       },
     ],
     aggregate_technical_threshold: 70,
     questions: [
       {
         id: "question_experience",
-        text: "Describe two comparable launch engagements and their outcomes.",
+        text: "How many comparable nutrition or kids-focused launches have you delivered in the last three years? List them with outcomes.",
         purpose: "Validate relevant launch experience.",
         linked_criteria: ["criterion_experience"],
       },
@@ -208,6 +239,12 @@ function createRubricProposal(): RubricProposal {
         text: "Describe the team structure, reporting cadence, and decision governance.",
         purpose: "Validate execution governance.",
         linked_criteria: ["criterion_governance"],
+      },
+      {
+        id: "question_pricing",
+        text: "Confirm that you are quoting all applicable RFQ line items and clearly identify all exclusions or assumptions.",
+        purpose: "Validate completeness of the commercial response.",
+        linked_criteria: ["criterion_pricing"],
       },
     ],
     response_schedules: [
@@ -401,6 +438,30 @@ describe("RfqWizard", () => {
     expect(await screen.findByDisplayValue("Global Kids Health Drink Launch Partner RFQ")).toBeInTheDocument();
     expect(screen.getByDisplayValue("Strategy & Creative Development")).toBeInTheDocument();
     expect(screen.getByDisplayValue("Launch Program Management")).toBeInTheDocument();
+  });
+
+  it("shows exact linked questions and deterministic grading previews in the criterion cards", async () => {
+    const { api } = createStatefulApi(createSessionSnapshot());
+
+    render(
+      <RfqWizard api={api} autosaveMs={5} onStepChange={vi.fn()} sessionId="session_123" step="proposal" />,
+    );
+
+    expect(await screen.findByText("Rubric Governance")).toBeInTheDocument();
+    expect(
+      screen.getAllByText(
+        "How many comparable nutrition or kids-focused launches have you delivered in the last three years? List them with outcomes.",
+      ).length,
+    ).toBeGreaterThan(0);
+    expect(screen.getByText("5 or more launches")).toBeInTheDocument();
+    expect(
+      screen.getAllByText(
+        "Confirm that you are quoting all applicable RFQ line items and clearly identify all exclusions or assumptions.",
+      ).length,
+    ).toBeGreaterThan(0);
+    expect(
+      screen.getByText("All applicable line items are quoted and exclusions are stated clearly."),
+    ).toBeInTheDocument();
   });
 
   it("keeps buyer RFQ edits across step changes and refresh within the same session", async () => {
