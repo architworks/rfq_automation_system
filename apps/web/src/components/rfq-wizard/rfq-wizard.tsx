@@ -133,16 +133,56 @@ function buildScheduleFieldLookup(responseSchedules: ResponseSchedule[]): Map<st
 function formatCriterionMode(criterion: Criterion): string {
   switch (criterion.criterion_type) {
     case "mac":
-      return "Pass / fail gate";
+      return "Mandatory gate · pass/fail only";
     case "technical_cutoff_backed":
-      return `Scored with cutoff${criterion.min_cutoff !== null ? ` · cutoff ${criterion.min_cutoff}/${criterion.max_score ?? "?"}` : ""}`;
+      return `Scored criterion with minimum qualifying score${criterion.min_cutoff !== null ? ` · cutoff ${criterion.min_cutoff}/${criterion.max_score ?? "?"}` : ""}`;
     case "technical_scored_only":
-      return `Scored criterion${criterion.max_score !== null ? ` · max ${criterion.max_score}` : ""}`;
+      return `Scored criterion without individual cutoff${criterion.max_score !== null ? ` · max ${criterion.max_score}` : ""}`;
     case "commercial":
-      return "Commercial capture";
+      return "Commercial capture only";
     default:
       return "Criterion";
   }
+}
+
+function formatCriterionTypeLabel(criterionType: CriterionType): string {
+  return CRITERION_TYPE_OPTIONS.find((option) => option.value === criterionType)?.label ?? criterionType;
+}
+
+function formatCriterionWeight(criterion: Criterion): string {
+  if (criterion.criterion_type === "mac") {
+    return "Not part of technical scoring";
+  }
+
+  if (criterion.criterion_type === "commercial") {
+    return "Commercial only";
+  }
+
+  return typeof criterion.weight === "number" ? String(criterion.weight) : "Not set";
+}
+
+function formatCriterionCutoff(criterion: Criterion): string {
+  if (criterion.criterion_type === "mac") {
+    return "Pass/Fail only";
+  }
+
+  if (criterion.criterion_type === "technical_scored_only") {
+    return "None";
+  }
+
+  if (criterion.criterion_type === "commercial") {
+    return "Not applicable";
+  }
+
+  return typeof criterion.min_cutoff === "number" ? String(criterion.min_cutoff) : "Not set";
+}
+
+function formatCriterionMaxScore(criterion: Criterion): string {
+  if (criterion.criterion_type === "mac") {
+    return "Not scored";
+  }
+
+  return typeof criterion.max_score === "number" ? String(criterion.max_score) : "Not set";
 }
 
 function formatScoringResult(rule: DeterministicScoringRule): string {
@@ -1267,6 +1307,7 @@ function CriterionEditor({
     id: fieldId,
     field: scheduleFieldById.get(fieldId) ?? null,
   }));
+  const evidenceCheckCount = criterion.evidence_checks?.length ?? 0;
 
   return (
     <div className={styles.itemCard}>
@@ -1280,24 +1321,57 @@ function CriterionEditor({
         <div className={styles.previewHeader}>
           <div>
             <div className={styles.previewEyebrow}>RFQ Creator View</div>
-            <div className={styles.previewTitle}>Criterion, questionnaire, and scoring together</div>
+            <div className={styles.previewTitle}>Buyer-facing criterion view</div>
           </div>
           <div className={styles.previewBadge}>{formatCriterionMode(criterion)}</div>
         </div>
 
-        <div className={styles.previewSection}>
-          <div className={styles.previewSectionTitle}>Exact linked questions</div>
+        <section className={`${styles.previewSection} ${styles.previewBox}`}>
+          <div className={styles.previewSectionTitle}>Criterion summary</div>
+          <div className={styles.summaryGrid}>
+            <div className={styles.summaryItem}>
+              <div className={styles.summaryLabel}>Criterion name</div>
+              <div className={styles.summaryValue}>{criterion.title || criterion.id}</div>
+            </div>
+            <div className={styles.summaryItem}>
+              <div className={styles.summaryLabel}>Evaluation mode</div>
+              <div className={styles.summaryValue}>{formatCriterionTypeLabel(criterion.criterion_type)}</div>
+            </div>
+            <div className={styles.summaryItem}>
+              <div className={styles.summaryLabel}>Technical weight</div>
+              <div className={styles.summaryValue}>{formatCriterionWeight(criterion)}</div>
+            </div>
+            <div className={styles.summaryItem}>
+              <div className={styles.summaryLabel}>Minimum qualifying score</div>
+              <div className={styles.summaryValue}>{formatCriterionCutoff(criterion)}</div>
+            </div>
+            <div className={styles.summaryItem}>
+              <div className={styles.summaryLabel}>Maximum score</div>
+              <div className={styles.summaryValue}>{formatCriterionMaxScore(criterion)}</div>
+            </div>
+          </div>
+          <div className={styles.summaryNarrative}>
+            <div className={styles.summaryLabel}>What this criterion measures</div>
+            <div className={styles.summaryValue}>
+              {criterion.description || "No internal measurement statement has been added yet."}
+            </div>
+          </div>
+        </section>
+
+        <section className={`${styles.previewSection} ${styles.previewBox}`}>
+          <div className={styles.previewSectionTitle}>Vendor questionnaire</div>
           {linkedQuestions.length > 0 ? (
             <div className={styles.previewList}>
               {linkedQuestions.map(({ id, question }) => (
                 <div className={styles.previewItem} key={id}>
                   <div className={styles.previewItemHeader}>
                     <span className={styles.previewItemId}>{id}</span>
-                    <span className={styles.previewItemMeta}>Vendor question</span>
+                    <span className={styles.previewItemMeta}>Vendor-facing question</span>
                   </div>
                   {question ? (
                     <>
                       <div className={styles.previewItemBody}>{question.text}</div>
+                      <div className={styles.summaryLabel}>Why this question exists</div>
                       <div className={styles.previewItemMeta}>{question.purpose}</div>
                     </>
                   ) : (
@@ -1308,15 +1382,15 @@ function CriterionEditor({
             </div>
           ) : (
             <div className={styles.previewEmpty}>
-              No exact vendor question is linked yet. This criterion is currently traceable only through evidence
-              checks or schedule fields.
+              No exact vendor question is linked yet. This criterion is currently being fed only by structured
+              input fields or evaluator checks.
             </div>
           )}
-        </div>
+        </section>
 
         {linkedScheduleFields.length > 0 ? (
-          <div className={styles.previewSection}>
-            <div className={styles.previewSectionTitle}>Structured vendor inputs used for this criterion</div>
+          <section className={`${styles.previewSection} ${styles.previewBox}`}>
+            <div className={styles.previewSectionTitle}>Structured vendor inputs</div>
             <div className={styles.previewList}>
               {linkedScheduleFields.map(({ id, field }) => (
                 <div className={styles.previewItem} key={id}>
@@ -1342,253 +1416,291 @@ function CriterionEditor({
                 </div>
               ))}
             </div>
-          </div>
+          </section>
         ) : null}
 
-        <DeterministicScoringPreview criterion={criterion} />
+        <section className={`${styles.previewSection} ${styles.previewBox}`}>
+          <DeterministicScoringPreview criterion={criterion} />
+        </section>
       </div>
-      <div className={`${styles.fieldGrid} ${styles.threeCol}`}>
-        <label className={styles.label}>
-          Criterion ID
-          <input
-            className={styles.input}
-            value={criterion.id}
-            onChange={(event) =>
-              onChange((current) => {
-                current.id = event.target.value;
-              })
-            }
-          />
-        </label>
-        <label className={styles.label}>
-          Section ID
-          <input
-            className={styles.input}
-            value={criterion.section_id}
-            onChange={(event) =>
-              onChange((current) => {
-                current.section_id = event.target.value;
-              })
-            }
-          />
-        </label>
-        <label className={styles.label}>
-          Criterion Type
-          <select
-            className={styles.select}
-            value={criterion.criterion_type}
-            onChange={(event) =>
-              onChange((current) => {
-                const nextType = event.target.value as CriterionType;
-                current.criterion_type = nextType;
-                if (nextType === "mac") {
-                  current.weight = null;
-                  current.min_cutoff = null;
-                  current.max_score = null;
-                } else if (nextType === "commercial") {
-                  current.weight = null;
-                  current.min_cutoff = null;
-                  current.max_score = current.max_score ?? 10;
-                } else if (nextType === "technical_scored_only") {
-                  current.weight = current.weight ?? 0;
-                  current.min_cutoff = null;
-                  current.max_score = current.max_score ?? 10;
-                } else if (nextType === "technical_cutoff_backed") {
-                  current.weight = current.weight ?? 0;
-                  current.min_cutoff = current.min_cutoff ?? 0;
-                  current.max_score = current.max_score ?? 10;
-                }
-              })
-            }
-          >
-            {CRITERION_TYPE_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className={styles.label}>
-          Weight
-          <input
-            className={styles.input}
-            type="number"
-            value={criterion.weight ?? ""}
-            onChange={(event) =>
-              onChange((current) => {
-                current.weight = parseNumber(event.target.value);
-              })
-            }
-          />
-        </label>
-        <label className={styles.label}>
-          Min Cutoff
-          <input
-            className={styles.input}
-            type="number"
-            value={criterion.min_cutoff ?? ""}
-            onChange={(event) =>
-              onChange((current) => {
-                current.min_cutoff = parseNumber(event.target.value);
-              })
-            }
-          />
-        </label>
-        <label className={styles.label}>
-          Max Score
-          <input
-            className={styles.input}
-            type="number"
-            value={criterion.max_score ?? ""}
-            onChange={(event) =>
-              onChange((current) => {
-                current.max_score = parseNumber(event.target.value);
-              })
-            }
-          />
-        </label>
-      </div>
-      <label className={styles.label} style={{ marginTop: 12 }}>
-        Title
-        <input
-          className={styles.input}
-          value={criterion.title}
-          onChange={(event) =>
-            onChange((current) => {
-              current.title = event.target.value;
-            })
-          }
-        />
-      </label>
-      <label className={styles.label} style={{ marginTop: 12 }}>
-        Description
-        <textarea
-          className={styles.textarea}
-          value={criterion.description}
-          onChange={(event) =>
-            onChange((current) => {
-              current.description = event.target.value;
-            })
-          }
-        />
-      </label>
-      <div className={`${styles.fieldGrid} ${styles.twoCol}`} style={{ marginTop: 12 }}>
-        <label className={styles.label}>
-          Linked Question IDs (comma separated)
-          <input
-            className={styles.input}
-            value={toCsv(criterion.linked_question_ids)}
-            onChange={(event) =>
-              onChange((current) => {
-                current.linked_question_ids = parseCsv(event.target.value);
-              })
-            }
-          />
-        </label>
-        <label className={styles.label}>
-          Linked Schedule Fields (comma separated)
-          <input
-            className={styles.input}
-            value={toCsv(criterion.linked_schedule_fields)}
-            onChange={(event) =>
-              onChange((current) => {
-                current.linked_schedule_fields = parseCsv(event.target.value);
-              })
-            }
-          />
-        </label>
-      </div>
-      <div style={{ marginTop: 14 }}>
-        <div className={styles.itemHeader}>
-          <div className={styles.itemTitle}>Evidence Checks</div>
-          <button
-            className={styles.secondaryButton}
-            onClick={() =>
-              onChange((current) => {
-                current.evidence_checks = [...(current.evidence_checks ?? []), createEvidenceCheck()];
-              })
-            }
-            type="button"
-          >
-            Add Evidence Check
-          </button>
+      <div className={styles.editorSection}>
+        <div className={styles.editorSectionTitle}>Scoring setup</div>
+        <div className={styles.editorSectionSubtle}>
+          Define how this criterion behaves in technical or commercial evaluation.
         </div>
-        <div className={styles.list}>
-          {(criterion.evidence_checks ?? []).map((evidence: EvidenceCheck, evidenceIndex: number) => (
-            <div className={styles.itemCard} key={evidence.id}>
-              <div className={styles.itemHeader}>
-                <div className={styles.itemTitle}>{evidence.id}</div>
-                <button
-                  className={styles.dangerButton}
-                  onClick={() =>
-                    onChange((current) => {
-                      const evidenceChecks = current.evidence_checks ?? [];
-                      evidenceChecks.splice(evidenceIndex, 1);
-                      current.evidence_checks = evidenceChecks;
-                    })
+        <div className={`${styles.fieldGrid} ${styles.threeCol}`}>
+          <label className={styles.label}>
+            Evaluation Mode
+            <select
+              className={styles.select}
+              value={criterion.criterion_type}
+              onChange={(event) =>
+                onChange((current) => {
+                  const nextType = event.target.value as CriterionType;
+                  current.criterion_type = nextType;
+                  if (nextType === "mac") {
+                    current.weight = null;
+                    current.min_cutoff = null;
+                    current.max_score = null;
+                  } else if (nextType === "commercial") {
+                    current.weight = null;
+                    current.min_cutoff = null;
+                    current.max_score = current.max_score ?? 10;
+                  } else if (nextType === "technical_scored_only") {
+                    current.weight = current.weight ?? 0;
+                    current.min_cutoff = null;
+                    current.max_score = current.max_score ?? 10;
+                  } else if (nextType === "technical_cutoff_backed") {
+                    current.weight = current.weight ?? 0;
+                    current.min_cutoff = current.min_cutoff ?? 0;
+                    current.max_score = current.max_score ?? 10;
                   }
-                  type="button"
-                >
-                  Remove
-                </button>
-              </div>
-              <div className={`${styles.fieldGrid} ${styles.twoCol}`}>
-                <label className={styles.label}>
-                  Check ID
-                  <input
-                    className={styles.input}
-                    value={evidence.id}
-                    onChange={(event) =>
-                      onChange((current) => {
-                        const evidenceChecks = current.evidence_checks ?? [];
-                        if (!evidenceChecks[evidenceIndex]) {
-                          return;
-                        }
-                        evidenceChecks[evidenceIndex].id = event.target.value;
-                        current.evidence_checks = evidenceChecks;
-                      })
-                    }
-                  />
-                </label>
-                <label className={styles.label}>
-                  Label
-                  <input
-                    className={styles.input}
-                    value={evidence.label}
-                    onChange={(event) =>
-                      onChange((current) => {
-                        const evidenceChecks = current.evidence_checks ?? [];
-                        if (!evidenceChecks[evidenceIndex]) {
-                          return;
-                        }
-                        evidenceChecks[evidenceIndex].label = event.target.value;
-                        current.evidence_checks = evidenceChecks;
-                      })
-                    }
-                  />
-                </label>
-              </div>
-              <label className={styles.label} style={{ marginTop: 12 }}>
-                Description
-                <textarea
-                  className={styles.textarea}
-                  value={evidence.description}
+                })
+              }
+            >
+              {CRITERION_TYPE_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className={styles.label}>
+            Technical Weight
+            <input
+              className={styles.input}
+              type="number"
+              value={criterion.weight ?? ""}
+              onChange={(event) =>
+                onChange((current) => {
+                  current.weight = parseNumber(event.target.value);
+                })
+              }
+            />
+          </label>
+          <label className={styles.label}>
+            Minimum Qualifying Score
+            <input
+              className={styles.input}
+              type="number"
+              value={criterion.min_cutoff ?? ""}
+              onChange={(event) =>
+                onChange((current) => {
+                  current.min_cutoff = parseNumber(event.target.value);
+                })
+              }
+            />
+          </label>
+          <label className={styles.label}>
+            Maximum Score
+            <input
+              className={styles.input}
+              type="number"
+              value={criterion.max_score ?? ""}
+              onChange={(event) =>
+                onChange((current) => {
+                  current.max_score = parseNumber(event.target.value);
+                })
+              }
+            />
+          </label>
+        </div>
+      </div>
+
+      <div className={styles.editorSection}>
+        <div className={styles.editorSectionTitle}>Criterion definition</div>
+        <div className={styles.editorSectionSubtle}>
+          This is the evaluator-facing definition of what the criterion is intended to judge.
+        </div>
+        <label className={styles.label}>
+          Criterion Name
+          <input
+            className={styles.input}
+            value={criterion.title}
+            onChange={(event) =>
+              onChange((current) => {
+                current.title = event.target.value;
+              })
+            }
+          />
+        </label>
+        <label className={styles.label}>
+          What This Criterion Measures
+          <textarea
+            className={styles.textarea}
+            value={criterion.description}
+            onChange={(event) =>
+              onChange((current) => {
+                current.description = event.target.value;
+              })
+            }
+          />
+        </label>
+      </div>
+
+      <details className={styles.advancedPanel}>
+        <summary className={styles.advancedSummary}>
+          <span>Advanced traceability and evaluator checks</span>
+          <span className={styles.advancedMeta}>
+            {evidenceCheckCount} evaluator {evidenceCheckCount === 1 ? "check" : "checks"}
+          </span>
+        </summary>
+        <div className={styles.advancedBody}>
+          <div className={styles.editorSection}>
+            <div className={styles.editorSectionTitle}>Internal mapping</div>
+            <div className={styles.editorSectionSubtle}>
+              Adjust these only when you need to change IDs or traceability links manually.
+            </div>
+            <div className={`${styles.fieldGrid} ${styles.twoCol}`}>
+              <label className={styles.label}>
+                Internal Criterion ID
+                <input
+                  className={styles.input}
+                  value={criterion.id}
                   onChange={(event) =>
                     onChange((current) => {
-                      const evidenceChecks = current.evidence_checks ?? [];
-                      if (!evidenceChecks[evidenceIndex]) {
-                        return;
-                      }
-                      evidenceChecks[evidenceIndex].description = event.target.value;
-                      current.evidence_checks = evidenceChecks;
+                      current.id = event.target.value;
+                    })
+                  }
+                />
+              </label>
+              <label className={styles.label}>
+                Internal Section ID
+                <input
+                  className={styles.input}
+                  value={criterion.section_id}
+                  onChange={(event) =>
+                    onChange((current) => {
+                      current.section_id = event.target.value;
+                    })
+                  }
+                />
+              </label>
+              <label className={styles.label}>
+                Linked Vendor Question IDs (comma separated)
+                <input
+                  className={styles.input}
+                  value={toCsv(criterion.linked_question_ids)}
+                  onChange={(event) =>
+                    onChange((current) => {
+                      current.linked_question_ids = parseCsv(event.target.value);
+                    })
+                  }
+                />
+              </label>
+              <label className={styles.label}>
+                Linked Structured Input Field IDs (comma separated)
+                <input
+                  className={styles.input}
+                  value={toCsv(criterion.linked_schedule_fields)}
+                  onChange={(event) =>
+                    onChange((current) => {
+                      current.linked_schedule_fields = parseCsv(event.target.value);
                     })
                   }
                 />
               </label>
             </div>
-          ))}
+          </div>
+
+          <div className={styles.editorSection}>
+            <div className={styles.itemHeader}>
+              <div>
+                <div className={styles.editorSectionTitle}>Evaluator checks</div>
+                <div className={styles.editorSectionSubtle}>
+                  These define what the evaluator must verify when qualifying or scoring this criterion.
+                </div>
+              </div>
+              <button
+                className={styles.secondaryButton}
+                onClick={() =>
+                  onChange((current) => {
+                    current.evidence_checks = [...(current.evidence_checks ?? []), createEvidenceCheck()];
+                  })
+                }
+                type="button"
+              >
+                Add Evaluator Check
+              </button>
+            </div>
+            <div className={styles.list}>
+              {(criterion.evidence_checks ?? []).map((evidence: EvidenceCheck, evidenceIndex: number) => (
+                <div className={styles.itemCard} key={evidence.id}>
+                  <div className={styles.itemHeader}>
+                    <div className={styles.itemTitle}>{evidence.label || evidence.id}</div>
+                    <button
+                      className={styles.dangerButton}
+                      onClick={() =>
+                        onChange((current) => {
+                          const evidenceChecks = current.evidence_checks ?? [];
+                          evidenceChecks.splice(evidenceIndex, 1);
+                          current.evidence_checks = evidenceChecks;
+                        })
+                      }
+                      type="button"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                  <div className={`${styles.fieldGrid} ${styles.twoCol}`}>
+                    <label className={styles.label}>
+                      Evaluator Check ID
+                      <input
+                        className={styles.input}
+                        value={evidence.id}
+                        onChange={(event) =>
+                          onChange((current) => {
+                            const evidenceChecks = current.evidence_checks ?? [];
+                            if (!evidenceChecks[evidenceIndex]) {
+                              return;
+                            }
+                            evidenceChecks[evidenceIndex].id = event.target.value;
+                            current.evidence_checks = evidenceChecks;
+                          })
+                        }
+                      />
+                    </label>
+                    <label className={styles.label}>
+                      Evaluator Check Name
+                      <input
+                        className={styles.input}
+                        value={evidence.label}
+                        onChange={(event) =>
+                          onChange((current) => {
+                            const evidenceChecks = current.evidence_checks ?? [];
+                            if (!evidenceChecks[evidenceIndex]) {
+                              return;
+                            }
+                            evidenceChecks[evidenceIndex].label = event.target.value;
+                            current.evidence_checks = evidenceChecks;
+                          })
+                        }
+                      />
+                    </label>
+                  </div>
+                  <label className={styles.label} style={{ marginTop: 12 }}>
+                    What Evaluator Must Verify
+                    <textarea
+                      className={styles.textarea}
+                      value={evidence.description}
+                      onChange={(event) =>
+                        onChange((current) => {
+                          const evidenceChecks = current.evidence_checks ?? [];
+                          if (!evidenceChecks[evidenceIndex]) {
+                            return;
+                          }
+                          evidenceChecks[evidenceIndex].description = event.target.value;
+                          current.evidence_checks = evidenceChecks;
+                        })
+                      }
+                    />
+                  </label>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
-      </div>
+      </details>
     </div>
   );
 }
@@ -1603,14 +1715,14 @@ function DeterministicScoringPreview({
   if (!guide) {
     const fallbackMessage =
       criterion.criterion_type === "mac"
-        ? "No explicit rule table is defined yet. This criterion is currently treated as a mandatory pass/fail check based on the linked evidence."
+        ? "No explicit rule table is defined yet. This criterion is currently treated as a mandatory pass/fail gate based on the linked evidence."
         : criterion.criterion_type === "commercial"
-          ? "No explicit deterministic scoring table is defined yet. This criterion is currently informational and intended for downstream commercial comparison."
-          : "No explicit deterministic scoring table is defined for this criterion. This criterion is expected to rely on evaluator judgement, evidence review, and the max score / cutoff fields shown below.";
+          ? "No explicit rule table is defined yet. This criterion is currently informational and intended for downstream commercial comparison."
+          : "No explicit rule table is defined for this criterion. This criterion is expected to rely on evaluator judgement, evidence review, and the score / cutoff settings shown above.";
 
     return (
       <div className={styles.previewSection}>
-        <div className={styles.previewSectionTitle}>Grading scheme</div>
+        <div className={styles.previewSectionTitle}>Scoring and qualifying rule</div>
         <div className={styles.previewEmpty}>{fallbackMessage}</div>
       </div>
     );
@@ -1618,7 +1730,7 @@ function DeterministicScoringPreview({
 
   return (
     <div className={styles.previewSection}>
-      <div className={styles.previewSectionTitle}>Deterministic grading scheme</div>
+      <div className={styles.previewSectionTitle}>Scoring and qualifying rule</div>
       <div className={styles.previewSummary}>
         <strong>Answer format:</strong> {guide.answer_format}
         <span className={styles.previewSeparator}>·</span>

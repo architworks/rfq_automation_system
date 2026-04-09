@@ -145,10 +145,16 @@ export function createCriterion(
 }
 
 export const CRITERION_TYPE_OPTIONS: Array<{ value: CriterionType; label: string }> = [
-  { value: "mac", label: "MAC" },
-  { value: "technical_cutoff_backed", label: "Technical Cutoff-Backed" },
-  { value: "technical_scored_only", label: "Technical Scored-Only" },
-  { value: "commercial", label: "Commercial" },
+  { value: "mac", label: "Mandatory Gate (Pass/Fail)" },
+  {
+    value: "technical_cutoff_backed",
+    label: "Scored Criterion with Minimum Qualifying Score",
+  },
+  {
+    value: "technical_scored_only",
+    label: "Scored Criterion without Individual Cutoff",
+  },
+  { value: "commercial", label: "Commercial Capture Only" },
 ];
 
 export function parseCsv(value: string): string[] {

@@ -287,10 +287,42 @@
   gap: 10px;
 }
 
+.previewBox {
+  padding: 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  background: rgba(255, 255, 255, 0.82);
+}
+
 .previewSectionTitle {
   font-size: 0.92rem;
   font-weight: 700;
   color: #1e293b;
+}
+
+.summaryGrid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.summaryItem,
+.summaryNarrative {
+  display: grid;
+  gap: 6px;
+}
+
+.summaryLabel {
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.summaryValue {
+  line-height: 1.55;
+  color: #0f172a;
 }
 
 .previewList {
@@ -332,6 +364,11 @@
   color: #0f172a;
 }
 
+.previewEmpty {
+  line-height: 1.55;
+  color: #64748b;
+}
+
 .previewSummary {
   line-height: 1.55;
   color: #334155;
@@ -370,6 +407,64 @@
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
+}
+
+.editorSection {
+  display: grid;
+  gap: 14px;
+  margin-top: 16px;
+  padding: 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  background: rgba(248, 250, 252, 0.72);
+}
+
+.editorSectionTitle {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.editorSectionSubtle {
+  line-height: 1.5;
+  color: #64748b;
+  font-size: 0.88rem;
+}
+
+.advancedPanel {
+  margin-top: 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  background: rgba(255, 255, 255, 0.78);
+  overflow: hidden;
+}
+
+.advancedSummary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  cursor: pointer;
+  font-weight: 700;
+  color: #1e293b;
+  list-style: none;
+}
+
+.advancedSummary::-webkit-details-marker {
+  display: none;
+}
+
+.advancedMeta {
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.advancedBody {
+  display: grid;
+  gap: 0;
+  padding: 0 16px 16px;
 }
 
 .table {

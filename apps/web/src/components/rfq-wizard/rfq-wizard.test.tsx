@@ -448,6 +448,12 @@ describe("RfqWizard", () => {
     );
 
     expect(await screen.findByText("Rubric Governance")).toBeInTheDocument();
+    expect(screen.getAllByText("Buyer-facing criterion view").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Criterion summary").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Vendor questionnaire").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Scoring and qualifying rule").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Advanced traceability and evaluator checks").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Scored Criterion with Minimum Qualifying Score").length).toBeGreaterThan(0);
     expect(
       screen.getAllByText(
         "How many comparable nutrition or kids-focused launches have you delivered in the last three years? List them with outcomes.",
