@@ -93,15 +93,15 @@ class LLMClient(ABC):
 
 
 Identifier = Annotated[str, Field(min_length=2, max_length=40, pattern=r"^[a-z][a-z0-9_]*$")]
-ShortTitle = Annotated[str, Field(min_length=3, max_length=72)]
-DescriptionText = Annotated[str, Field(min_length=8, max_length=220)]
-QuestionText = Annotated[str, Field(min_length=12, max_length=500)]
-PurposeText = Annotated[str, Field(min_length=8, max_length=140)]
-ReasonText = Annotated[str, Field(min_length=8, max_length=220)]
-FormatText = Annotated[str, Field(min_length=3, max_length=120)]
-ConditionText = Annotated[str, Field(min_length=3, max_length=220)]
-LongText = Annotated[str, Field(min_length=8, max_length=700)]
-LocatorText = Annotated[str, Field(min_length=2, max_length=80)]
+ShortTitle = Annotated[str, Field(min_length=3)]
+DescriptionText = Annotated[str, Field(min_length=8)]
+QuestionText = Annotated[str, Field(min_length=12)]
+PurposeText = Annotated[str, Field(min_length=8)]
+ReasonText = Annotated[str, Field(min_length=8)]
+FormatText = Annotated[str, Field(min_length=3)]
+ConditionText = Annotated[str, Field(min_length=3)]
+LongText = Annotated[str, Field(min_length=8)]
+LocatorText = Annotated[str, Field(min_length=2)]
 
 
 class GeneratedSection(BaseModel):
@@ -504,11 +504,11 @@ class OpenAIResponsesClient(LLMClient):
             retry_instructions = (
                 f"{instructions} "
                 "Retry in ultra-compact mode. "
-                "Use the smallest valid response that still satisfies the schema. "
+                "Use a compact response shape that still satisfies the schema. "
                 "Prefer 2 sections, 6 criteria, 5 questions, 2 schedules, and 2 rationale bullets. "
-                "Keep question text complete even in compact mode. "
-                "Keep titles short, keep descriptions under 80 characters, avoid duplicate phrasing, "
-                "and do not include extra narrative."
+                "Keep every free-text field complete and readable even in compact mode. "
+                "Do not clip sentences or abbreviate content unnaturally. "
+                "Avoid duplicate phrasing and do not include extra narrative."
             )
             try:
                 return self._parse_once(
