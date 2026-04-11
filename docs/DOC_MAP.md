@@ -10,6 +10,7 @@ This file is the index for the working documentation set. Each topic should be r
 - `SCENARIO_ENGINE.md`: Advisory scenarios, standard vs AI-generated comparisons, and binding vs non-binding outputs.
 - `EXTRACTION_NORMALIZATION.md`: Data extraction, normalization, evidence linkage, and handling of messy vendor documents.
 - `ARCHITECTURE.md`: Technical architecture decisions once implementation design begins.
+- `IMPLEMENTATION_PIPELINE.md`: As-implemented pipeline from vendor upload through extraction, normalization, evaluation, and award output, including exact GenAI class and function entry points.
 - `UI_NOTES.md`: UX and interface decisions once UI work is discussed.
 - `OPEN_QUESTIONS.md`: Unresolved questions and debates.
 
