@@ -17,6 +17,14 @@ No detailed UI decisions have been locked yet. We have intentionally kept UI sec
   - Collapse technical, commercial, and advisory outputs into one undifferentiated view.
 - Implications:
   - UI work should follow the current documentation set rather than lead it.
+- Decision: Once the framework is locked, the buyer must be able to export a vendor-facing RFQ document from the browser.
+- Why This Approach: The generated questionnaire and schedules are not useful unless they can be packaged into the actual document sent to vendors.
+- Rejected Alternatives:
+  - Expose only JSON and expect the buyer to manually assemble the outbound RFQ.
+  - Reuse the internal buyer preview as-is even though it contains evaluation linkage details the vendor should not see.
+- Implications:
+  - The export should include only vendor-visible content such as RFQ header details, scope, timelines, line items, response instructions, questionnaire text, and schedules.
+  - Internal scoring logic, thresholds, evidence checks, and criteria linkages should remain buyer-side only.
 
 ## Open Questions
 - How should the buyer review and lock the evaluation framework?

@@ -42,6 +42,7 @@ import {
   parseCsv,
   toCsv,
 } from "@/lib/rubric-factories";
+import { buildVendorPackDocument } from "@/lib/vendor-pack-docx";
 import { PackStep, ResultsStep, ReviewStep, VendorsStep } from "./phase-two";
 
 import styles from "./rfq-wizard.module.css";
@@ -249,6 +250,7 @@ export function RfqWizard({
   const [autosaveMessage, setAutosaveMessage] = useState("Waiting for changes");
   const [downloadState, setDownloadState] = useState<"idle" | "ready" | "done" | "error">("idle");
   const [vendorPackDownloadState, setVendorPackDownloadState] = useState<"idle" | "ready" | "done" | "error">("idle");
+  const [vendorDocumentDownloadState, setVendorDocumentDownloadState] = useState<"idle" | "ready" | "done" | "error">("idle");
 
   const initialisedRef = useRef(false);
   const savedRfqRef = useRef("");
@@ -261,6 +263,7 @@ export function RfqWizard({
     setEvaluationReport(loaded.evaluation_report ?? null);
     setDownloadState(loaded.locked_artifact ? "ready" : "idle");
     setVendorPackDownloadState(loaded.vendor_pack ? "ready" : "idle");
+    setVendorDocumentDownloadState(loaded.locked_artifact && loaded.vendor_pack ? "ready" : "idle");
     if (loaded.comparison_settings) {
       setComparisonSettingsDraft(cloneValue(loaded.comparison_settings));
     } else if (loaded.locked_artifact) {
@@ -463,6 +466,23 @@ export function RfqWizard({
     } catch (error) {
       setVendorPackDownloadState("error");
       setRequestError(error instanceof Error ? error.message : "Failed to download the vendor pack.");
+    }
+  }
+
+  async function handleDownloadVendorDocument() {
+    if (!lockedArtifact || !vendorPack) {
+      return;
+    }
+
+    setRequestError(null);
+
+    try {
+      const vendorDocument = await buildVendorPackDocument(lockedArtifact, vendorPack);
+      blobToDownload(vendorDocument.blob, vendorDocument.fileName);
+      setVendorDocumentDownloadState("done");
+    } catch (error) {
+      setVendorDocumentDownloadState("error");
+      setRequestError(error instanceof Error ? error.message : "Failed to download the vendor-facing RFQ document.");
     }
   }
 
@@ -769,11 +789,14 @@ export function RfqWizard({
         ) : null}
 
         {step === "pack" ? (
-          vendorPack ? (
+          vendorPack && lockedArtifact ? (
             <PackStep
+              artifact={lockedArtifact}
               downloadState={vendorPackDownloadState}
               onDownload={handleDownloadVendorPack}
+              onDownloadVendorDocument={handleDownloadVendorDocument}
               vendorPack={vendorPack}
+              vendorDocumentDownloadState={vendorDocumentDownloadState}
             />
           ) : (
             <div className={`${styles.banner} ${styles.infoBanner}`}>

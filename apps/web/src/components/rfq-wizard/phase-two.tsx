@@ -7,6 +7,7 @@ import type {
   ExtractedField,
   EvaluationReport,
   FXRate,
+  LockedFrameworkArtifact,
   NormalizedField,
   NormalizedPricingLine,
   UomOverride,
@@ -20,9 +21,12 @@ import styles from "./rfq-wizard.module.css";
 type DownloadState = "idle" | "ready" | "done" | "error";
 
 type PackStepProps = {
+  artifact: LockedFrameworkArtifact;
   vendorPack: VendorPack;
   downloadState: DownloadState;
+  vendorDocumentDownloadState: DownloadState;
   onDownload: () => void;
+  onDownloadVendorDocument: () => void;
 };
 
 type VendorsStepProps = {
@@ -58,11 +62,19 @@ type ResultsStepProps = {
 
 const ACCEPTED_VENDOR_FILES = ".pdf,.ppt,.pptx,.doc,.docx,.xls,.xlsx";
 
-export function PackStep({ vendorPack, downloadState, onDownload }: PackStepProps) {
+export function PackStep({
+  artifact,
+  vendorPack,
+  downloadState,
+  vendorDocumentDownloadState,
+  onDownload,
+  onDownloadVendorDocument,
+}: PackStepProps) {
   const responseInstructions = vendorPack.response_instructions ?? [];
   const questions = vendorPack.questions ?? [];
   const schedules = vendorPack.response_schedules ?? [];
   const criteria = vendorPack.criteria ?? [];
+  const lineItems = artifact.rfq_snapshot.line_items ?? [];
 
   return (
     <div className={styles.grid}>
@@ -75,6 +87,9 @@ export function PackStep({ vendorPack, downloadState, onDownload }: PackStepProp
             </p>
           </div>
           <div className={styles.buttonGroup}>
+            <button className={styles.secondaryButton} onClick={onDownloadVendorDocument} type="button">
+              {vendorDocumentDownloadState === "done" ? "Download vendor RFQ again" : "Download vendor RFQ (.docx)"}
+            </button>
             <button className={styles.secondaryButton} onClick={onDownload} type="button">
               {downloadState === "done" ? "Download pack again" : "Download pack JSON"}
             </button>
@@ -87,8 +102,8 @@ export function PackStep({ vendorPack, downloadState, onDownload }: PackStepProp
             <span className={styles.summaryValue}>{vendorPack.rfq_title}</span>
           </div>
           <div className={styles.summaryItem}>
-            <span className={styles.summaryLabel}>Award Basis</span>
-            <span className={styles.summaryValue}>{vendorPack.official_award_basis}</span>
+            <span className={styles.summaryLabel}>RFQ Code</span>
+            <span className={styles.summaryValue}>{artifact.rfq_snapshot.general_info.rfq_code}</span>
           </div>
           <div className={styles.summaryItem}>
             <span className={styles.summaryLabel}>Questions</span>
@@ -97,6 +112,19 @@ export function PackStep({ vendorPack, downloadState, onDownload }: PackStepProp
           <div className={styles.summaryItem}>
             <span className={styles.summaryLabel}>Schedules</span>
             <span className={styles.summaryValue}>{schedules.length}</span>
+          </div>
+        </div>
+      </section>
+
+      <section className={styles.card}>
+        <div className={styles.cardHeader}>
+          <div>
+            <h2 className={styles.cardTitle}>Vendor Export Scope</h2>
+            <p className={styles.cardSubtle}>
+              The `.docx` export includes RFQ header details, scope, timelines, line items, response instructions,
+              exact questionnaire text, and schedules. It excludes internal scoring logic, thresholds, and evaluator
+              linkages.
+            </p>
           </div>
         </div>
       </section>
@@ -196,9 +224,45 @@ export function PackStep({ vendorPack, downloadState, onDownload }: PackStepProp
       <section className={styles.card}>
         <div className={styles.cardHeader}>
           <div>
+            <h2 className={styles.cardTitle}>Requested Line Items</h2>
+            <p className={styles.cardSubtle}>
+              These line items are included in the vendor-facing document alongside the questionnaire.
+            </p>
+          </div>
+        </div>
+        <div className={styles.tableWrap}>
+          <table className={styles.scoreTable}>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Line Item</th>
+                <th>Category</th>
+                <th>UOM</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              {lineItems.map((lineItem) => (
+                <tr key={lineItem.id}>
+                  <td>{lineItem.id}</td>
+                  <td>{lineItem.product_name}</td>
+                  <td>{lineItem.category}</td>
+                  <td>{lineItem.uom}</td>
+                  <td>{lineItem.description}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section className={styles.card}>
+        <div className={styles.cardHeader}>
+          <div>
             <h2 className={styles.cardTitle}>Criteria Linkages</h2>
             <p className={styles.cardSubtle}>
-              This view shows which locked criteria each question and schedule field ultimately feeds.
+              This view is internal only. It helps the buyer trace the pack back to the locked evaluation framework and
+              is not included in the vendor-facing document export.
             </p>
           </div>
         </div>
