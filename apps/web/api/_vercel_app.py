@@ -3,6 +3,7 @@ from __future__ import annotations
 from collections.abc import Awaitable, Callable
 from pathlib import Path
 import sys
+import traceback
 from typing import Any
 
 
@@ -32,6 +33,18 @@ def _find_api_src_dir() -> Path:
         if (resolved / API_PACKAGE_MARKER).exists():
             return resolved
 
+    # Vercel can flatten or relocate includeFiles inside the function bundle,
+    # so fall back to a bounded recursive search instead of assuming a fixed path.
+    recursive_roots = [CURRENT_DIR, *CURRENT_DIR.parents[:6]]
+    for root in recursive_roots:
+        try:
+            for marker in root.rglob(str(API_PACKAGE_MARKER)):
+                src_dir = marker.resolve().parent.parent
+                if src_dir.is_dir():
+                    return src_dir
+        except OSError:
+            continue
+
     searched = "\n".join(f"- {path}" for path in seen)
     raise RuntimeError(
         "Could not locate the bundled FastAPI source directory for the Vercel Python function. "
@@ -50,15 +63,25 @@ def _load_fastapi_app():
 
 
 class PrefixAwareASGIApp:
-    def __init__(self, inner_app: Callable[[dict[str, Any], Callable[[], Awaitable[Any]], Callable[[Any], Awaitable[None]]], Awaitable[None]], prefix: str) -> None:
-        self.inner_app = inner_app
+    def __init__(self, prefix: str) -> None:
+        self.inner_app: Callable[[dict[str, Any], Callable[[], Awaitable[Any]], Callable[[Any], Awaitable[None]]], Awaitable[None]] | None = None
         self.prefix = prefix.rstrip("/") or "/"
         self.prefix_bytes = self.prefix.encode("utf-8")
 
     async def __call__(self, scope, receive, send) -> None:
         if scope["type"] in {"http", "websocket"}:
             scope = self._strip_prefix(scope)
-        await self.inner_app(scope, receive, send)
+        try:
+            inner_app = self._get_inner_app()
+        except Exception:
+            traceback.print_exc()
+            raise
+        await inner_app(scope, receive, send)
+
+    def _get_inner_app(self):
+        if self.inner_app is None:
+            self.inner_app = _load_fastapi_app()
+        return self.inner_app
 
     def _strip_prefix(self, scope: dict[str, Any]) -> dict[str, Any]:
         path = scope.get("path", "")
@@ -80,5 +103,4 @@ class PrefixAwareASGIApp:
                 updated_scope["raw_path"] = raw_path[len(self.prefix_bytes) :] or b"/"
         return updated_scope
 
-
-app = PrefixAwareASGIApp(_load_fastapi_app(), prefix="/api")
+app = PrefixAwareASGIApp(prefix="/api")
