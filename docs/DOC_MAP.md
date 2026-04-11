@@ -11,6 +11,7 @@ This file is the index for the working documentation set. Each topic should be r
 - `EXTRACTION_NORMALIZATION.md`: Data extraction, normalization, evidence linkage, and handling of messy vendor documents.
 - `ARCHITECTURE.md`: Technical architecture decisions once implementation design begins.
 - `IMPLEMENTATION_PIPELINE.md`: As-implemented pipeline from vendor upload through extraction, normalization, evaluation, and award output, including exact GenAI class and function entry points.
+- `VERCEL_DEPLOYMENT.md`: Deployment shape, environment variables, Git-linked Vercel setup, and current serverless limitations.
 - `UI_NOTES.md`: UX and interface decisions once UI work is discussed.
 - `OPEN_QUESTIONS.md`: Unresolved questions and debates.
 

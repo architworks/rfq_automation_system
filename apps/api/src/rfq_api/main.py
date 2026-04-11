@@ -59,6 +59,19 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
 
+    @app.get("/")
+    def root() -> dict[str, str]:
+        return {
+            "service": settings.app_name,
+            "status": "ok",
+        }
+
+    @app.get("/healthz")
+    def healthz() -> dict[str, str]:
+        return {
+            "status": "ok",
+        }
+
     @app.post("/sessions", response_model=SessionSnapshot)
     def create_session(
         payload: CreateSessionRequest | None = None,

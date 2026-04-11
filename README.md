@@ -2,6 +2,8 @@
 
 Documentation and assignment/reference material live under `docs/`. Start with `docs/DOC_MAP.md` for the product documentation set.
 
+For deployment planning and the current Vercel setup, see `docs/VERCEL_DEPLOYMENT.md`.
+
 Phase 1 implements the seeded RFQ to locked-rubric flow:
 
 - buyer starts from the sample 8-item RFQ

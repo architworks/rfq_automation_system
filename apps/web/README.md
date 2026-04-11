@@ -38,6 +38,8 @@ pnpm dev
 
 Open `http://localhost:3000`.
 
+In local development, the Next.js app rewrites `/sessions...` requests to the FastAPI server at `http://127.0.0.1:8000` by default.
+
 ## Verify
 
 ```bash
@@ -48,7 +50,18 @@ pnpm build
 
 ## Environment Variables
 
-- `NEXT_PUBLIC_API_BASE_URL`: FastAPI base URL, default `http://localhost:8000`
+- `NEXT_PUBLIC_API_BASE_URL`: optional explicit backend base URL override
+- `LOCAL_API_ORIGIN`: optional local rewrite target for development, default `http://127.0.0.1:8000`
+
+## Vercel
+
+This app is prepared for a single-project Vercel deployment using mixed Next.js and Python runtimes:
+
+- Vercel project root: `apps/web`
+- Python entrypoint: `apps/web/api/index.py`
+- FastAPI source imported from `apps/api/src`
+
+See `docs/VERCEL_DEPLOYMENT.md` for the deployment shape and project settings.
 
 ## Test Coverage
 
