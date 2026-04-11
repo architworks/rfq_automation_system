@@ -1,12 +1,12 @@
 # Vercel Deployment
 
-This repo is now prepared for the Vercel Knowledge Base pattern of using Python and JavaScript in the same application:
+This repo is now prepared for a single Vercel project using `Services`:
 
 - one Vercel project
-- project root directory: `apps/web`
-- Next.js serves the frontend
-- Python serverless functions live under `apps/web/api`
-- the Python entrypoint imports the existing FastAPI backend from `apps/api/src`
+- project root directory: repository root
+- `apps/web` is the Next.js frontend service
+- `apps/api/main.py` is the FastAPI backend service entrypoint
+- the backend is mounted at `/api`
 
 ## Deployment Shape
 
@@ -14,54 +14,42 @@ The deployed app should be configured as a single Git-linked Vercel project:
 
 - repository: `architworks/rfq_automation_system`
 - production branch: `prod`
-- root directory: `apps/web`
-- framework preset: Next.js
+- root directory: repository root
+- framework preset: `Services`
 
-## How The Mixed Runtime Setup Works
+## How The Services Setup Works
 
-### Frontend
+### Frontend service
 
 - `apps/web` remains the Next.js app
 - the browser still calls the same public backend paths such as:
   - `/sessions`
   - `/sessions/{session_id}`
   - `/sessions/{session_id}/rubric/generate`
+- production rewrites in `apps/web/next.config.ts` continue to map those browser-facing paths to `/api/...`
 
-### Python backend
+### Backend service
 
-- `apps/web/api/index.py` is the Vercel Python entrypoint
+- `apps/api/main.py` is the Vercel service entrypoint
 - it adds `apps/api/src` to `sys.path`
 - it imports the existing FastAPI application from `rfq_api.main`
+- Vercel mounts the backend service at `/api`
 
-### Routing
+### Root config
 
-To avoid changing the frontend API contract, `apps/web/next.config.ts` rewrites requests as follows:
+- the repo root `vercel.json` defines:
+  - `web` -> `apps/web` at `/`
+  - `api` -> `apps/api/main.py` at `/api`
 
-- in local development:
-  - `/sessions...` -> `http://127.0.0.1:8000/sessions...`
-  - `/healthz` -> `http://127.0.0.1:8000/healthz`
-- in deployed environments:
-  - `/sessions...` -> `/api/sessions...`
-  - `/healthz` -> `/api/healthz`
+## Files Used For This Setup
 
-This keeps the public browser-facing endpoints stable while routing them to Python functions in production.
-
-## Files Added For This Setup
-
-- `apps/web/api/index.py`
-  - Python function entrypoint for Vercel
-- `apps/web/requirements.txt`
-  - Python dependencies for the Vercel Python runtime
-- `apps/web/vercel.json`
-  - function bundling config so the Python function includes `../api/src/**`
-
-## Required Vercel Project Setting
-
-Because the Vercel project root is `apps/web` but the FastAPI source code lives in `apps/api/src`, the Vercel project should enable monorepo source access:
-
-- `sourceFilesOutsideRootDirectory = true`
-
-This is a Vercel project setting, not a repo file.
+- `vercel.json`
+  - root Services config
+- `apps/api/main.py`
+  - FastAPI service entrypoint for Vercel
+- `apps/web/next.config.ts`
+  - keeps local-dev rewrites to the standalone FastAPI server
+  - keeps production rewrites from `/sessions...` to `/api/sessions...`
 
 ## Environment Variables
 
@@ -70,7 +58,7 @@ Set these on the single Vercel project.
 ### Required
 
 - `FRONTEND_ORIGIN`
-  - set this to the production frontend URL for the Vercel project
+  - set this to the production frontend URL
 - `SESSION_TTL_SECONDS`
   - `7200`
 - `AZURE_OPENAI_ENDPOINT`
@@ -82,15 +70,24 @@ Set these on the single Vercel project.
 ### Optional
 
 - `NEXT_PUBLIC_API_BASE_URL`
-  - normally leave unset for the single-project deployment
-  - only set this if you intentionally want the frontend to call some external backend
+  - normally leave unset
+  - only set this if the frontend should call an external backend instead of same-origin routes
 - `LOCAL_API_ORIGIN`
   - optional for local Next.js development
   - default is `http://127.0.0.1:8000`
 
+## Required Vercel Dashboard Settings
+
+Update the existing Vercel project to:
+
+- root directory: repository root
+- framework preset: `Services`
+
+The previous `apps/web` root-directory setup is no longer valid for deployment.
+
 ## Local Development
 
-The mixed-runtime deployment prep does not change local development responsibilities:
+Local development does not change:
 
 1. run FastAPI separately from `apps/api`
 2. run Next.js from `apps/web`
@@ -108,8 +105,6 @@ That means:
 - the deployment is suitable for demo usage
 - session continuity is not guaranteed across cold starts or instance changes
 - uploaded files and in-memory state are ephemeral
-
-This limitation exists regardless of whether we deploy as one Vercel project or two.
 
 ## Follow-Up For True Production Readiness
 

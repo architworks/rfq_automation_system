@@ -55,11 +55,11 @@ pnpm build
 
 ## Vercel
 
-This app is prepared for a single-project Vercel deployment using mixed Next.js and Python runtimes:
+This app is prepared to be deployed as the frontend service in a Vercel `Services` project:
 
-- Vercel project root: `apps/web`
-- Python entrypoint: `apps/web/api/index.py`
-- FastAPI source imported from `apps/api/src`
+- Vercel project root: repository root
+- frontend service entrypoint: `apps/web`
+- backend service entrypoint: `apps/api/main.py`
 
 See `docs/VERCEL_DEPLOYMENT.md` for the deployment shape and project settings.
 
