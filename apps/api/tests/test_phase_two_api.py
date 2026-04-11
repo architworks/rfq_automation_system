@@ -1,0 +1,150 @@
+from __future__ import annotations
+
+import pytest
+
+from rfq_api.models import ComparisonSettings, FXRate
+
+
+def test_vendor_pack_is_derived_from_locked_artifact(client) -> None:
+    session_id = _lock_session(client)
+
+    response = client.get(f"/sessions/{session_id}/vendor-pack")
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["rfq_title"] == "Global Kids Health Drink Launch Partner RFQ"
+    assert payload["official_award_basis"] == "QCBS 70/30"
+    assert payload["questions"][0]["id"] == "q1"
+    assert payload["response_schedules"][0]["columns"][0]["field_id"].startswith("pricing_schedule.")
+
+
+def test_upload_replace_and_review_flow(client) -> None:
+    session_id = _lock_session(client)
+    snapshot = client.post(f"/sessions/{session_id}/vendors", json={"name": "Alpha"})
+    vendor_id = snapshot.json()["vendors"][0]["id"]
+
+    first_upload = client.put(
+        f"/sessions/{session_id}/vendors/{vendor_id}/document",
+        files={"file": ("alpha.docx", b"alpha document", "application/vnd.openxmlformats-officedocument.wordprocessingml.document")},
+    )
+    assert first_upload.status_code == 200
+    assert first_upload.json()["vendors"][0]["document"]["file_name"] == "alpha.docx"
+
+    second_upload = client.put(
+        f"/sessions/{session_id}/vendors/{vendor_id}/document",
+        files={"file": ("alpha_v2.pdf", b"%PDF-1.4 replacement", "application/pdf")},
+    )
+    assert second_upload.status_code == 200
+    assert second_upload.json()["vendors"][0]["document"]["file_name"] == "alpha_v2.pdf"
+    assert second_upload.json()["vendors"][0]["warnings"] == []
+
+    extracted = client.post(f"/sessions/{session_id}/vendors/{vendor_id}/extract")
+    assert extracted.status_code == 200
+    assert extracted.json()["vendors"][0]["status"] == "extracted"
+
+    review = client.get(f"/sessions/{session_id}/vendors/{vendor_id}/review")
+    assert review.status_code == 200
+    payload = review.json()
+    assert payload["raw_extraction"]["document_summary"] == "Extracted proposal summary for Alpha."
+    assert len(payload["raw_extraction"]["commercial_claims"]) == 8
+    assert payload["normalized_pricing"][0]["comparability_status"] == "needs_buyer_input"
+
+
+def test_comparison_settings_re_normalize_review_and_mark_vendor_ready(client) -> None:
+    session_id = _lock_session(client)
+    vendor_id = _add_and_extract_vendor(client, session_id, "Delta", "delta.pdf")
+
+    initial_review = client.get(f"/sessions/{session_id}/vendors/{vendor_id}/review")
+    assert initial_review.status_code == 200
+    assert initial_review.json()["normalized_pricing"][0]["comparability_status"] == "needs_buyer_input"
+
+    saved = client.put(
+        f"/sessions/{session_id}/comparison-settings",
+        json=ComparisonSettings(
+            base_currency="USD",
+            fx_effective_date="2026-04-11",
+            fx_rates=[FXRate(currency="EUR", rate_to_base=1.1)],
+        ).model_dump(mode="json"),
+    )
+    assert saved.status_code == 200
+    assert saved.json()["vendors"][0]["status"] == "evaluation_ready"
+
+    updated_review = client.get(f"/sessions/{session_id}/vendors/{vendor_id}/review")
+    assert updated_review.status_code == 200
+    first_line = updated_review.json()["normalized_pricing"][0]
+    assert first_line["comparability_status"] == "comparable"
+    assert first_line["base_currency_total"] == pytest.approx(104.5)
+
+
+def test_evaluation_run_excludes_disqualified_and_non_comparable_vendors(client) -> None:
+    session_id = _lock_session(client)
+    alpha_id = _add_and_extract_vendor(client, session_id, "Alpha", "alpha.pdf")
+    beta_id = _add_and_extract_vendor(client, session_id, "Beta", "beta.pdf")
+    gamma_id = _add_and_extract_vendor(client, session_id, "Gamma", "gamma.pdf")
+    delta_id = _add_and_extract_vendor(client, session_id, "Delta", "delta.pdf")
+
+    comparison_settings = ComparisonSettings(
+        base_currency="USD",
+        fx_effective_date="2026-04-11",
+        fx_rates=[],
+    )
+    saved = client.put(
+        f"/sessions/{session_id}/comparison-settings",
+        json=comparison_settings.model_dump(mode="json"),
+    )
+    assert saved.status_code == 200
+
+    evaluation = client.post(f"/sessions/{session_id}/evaluation/run")
+    assert evaluation.status_code == 200
+    payload = evaluation.json()
+
+    assert payload["official_recommendation"]["winner_vendor_id"] == alpha_id
+    assert payload["official_recommendation"]["eligible_vendor_ids"] == [alpha_id, beta_id]
+
+    commercial_by_vendor = {
+        item["vendor_id"]: item
+        for item in payload["commercial_results"]
+    }
+    technical_by_vendor = {
+        item["vendor_id"]: item
+        for item in payload["technical_results"]
+    }
+
+    assert commercial_by_vendor[alpha_id]["commercial_score"] == 100.0
+    assert commercial_by_vendor[beta_id]["commercial_score"] == 90.91
+    assert commercial_by_vendor[delta_id]["award_ready"] is False
+    assert "Missing FX rate for EUR." in commercial_by_vendor[delta_id]["blockers"]
+    assert technical_by_vendor[gamma_id]["passed_gate"] is False
+    assert any("Failed technical cutoff" in reason for reason in technical_by_vendor[gamma_id]["disqualification_reasons"])
+
+    advisory_winners = {item["winner_vendor_id"] for item in payload["advisory_scenarios"]}
+    assert gamma_id not in advisory_winners
+    assert delta_id not in advisory_winners
+
+    results = client.get(f"/sessions/{session_id}/results")
+    assert results.status_code == 200
+    assert results.json()["official_recommendation"]["winner_vendor_id"] == alpha_id
+
+
+def _lock_session(client) -> str:
+    created = client.post("/sessions", json={})
+    session_id = created.json()["session_id"]
+    client.post(f"/sessions/{session_id}/rubric/generate")
+    client.post(f"/sessions/{session_id}/rubric/lock")
+    return session_id
+
+
+def _add_and_extract_vendor(client, session_id: str, vendor_name: str, file_name: str) -> str:
+    created_vendor = client.post(f"/sessions/{session_id}/vendors", json={"name": vendor_name})
+    assert created_vendor.status_code == 201
+    vendor_id = created_vendor.json()["vendors"][-1]["id"]
+
+    uploaded = client.put(
+        f"/sessions/{session_id}/vendors/{vendor_id}/document",
+        files={"file": (file_name, b"%PDF-1.4 vendor document", "application/pdf")},
+    )
+    assert uploaded.status_code == 200
+
+    extracted = client.post(f"/sessions/{session_id}/vendors/{vendor_id}/extract")
+    assert extracted.status_code == 200
+    return vendor_id

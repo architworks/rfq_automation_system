@@ -123,10 +123,208 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/sessions/{session_id}/vendor-pack": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Vendor Pack */
+        get: operations["get_vendor_pack_sessions__session_id__vendor_pack_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/sessions/{session_id}/vendor-pack/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export Vendor Pack */
+        get: operations["export_vendor_pack_sessions__session_id__vendor_pack_export_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/sessions/{session_id}/vendors": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create Vendor */
+        post: operations["create_vendor_sessions__session_id__vendors_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/sessions/{session_id}/vendors/{vendor_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Vendor */
+        delete: operations["delete_vendor_sessions__session_id__vendors__vendor_id__delete"];
+        options?: never;
+        head?: never;
+        /** Update Vendor */
+        patch: operations["update_vendor_sessions__session_id__vendors__vendor_id__patch"];
+        trace?: never;
+    };
+    "/sessions/{session_id}/vendors/{vendor_id}/document": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Upload Vendor Document */
+        put: operations["upload_vendor_document_sessions__session_id__vendors__vendor_id__document_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/sessions/{session_id}/vendors/{vendor_id}/extract": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Extract Vendor Document */
+        post: operations["extract_vendor_document_sessions__session_id__vendors__vendor_id__extract_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/sessions/{session_id}/vendors/{vendor_id}/review": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Vendor Review */
+        get: operations["get_vendor_review_sessions__session_id__vendors__vendor_id__review_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/sessions/{session_id}/comparison-settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Save Comparison Settings */
+        put: operations["save_comparison_settings_sessions__session_id__comparison_settings_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/sessions/{session_id}/evaluation/run": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Run Session Evaluation */
+        post: operations["run_session_evaluation_sessions__session_id__evaluation_run_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/sessions/{session_id}/results": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Results */
+        get: operations["get_results_sessions__session_id__results_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AwardRecommendation */
+        AwardRecommendation: {
+            /** Winner Vendor Id */
+            winner_vendor_id?: string | null;
+            /** @default single_vendor */
+            award_type: components["schemas"]["AwardType"];
+            /** Eligible Vendor Ids */
+            eligible_vendor_ids?: string[];
+            /** Score Breakdown */
+            score_breakdown?: components["schemas"]["VendorScoreBreakdown"][];
+            /** Evidence Refs */
+            evidence_refs?: string[];
+            /** Explanation */
+            explanation: string;
+            /** Risks */
+            risks?: string[];
+        };
+        /**
+         * AwardType
+         * @enum {string}
+         */
+        AwardType: "single_vendor" | "split_award";
+        /** Body_upload_vendor_document_sessions__session_id__vendors__vendor_id__document_put */
+        Body_upload_vendor_document_sessions__session_id__vendors__vendor_id__document_put: {
+            /** File */
+            file: string;
+        };
         /** BuyerPriority */
         BuyerPriority: {
             /** Id */
@@ -136,10 +334,70 @@ export interface components {
             /** Description */
             description: string;
         };
+        /** CommercialEvaluationResult */
+        CommercialEvaluationResult: {
+            /** Vendor Id */
+            vendor_id: string;
+            /** Vendor Name */
+            vendor_name: string;
+            /** Eligible For Commercial */
+            eligible_for_commercial: boolean;
+            /** Award Ready */
+            award_ready: boolean;
+            /** Base Currency */
+            base_currency: string;
+            /** Comparable Total */
+            comparable_total?: number | null;
+            /** Commercial Score */
+            commercial_score?: number | null;
+            /** Line Items */
+            line_items?: components["schemas"]["CommercialLineItemResult"][];
+            /** Anomalies */
+            anomalies?: string[];
+            /** Blockers */
+            blockers?: string[];
+            /** Explanation */
+            explanation: string;
+            /** Evidence Refs */
+            evidence_refs?: string[];
+        };
+        /** CommercialLineItemResult */
+        CommercialLineItemResult: {
+            /** Line Item Id */
+            line_item_id: string;
+            /** Line Item Name */
+            line_item_name: string;
+            /** Base Currency Total */
+            base_currency_total?: number | null;
+            comparability_status: components["schemas"]["ComparabilityStatus"];
+            /** Notes */
+            notes?: string[];
+        };
+        /**
+         * ComparabilityStatus
+         * @enum {string}
+         */
+        ComparabilityStatus: "comparable" | "needs_buyer_input" | "non_comparable" | "informational";
+        /** ComparisonSettings */
+        ComparisonSettings: {
+            /** Base Currency */
+            base_currency: string;
+            /** Fx Effective Date */
+            fx_effective_date: string;
+            /** Fx Rates */
+            fx_rates?: components["schemas"]["FXRate"][];
+            /** Uom Overrides */
+            uom_overrides?: components["schemas"]["UomOverride"][];
+        };
         /** CreateSessionRequest */
         CreateSessionRequest: {
             /** Session Id */
             session_id?: string | null;
+        };
+        /** CreateVendorRequest */
+        CreateVendorRequest: {
+            /** Name */
+            name: string;
         };
         /** Criterion */
         "Criterion-Input": {
@@ -232,6 +490,35 @@ export interface components {
              */
             content_type: string;
         };
+        /** EvaluationReport */
+        EvaluationReport: {
+            /**
+             * Generated At
+             * Format: date-time
+             */
+            generated_at: string;
+            comparison_settings?: components["schemas"]["ComparisonSettings"] | null;
+            /** Technical Results */
+            technical_results?: components["schemas"]["TechnicalEvaluationResult"][];
+            /** Commercial Results */
+            commercial_results?: components["schemas"]["CommercialEvaluationResult"][];
+            official_recommendation: components["schemas"]["AwardRecommendation"];
+            /** Advisory Scenarios */
+            advisory_scenarios?: components["schemas"]["ScenarioResult"][];
+            /** Blocked Reasons */
+            blocked_reasons?: string[];
+        };
+        /** EvidenceAnchor */
+        EvidenceAnchor: {
+            /** Id */
+            id: string;
+            /** Snippet */
+            snippet: string;
+            /** Locator */
+            locator: string;
+            /** Source Label */
+            source_label?: string | null;
+        };
         /** EvidenceCheck */
         EvidenceCheck: {
             /** Id */
@@ -240,6 +527,49 @@ export interface components {
             label: string;
             /** Description */
             description: string;
+        };
+        /** ExtractedField */
+        ExtractedField: {
+            /** Id */
+            id: string;
+            /** Label */
+            label: string;
+            /** Field Group */
+            field_group: string;
+            /** Question Id */
+            question_id?: string | null;
+            /** Schedule Id */
+            schedule_id?: string | null;
+            /** Schedule Column Id */
+            schedule_column_id?: string | null;
+            /** Criterion Ids */
+            criterion_ids?: string[];
+            /** Line Item Id */
+            line_item_id?: string | null;
+            state: components["schemas"]["ResponseState"];
+            /** Raw Value */
+            raw_value?: string | null;
+            /** Normalized Hint */
+            normalized_hint?: string | null;
+            /** Quantity Value */
+            quantity_value?: number | null;
+            /** Numeric Value */
+            numeric_value?: number | null;
+            /** Currency */
+            currency?: string | null;
+            /** Uom */
+            uom?: string | null;
+            /** Notes */
+            notes?: string | null;
+            /** Evidence */
+            evidence?: components["schemas"]["EvidenceAnchor"][];
+        };
+        /** FXRate */
+        FXRate: {
+            /** Currency */
+            currency: string;
+            /** Rate To Base */
+            rate_to_base: number;
         };
         /** GeneralInfo */
         GeneralInfo: {
@@ -304,6 +634,72 @@ export interface components {
             governance: components["schemas"]["GovernanceInfo"];
             download_metadata: components["schemas"]["DownloadMetadata"];
         };
+        /** NormalizedField */
+        NormalizedField: {
+            /** Id */
+            id: string;
+            /** Label */
+            label: string;
+            /** Field Group */
+            field_group: string;
+            /** Criterion Ids */
+            criterion_ids?: string[];
+            /** Line Item Id */
+            line_item_id?: string | null;
+            /** Source Field Ids */
+            source_field_ids?: string[];
+            /** Normalized Value */
+            normalized_value?: string | null;
+            /** Quantity Value */
+            quantity_value?: number | null;
+            /** Numeric Value */
+            numeric_value?: number | null;
+            /** Currency */
+            currency?: string | null;
+            /** Base Currency Value */
+            base_currency_value?: number | null;
+            /** Uom */
+            uom?: string | null;
+            /** Target Uom */
+            target_uom?: string | null;
+            comparability_status: components["schemas"]["ComparabilityStatus"];
+            /** Conversion Notes */
+            conversion_notes?: string[];
+            /** Blockers */
+            blockers?: string[];
+            /** Evidence Refs */
+            evidence_refs?: string[];
+        };
+        /** NormalizedPricingLine */
+        NormalizedPricingLine: {
+            /** Line Item Id */
+            line_item_id: string;
+            /** Line Item Name */
+            line_item_name: string;
+            /** Quantity */
+            quantity?: number | null;
+            /** Uom */
+            uom?: string | null;
+            /** Target Uom */
+            target_uom?: string | null;
+            /** Currency */
+            currency?: string | null;
+            /** Total Price */
+            total_price?: number | null;
+            /** Base Currency Total */
+            base_currency_total?: number | null;
+            comparability_status: components["schemas"]["ComparabilityStatus"];
+            /** Exclusions */
+            exclusions?: string[];
+            /** Source Field Ids */
+            source_field_ids?: string[];
+            /** Evidence Refs */
+            evidence_refs?: string[];
+            /** Conversion Notes */
+            conversion_notes?: string[];
+            /** Blockers */
+            blockers?: string[];
+        };
         /** Question */
         Question: {
             /** Id */
@@ -329,6 +725,21 @@ export interface components {
             /** Line Items */
             line_items: components["schemas"]["LineItem"][];
         };
+        /** RawExtraction */
+        RawExtraction: {
+            /** Document Summary */
+            document_summary: string;
+            /** Question Answers */
+            question_answers?: components["schemas"]["ExtractedField"][];
+            /** Schedule Answers */
+            schedule_answers?: components["schemas"]["ExtractedField"][];
+            /** Technical Claims */
+            technical_claims?: components["schemas"]["ExtractedField"][];
+            /** Commercial Claims */
+            commercial_claims?: components["schemas"]["ExtractedField"][];
+            /** Warnings */
+            warnings?: string[];
+        };
         /** ResponseSchedule */
         ResponseSchedule: {
             /** Id */
@@ -342,6 +753,11 @@ export interface components {
             /** Linked Criteria */
             linked_criteria?: string[];
         };
+        /**
+         * ResponseState
+         * @enum {string}
+         */
+        ResponseState: "answered" | "missing_vendor_response" | "missing_extractable_evidence" | "conflicting_evidence" | "not_applicable";
         /** RubricProposal */
         "RubricProposal-Input": {
             /** Sections */
@@ -393,6 +809,45 @@ export interface components {
             /** Description */
             description: string;
         };
+        /**
+         * ScenarioKind
+         * @enum {string}
+         */
+        ScenarioKind: "official_qcbs" | "advisory_lcs" | "advisory_qbs" | "advisory_ai";
+        /** ScenarioRankingItem */
+        ScenarioRankingItem: {
+            /** Vendor Id */
+            vendor_id: string;
+            /** Vendor Name */
+            vendor_name: string;
+            /** Score */
+            score?: number | null;
+            /** Notes */
+            notes?: string[];
+        };
+        /** ScenarioResult */
+        ScenarioResult: {
+            /** Scenario Name */
+            scenario_name: string;
+            scenario_kind: components["schemas"]["ScenarioKind"];
+            /**
+             * Is Official
+             * @default false
+             */
+            is_official: boolean;
+            /** Winner Vendor Id */
+            winner_vendor_id?: string | null;
+            /** Excluded Vendor Ids */
+            excluded_vendor_ids?: string[];
+            /** Weighting Or Rule Basis */
+            weighting_or_rule_basis: string;
+            /** Explanation */
+            explanation: string;
+            /** Evidence Refs */
+            evidence_refs?: string[];
+            /** Ranking */
+            ranking?: components["schemas"]["ScenarioRankingItem"][];
+        };
         /** ScheduleColumn */
         ScheduleColumn: {
             /** Id */
@@ -415,6 +870,13 @@ export interface components {
             rfq_draft: components["schemas"]["RFQDraft"];
             rubric_proposal?: components["schemas"]["RubricProposal-Output"] | null;
             locked_artifact?: components["schemas"]["LockedFrameworkArtifact"] | null;
+            vendor_pack?: components["schemas"]["VendorPack"] | null;
+            /** Vendors */
+            vendors?: components["schemas"]["VendorRecord"][];
+            comparison_settings?: components["schemas"]["ComparisonSettings"] | null;
+            /** Vendor Reviews */
+            vendor_reviews?: components["schemas"]["VendorReview"][];
+            evaluation_report?: components["schemas"]["EvaluationReport"] | null;
             /**
              * Updated At
              * Format: date-time
@@ -426,6 +888,55 @@ export interface components {
          * @enum {string}
          */
         SessionStatus: "draft" | "proposal_ready" | "locked";
+        /** TechnicalCriterionResult */
+        TechnicalCriterionResult: {
+            /** Criterion Id */
+            criterion_id: string;
+            /** Title */
+            title: string;
+            criterion_type: components["schemas"]["CriterionType"];
+            status: components["schemas"]["TechnicalCriterionStatus"];
+            /** Score */
+            score?: number | null;
+            /** Max Score */
+            max_score?: number | null;
+            /** Passed */
+            passed?: boolean | null;
+            /** Confidence */
+            confidence?: number | null;
+            /** Explanation */
+            explanation: string;
+            /** Evidence Refs */
+            evidence_refs?: string[];
+            /** Math Trace */
+            math_trace?: string[];
+            /** Risks */
+            risks?: string[];
+        };
+        /**
+         * TechnicalCriterionStatus
+         * @enum {string}
+         */
+        TechnicalCriterionStatus: "passed" | "failed" | "scored" | "not_evaluated";
+        /** TechnicalEvaluationResult */
+        TechnicalEvaluationResult: {
+            /** Vendor Id */
+            vendor_id: string;
+            /** Vendor Name */
+            vendor_name: string;
+            /** Passed Gate */
+            passed_gate: boolean;
+            /** Aggregate Score */
+            aggregate_score: number;
+            /** Threshold */
+            threshold: number;
+            /** Disqualification Reasons */
+            disqualification_reasons?: string[];
+            /** Criterion Results */
+            criterion_results?: components["schemas"]["TechnicalCriterionResult"][];
+            /** Summary */
+            summary: string;
+        };
         /** TimelineItem */
         TimelineItem: {
             /** Id */
@@ -436,6 +947,22 @@ export interface components {
             target_date: string;
             /** Description */
             description: string;
+        };
+        /** UomOverride */
+        UomOverride: {
+            /** From Uom */
+            from_uom: string;
+            /** To Uom */
+            to_uom: string;
+            /** Factor */
+            factor: number;
+            /** Line Item Id */
+            line_item_id?: string | null;
+        };
+        /** UpdateVendorRequest */
+        UpdateVendorRequest: {
+            /** Name */
+            name: string;
         };
         /** ValidationError */
         ValidationError: {
@@ -450,6 +977,171 @@ export interface components {
             /** Context */
             ctx?: Record<string, never>;
         };
+        /** VendorDocument */
+        VendorDocument: {
+            /** File Name */
+            file_name: string;
+            /** Mime Type */
+            mime_type: string;
+            /** Extension */
+            extension: string;
+            /** Size Bytes */
+            size_bytes: number;
+            /**
+             * Uploaded At
+             * Format: date-time
+             */
+            uploaded_at: string;
+            /** Warnings */
+            warnings?: string[];
+        };
+        /** VendorPack */
+        VendorPack: {
+            /** Rfq Title */
+            rfq_title: string;
+            /**
+             * Official Award Basis
+             * @default QCBS 70/30
+             * @constant
+             */
+            official_award_basis: "QCBS 70/30";
+            /** Response Instructions */
+            response_instructions?: string[];
+            /** Questions */
+            questions?: components["schemas"]["VendorPackQuestion"][];
+            /** Response Schedules */
+            response_schedules?: components["schemas"]["VendorPackSchedule"][];
+            /** Criteria */
+            criteria?: components["schemas"]["VendorPackCriterion"][];
+        };
+        /** VendorPackCriterion */
+        VendorPackCriterion: {
+            /** Criterion Id */
+            criterion_id: string;
+            /** Title */
+            title: string;
+            criterion_type: components["schemas"]["CriterionType"];
+            /** Description */
+            description: string;
+            /** Linked Question Ids */
+            linked_question_ids?: string[];
+            /** Linked Schedule Fields */
+            linked_schedule_fields?: string[];
+        };
+        /** VendorPackQuestion */
+        VendorPackQuestion: {
+            /** Id */
+            id: string;
+            /** Text */
+            text: string;
+            /** Purpose */
+            purpose: string;
+            /** Linked Criteria */
+            linked_criteria?: string[];
+        };
+        /** VendorPackSchedule */
+        VendorPackSchedule: {
+            /** Id */
+            id: string;
+            /** Name */
+            name: string;
+            /** Purpose */
+            purpose: string;
+            /** Linked Criteria */
+            linked_criteria?: string[];
+            /** Columns */
+            columns?: components["schemas"]["VendorPackScheduleField"][];
+        };
+        /** VendorPackScheduleField */
+        VendorPackScheduleField: {
+            /** Field Id */
+            field_id: string;
+            /** Schedule Id */
+            schedule_id: string;
+            /** Schedule Name */
+            schedule_name: string;
+            /** Column Id */
+            column_id: string;
+            /** Label */
+            label: string;
+            /** Description */
+            description: string;
+            /**
+             * Required
+             * @default true
+             */
+            required: boolean;
+            /** Linked Criteria */
+            linked_criteria?: string[];
+        };
+        /** VendorRecord */
+        VendorRecord: {
+            /** Id */
+            id: string;
+            /** Name */
+            name: string;
+            /** @default no_document */
+            status: components["schemas"]["VendorStatus"];
+            document?: components["schemas"]["VendorDocument"] | null;
+            /** Warnings */
+            warnings?: string[];
+            /** Extraction Error */
+            extraction_error?: string | null;
+            /** Last Extracted At */
+            last_extracted_at?: string | null;
+            /** Last Evaluated At */
+            last_evaluated_at?: string | null;
+        };
+        /** VendorReview */
+        VendorReview: {
+            /** Vendor Id */
+            vendor_id: string;
+            document: components["schemas"]["VendorDocument"];
+            /** Visual Fidelity Warning */
+            visual_fidelity_warning?: string | null;
+            raw_extraction: components["schemas"]["RawExtraction"];
+            /** Normalized Fields */
+            normalized_fields?: components["schemas"]["NormalizedField"][];
+            /** Normalized Pricing */
+            normalized_pricing?: components["schemas"]["NormalizedPricingLine"][];
+            /** Warnings */
+            warnings?: string[];
+            /** Blockers */
+            blockers?: string[];
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
+        /** VendorScoreBreakdown */
+        VendorScoreBreakdown: {
+            /** Vendor Id */
+            vendor_id: string;
+            /** Vendor Name */
+            vendor_name: string;
+            /** Technical Score */
+            technical_score?: number | null;
+            /** Commercial Score */
+            commercial_score?: number | null;
+            /** Final Score */
+            final_score?: number | null;
+            /**
+             * Passed Technical Gate
+             * @default false
+             */
+            passed_technical_gate: boolean;
+            /**
+             * Commercially Comparable
+             * @default false
+             */
+            commercially_comparable: boolean;
+        };
+        /**
+         * VendorStatus
+         * @enum {string}
+         */
+        VendorStatus: "no_document" | "uploaded" | "extracted" | "evaluation_ready" | "evaluated";
     };
     responses: never;
     parameters: never;
@@ -673,6 +1365,368 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_vendor_pack_sessions__session_id__vendor_pack_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VendorPack"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    export_vendor_pack_sessions__session_id__vendor_pack_export_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_vendor_sessions__session_id__vendors_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateVendorRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SessionSnapshot"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_vendor_sessions__session_id__vendors__vendor_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+                vendor_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SessionSnapshot"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_vendor_sessions__session_id__vendors__vendor_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+                vendor_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateVendorRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SessionSnapshot"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    upload_vendor_document_sessions__session_id__vendors__vendor_id__document_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+                vendor_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_upload_vendor_document_sessions__session_id__vendors__vendor_id__document_put"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SessionSnapshot"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    extract_vendor_document_sessions__session_id__vendors__vendor_id__extract_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+                vendor_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SessionSnapshot"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_vendor_review_sessions__session_id__vendors__vendor_id__review_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+                vendor_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VendorReview"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    save_comparison_settings_sessions__session_id__comparison_settings_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ComparisonSettings"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SessionSnapshot"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    run_session_evaluation_sessions__session_id__evaluation_run_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EvaluationReport"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_results_sessions__session_id__results_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EvaluationReport"];
                 };
             };
             /** @description Validation Error */

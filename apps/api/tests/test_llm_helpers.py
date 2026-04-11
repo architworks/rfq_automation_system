@@ -67,7 +67,10 @@ def test_compose_rubric_backfills_question_and_schedule_links() -> None:
                 section_id="sec_commercial",
                 title="Commercial quote",
                 description="Commercial readiness.",
-                criterion_type=CriterionType.COMMERCIAL,
+                criterion_type=CriterionType.MAC,
+                weight=10,
+                min_cutoff=5,
+                max_score=10,
                 evidence_checks=[
                     GeneratedEvidenceCheck(
                         id="ev_2",
@@ -229,6 +232,10 @@ def test_compose_rubric_backfills_question_and_schedule_links() -> None:
     assert proposal.criteria[0].linked_schedule_fields == ["pricing_schedule.total_fee"]
     assert proposal.criteria[1].linked_question_ids == []
     assert proposal.criteria[1].linked_schedule_fields == ["pricing_schedule.total_fee"]
+    assert proposal.criteria[1].criterion_type == CriterionType.COMMERCIAL
+    assert proposal.criteria[1].weight is None
+    assert proposal.criteria[1].min_cutoff is None
+    assert proposal.criteria[1].max_score is None
     assert proposal.criteria[5].deterministic_scoring is not None
     assert proposal.criteria[5].deterministic_scoring.rules[0].outcome == "pass"
     assert proposal.questions[0].text == long_question_text

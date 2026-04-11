@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     api_prefix: str = ""
     frontend_origin: str = "http://localhost:3000"
     session_ttl_seconds: int = 60 * 60 * 2
+    storage_root: str | None = None
 
     azure_openai_endpoint: str | None = None
     azure_openai_api_key: str | None = None

@@ -6,11 +6,13 @@ import {
   ApiError,
   apiClient,
   type BuyerPriority,
+  type ComparisonSettings,
   type RfqApiClient,
   type Criterion,
   type CriterionType,
   type DeterministicScoringGuide,
   type DeterministicScoringRule,
+  type EvaluationReport,
   type EvidenceCheck,
   type LineItem,
   type LockedFrameworkArtifact,
@@ -23,6 +25,7 @@ import {
   type SessionSnapshot,
   type TimelineItem,
   type ValidationIssue,
+  type VendorPack,
 } from "@/lib/api";
 import {
   CRITERION_TYPE_OPTIONS,
@@ -39,12 +42,14 @@ import {
   parseCsv,
   toCsv,
 } from "@/lib/rubric-factories";
+import { PackStep, ResultsStep, ReviewStep, VendorsStep } from "./phase-two";
 
 import styles from "./rfq-wizard.module.css";
 
-export type WizardStep = "input" | "proposal" | "lock";
+export type WizardStep = "input" | "proposal" | "lock" | "pack" | "vendors" | "review" | "results";
 
 const DEFAULT_AUTOSAVE_MS = 700;
+const DEFAULT_BASE_CURRENCY = "USD";
 
 function parseNumber(value: string): number | null {
   if (!value.trim()) {
@@ -62,6 +67,15 @@ function formatTimestamp(value?: string): string {
 
   const date = new Date(value);
   return Number.isNaN(date.getTime()) ? value : date.toLocaleString();
+}
+
+function createDefaultComparisonSettings(): ComparisonSettings {
+  return {
+    base_currency: DEFAULT_BASE_CURRENCY,
+    fx_effective_date: new Date().toISOString().slice(0, 10),
+    fx_rates: [],
+    uom_overrides: [],
+  };
 }
 
 function normalizeValidationIssues(detail: unknown): ValidationIssue[] {
@@ -220,17 +234,57 @@ export function RfqWizard({
   const [rfqDraft, setRfqDraft] = useState<RFQDraft | null>(null);
   const [rubricProposal, setRubricProposal] = useState<RubricProposal | null>(null);
   const [lockedArtifact, setLockedArtifact] = useState<LockedFrameworkArtifact | null>(null);
+  const [evaluationReport, setEvaluationReport] = useState<EvaluationReport | null>(null);
+  const [comparisonSettingsDraft, setComparisonSettingsDraft] = useState<ComparisonSettings>(createDefaultComparisonSettings());
+  const [selectedVendorId, setSelectedVendorId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isLocking, setIsLocking] = useState(false);
+  const [isSavingComparisonSettings, setIsSavingComparisonSettings] = useState(false);
+  const [isRunningEvaluation, setIsRunningEvaluation] = useState(false);
+  const [uploadingVendorId, setUploadingVendorId] = useState<string | null>(null);
+  const [extractingVendorId, setExtractingVendorId] = useState<string | null>(null);
   const [requestError, setRequestError] = useState<string | null>(null);
   const [validationIssues, setValidationIssues] = useState<ValidationIssue[]>([]);
   const [autosaveMessage, setAutosaveMessage] = useState("Waiting for changes");
   const [downloadState, setDownloadState] = useState<"idle" | "ready" | "done" | "error">("idle");
+  const [vendorPackDownloadState, setVendorPackDownloadState] = useState<"idle" | "ready" | "done" | "error">("idle");
 
   const initialisedRef = useRef(false);
   const savedRfqRef = useRef("");
   const savedRubricRef = useRef("");
+
+  function applySessionSnapshot(loaded: SessionSnapshot) {
+    const vendors = loaded.vendors ?? [];
+    setSnapshot(loaded);
+    setLockedArtifact(loaded.locked_artifact ?? null);
+    setEvaluationReport(loaded.evaluation_report ?? null);
+    setDownloadState(loaded.locked_artifact ? "ready" : "idle");
+    setVendorPackDownloadState(loaded.vendor_pack ? "ready" : "idle");
+    if (loaded.comparison_settings) {
+      setComparisonSettingsDraft(cloneValue(loaded.comparison_settings));
+    } else if (loaded.locked_artifact) {
+      setComparisonSettingsDraft((current) => {
+        if (
+          current.base_currency ||
+          (current.fx_rates ?? []).length > 0 ||
+          (current.uom_overrides ?? []).length > 0
+        ) {
+          return current;
+        }
+        return createDefaultComparisonSettings();
+      });
+    }
+    setSelectedVendorId((current) => {
+      if (vendors.length === 0) {
+        return null;
+      }
+      if (current && vendors.some((vendor) => vendor.id === current)) {
+        return current;
+      }
+      return vendors[0].id;
+    });
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -245,11 +299,9 @@ export function RfqWizard({
           return;
         }
 
-        setSnapshot(loaded);
+        applySessionSnapshot(loaded);
         setRfqDraft(loaded.rfq_draft);
         setRubricProposal(loaded.rubric_proposal ?? null);
-        setLockedArtifact(loaded.locked_artifact ?? null);
-        setDownloadState(loaded.locked_artifact ? "ready" : "idle");
         savedRfqRef.current = snapshotToJson(loaded.rfq_draft);
         savedRubricRef.current = snapshotToJson(loaded.rubric_proposal);
         initialisedRef.current = true;
@@ -286,7 +338,7 @@ export function RfqWizard({
     const handle = window.setTimeout(async () => {
       try {
         const updated = await api.saveRfq(sessionId, rfqDraft);
-        setSnapshot(updated);
+        applySessionSnapshot(updated);
         savedRfqRef.current = snapshotToJson(updated.rfq_draft);
         setAutosaveMessage("RFQ draft saved");
       } catch {
@@ -309,7 +361,7 @@ export function RfqWizard({
     const handle = window.setTimeout(async () => {
       try {
         const updated = await api.saveRubric(sessionId, rubricProposal);
-        setSnapshot(updated);
+        applySessionSnapshot(updated);
         savedRubricRef.current = snapshotToJson(updated.rubric_proposal);
         setAutosaveMessage("Rubric edits saved");
       } catch {
@@ -322,6 +374,10 @@ export function RfqWizard({
 
   const canOpenProposal = Boolean(rubricProposal);
   const canOpenLock = Boolean(rubricProposal);
+  const canOpenPack = Boolean(lockedArtifact && snapshot?.vendor_pack);
+  const canOpenVendors = Boolean(lockedArtifact);
+  const canOpenReview = Boolean(lockedArtifact);
+  const canOpenResults = Boolean(lockedArtifact);
 
   async function handleGenerateRubric() {
     if (!rfqDraft) {
@@ -335,12 +391,11 @@ export function RfqWizard({
     try {
       const updatedDraftSnapshot = await api.saveRfq(sessionId, rfqDraft);
       savedRfqRef.current = snapshotToJson(updatedDraftSnapshot.rfq_draft);
-      setSnapshot(updatedDraftSnapshot);
+      applySessionSnapshot(updatedDraftSnapshot);
 
       const generatedSnapshot = await api.generateRubric(sessionId);
-      setSnapshot(generatedSnapshot);
+      applySessionSnapshot(generatedSnapshot);
       setRubricProposal(generatedSnapshot.rubric_proposal ?? null);
-      setLockedArtifact(generatedSnapshot.locked_artifact ?? null);
       savedRubricRef.current = snapshotToJson(generatedSnapshot.rubric_proposal);
       setAutosaveMessage("Rubric proposal generated");
       onStepChange("proposal");
@@ -363,11 +418,13 @@ export function RfqWizard({
     try {
       if (rubricSignature !== savedRubricRef.current) {
         const updated = await api.saveRubric(sessionId, rubricProposal);
-        setSnapshot(updated);
+        applySessionSnapshot(updated);
         savedRubricRef.current = snapshotToJson(updated.rubric_proposal);
       }
 
       const artifact = await api.lockRubric(sessionId);
+      const refreshed = await api.getSession(sessionId);
+      applySessionSnapshot(refreshed);
       setLockedArtifact(artifact);
       setDownloadState("ready");
       setAutosaveMessage("Framework locked");
@@ -393,6 +450,127 @@ export function RfqWizard({
     } catch (error) {
       setDownloadState("error");
       setRequestError(error instanceof Error ? error.message : "Failed to download artifact.");
+    }
+  }
+
+  async function handleDownloadVendorPack() {
+    setRequestError(null);
+
+    try {
+      const vendorPack = await api.downloadVendorPack(sessionId);
+      blobToDownload(vendorPack.blob, vendorPack.fileName);
+      setVendorPackDownloadState("done");
+    } catch (error) {
+      setVendorPackDownloadState("error");
+      setRequestError(error instanceof Error ? error.message : "Failed to download the vendor pack.");
+    }
+  }
+
+  async function handleCreateVendor(name: string) {
+    setRequestError(null);
+
+    try {
+      const updated = await api.createVendor(sessionId, name);
+      applySessionSnapshot(updated);
+      setAutosaveMessage("Vendor registered");
+    } catch (error) {
+      setRequestError(error instanceof Error ? error.message : "Failed to create vendor.");
+    }
+  }
+
+  async function handleRenameVendor(vendorId: string, name: string) {
+    if (!name.trim()) {
+      return;
+    }
+
+    setRequestError(null);
+    try {
+      const updated = await api.updateVendor(sessionId, vendorId, name.trim());
+      applySessionSnapshot(updated);
+      setAutosaveMessage("Vendor name updated");
+    } catch (error) {
+      setRequestError(error instanceof Error ? error.message : "Failed to rename vendor.");
+    }
+  }
+
+  async function handleDeleteVendor(vendorId: string) {
+    setRequestError(null);
+    try {
+      const updated = await api.deleteVendor(sessionId, vendorId);
+      applySessionSnapshot(updated);
+      setAutosaveMessage("Vendor removed");
+    } catch (error) {
+      setRequestError(error instanceof Error ? error.message : "Failed to delete vendor.");
+    }
+  }
+
+  async function handleUploadVendorDocument(vendorId: string, file: File) {
+    setUploadingVendorId(vendorId);
+    setRequestError(null);
+
+    try {
+      const updated = await api.uploadVendorDocument(sessionId, vendorId, file);
+      applySessionSnapshot(updated);
+      setAutosaveMessage("Vendor document uploaded");
+    } catch (error) {
+      setRequestError(error instanceof Error ? error.message : "Failed to upload vendor document.");
+    } finally {
+      setUploadingVendorId(null);
+    }
+  }
+
+  async function handleExtractVendor(vendorId: string) {
+    setExtractingVendorId(vendorId);
+    setRequestError(null);
+
+    try {
+      const updated = await api.extractVendor(sessionId, vendorId);
+      applySessionSnapshot(updated);
+      setAutosaveMessage("Vendor extraction completed");
+    } catch (error) {
+      setRequestError(error instanceof Error ? error.message : "Failed to extract vendor document.");
+    } finally {
+      setExtractingVendorId(null);
+    }
+  }
+
+  function updateComparisonSettingsDraft(mutator: (comparisonSettings: ComparisonSettings) => void) {
+    setComparisonSettingsDraft((current) => {
+      const next = cloneValue(current);
+      mutator(next);
+      return next;
+    });
+  }
+
+  async function handleSaveComparisonSettings() {
+    setIsSavingComparisonSettings(true);
+    setRequestError(null);
+
+    try {
+      const updated = await api.saveComparisonSettings(sessionId, comparisonSettingsDraft);
+      applySessionSnapshot(updated);
+      setAutosaveMessage("Comparison settings saved");
+    } catch (error) {
+      setRequestError(error instanceof Error ? error.message : "Failed to save comparison settings.");
+    } finally {
+      setIsSavingComparisonSettings(false);
+    }
+  }
+
+  async function handleRunEvaluation() {
+    setIsRunningEvaluation(true);
+    setRequestError(null);
+
+    try {
+      const report = await api.runEvaluation(sessionId);
+      setEvaluationReport(report);
+      const refreshed = await api.getSession(sessionId);
+      applySessionSnapshot(refreshed);
+      setAutosaveMessage("Evaluation completed");
+    } catch (error) {
+      setRequestError(error instanceof Error ? error.message : "Failed to run the evaluation.");
+    } finally {
+      setIsRunningEvaluation(false);
     }
   }
 
@@ -442,20 +620,28 @@ export function RfqWizard({
       </div>
     ) : null;
 
+  const vendorPack: VendorPack | null = snapshot?.vendor_pack ?? null;
+  const reviews = snapshot?.vendor_reviews ?? [];
+  const comparisonSettingsReady = Boolean(snapshot?.comparison_settings);
+  const currentEvaluationReport = evaluationReport ?? snapshot?.evaluation_report ?? null;
+
   return (
     <div className={styles.shell}>
       <div className={styles.frame}>
         <header className={styles.hero}>
-          <div className={styles.eyebrow}>Phase 1 Delivery</div>
+          <div className={styles.eyebrow}>{lockedArtifact ? "Phase 2 Delivery" : "Phase 1 Delivery"}</div>
           <div className={styles.titleRow}>
-            <h1 className={styles.title}>RFQ to Locked Rubric</h1>
+            <h1 className={styles.title}>
+              {lockedArtifact ? "Locked Framework to Explainable Evaluation" : "RFQ to Locked Rubric"}
+            </h1>
             <div className={styles.statusPill}>
               Status: {lockedArtifact ? "Locked" : snapshot?.status ?? "draft"}
             </div>
           </div>
           <p className={styles.subtitle}>
-            Start from the seeded 8-item RFQ, generate an AI proposal, edit the framework, and lock
-            the final rubric artifact for downstream evaluation phases.
+            {lockedArtifact
+              ? "Preview the locked vendor pack, manage vendor uploads, review raw versus normalized evidence, and produce an explainable official QCBS 70/30 recommendation plus advisory scenarios."
+              : "Start from the seeded 8-item RFQ, generate an AI proposal, edit the framework, and lock the final rubric artifact for downstream evaluation phases."}
           </p>
           <div className={styles.meta}>
             <span>
@@ -492,6 +678,42 @@ export function RfqWizard({
           >
             <span className={styles.stepLabel}>Step 3</span>
             <span className={styles.stepTitle}>Lock & Export</span>
+          </button>
+          <button
+            className={`${styles.stepButton} ${step === "pack" ? styles.activeStep : ""}`}
+            disabled={!canOpenPack}
+            onClick={() => onStepChange("pack")}
+            type="button"
+          >
+            <span className={styles.stepLabel}>Step 4</span>
+            <span className={styles.stepTitle}>Vendor Pack</span>
+          </button>
+          <button
+            className={`${styles.stepButton} ${step === "vendors" ? styles.activeStep : ""}`}
+            disabled={!canOpenVendors}
+            onClick={() => onStepChange("vendors")}
+            type="button"
+          >
+            <span className={styles.stepLabel}>Step 5</span>
+            <span className={styles.stepTitle}>Vendors</span>
+          </button>
+          <button
+            className={`${styles.stepButton} ${step === "review" ? styles.activeStep : ""}`}
+            disabled={!canOpenReview}
+            onClick={() => onStepChange("review")}
+            type="button"
+          >
+            <span className={styles.stepLabel}>Step 6</span>
+            <span className={styles.stepTitle}>Review</span>
+          </button>
+          <button
+            className={`${styles.stepButton} ${step === "results" ? styles.activeStep : ""}`}
+            disabled={!canOpenResults}
+            onClick={() => onStepChange("results")}
+            type="button"
+          >
+            <span className={styles.stepLabel}>Step 7</span>
+            <span className={styles.stepTitle}>Results</span>
           </button>
         </nav>
 
@@ -544,6 +766,57 @@ export function RfqWizard({
               No rubric proposal is available yet. Generate and review a proposal before locking.
             </div>
           )
+        ) : null}
+
+        {step === "pack" ? (
+          vendorPack ? (
+            <PackStep
+              downloadState={vendorPackDownloadState}
+              onDownload={handleDownloadVendorPack}
+              vendorPack={vendorPack}
+            />
+          ) : (
+            <div className={`${styles.banner} ${styles.infoBanner}`}>
+              Lock the framework first to generate the vendor pack preview.
+            </div>
+          )
+        ) : null}
+
+        {step === "vendors" ? (
+          <VendorsStep
+            extractingVendorId={extractingVendorId}
+            onCreateVendor={handleCreateVendor}
+            onDeleteVendor={handleDeleteVendor}
+            onExtractVendor={handleExtractVendor}
+            onGoToReview={() => onStepChange("review")}
+            onRenameVendor={handleRenameVendor}
+            onUploadVendorDocument={handleUploadVendorDocument}
+            uploadingVendorId={uploadingVendorId}
+            vendors={snapshot?.vendors ?? []}
+          />
+        ) : null}
+
+        {step === "review" ? (
+          <ReviewStep
+            comparisonSettingsDraft={comparisonSettingsDraft}
+            isSavingComparison={isSavingComparisonSettings}
+            onChangeComparison={updateComparisonSettingsDraft}
+            onGoToResults={() => onStepChange("results")}
+            onSaveComparison={handleSaveComparisonSettings}
+            onSelectVendor={setSelectedVendorId}
+            reviews={reviews}
+            selectedVendorId={selectedVendorId}
+            vendors={snapshot?.vendors ?? []}
+          />
+        ) : null}
+
+        {step === "results" ? (
+          <ResultsStep
+            comparisonSettingsReady={comparisonSettingsReady}
+            evaluationReport={currentEvaluationReport}
+            isRunningEvaluation={isRunningEvaluation}
+            onRunEvaluation={handleRunEvaluation}
+          />
         ) : null}
       </div>
     </div>

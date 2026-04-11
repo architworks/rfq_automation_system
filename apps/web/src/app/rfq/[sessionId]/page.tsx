@@ -6,7 +6,7 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { RfqWizard, type WizardStep } from "@/components/rfq-wizard/rfq-wizard";
 import { setStoredSessionId } from "@/lib/session";
 
-const VALID_STEPS: WizardStep[] = ["input", "proposal", "lock"];
+const VALID_STEPS: WizardStep[] = ["input", "proposal", "lock", "pack", "vendors", "review", "results"];
 
 function coerceStep(step: string | null): WizardStep {
   return VALID_STEPS.includes(step as WizardStep) ? (step as WizardStep) : "input";

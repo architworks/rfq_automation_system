@@ -613,6 +613,123 @@
   color: #64748b;
 }
 
+.vendorToolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+.staticBox {
+  min-height: 46px;
+  display: flex;
+  align-items: center;
+  border-radius: 14px;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: rgba(248, 250, 252, 0.82);
+  padding: 12px 14px;
+  color: #334155;
+}
+
+.uploadLabel {
+  position: relative;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 14px;
+  padding: 11px 16px;
+  font: inherit;
+  font-weight: 650;
+  border: 1px solid rgba(29, 78, 216, 0.24);
+  background: #fff;
+  color: #1d4ed8;
+  cursor: pointer;
+}
+
+.uploadInput {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 7px 11px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  border: 1px solid transparent;
+}
+
+.statusBadgeNeutral {
+  background: #f8fafc;
+  border-color: rgba(148, 163, 184, 0.24);
+  color: #475569;
+}
+
+.statusBadgeSuccess {
+  background: #ecfdf5;
+  border-color: #a7f3d0;
+  color: #065f46;
+}
+
+.statusBadgeWarning {
+  background: #fff7ed;
+  border-color: #fdba74;
+  color: #9a3412;
+}
+
+.statusBadgeDanger {
+  background: #fff1f2;
+  border-color: #fecdd3;
+  color: #9f1239;
+}
+
+.reviewLayout {
+  display: grid;
+  gap: 18px;
+  grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
+}
+
+.reviewSidebar {
+  display: grid;
+  gap: 10px;
+  align-content: start;
+}
+
+.reviewSidebarButton {
+  display: grid;
+  gap: 8px;
+  text-align: left;
+  border-radius: 16px;
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  background: rgba(248, 250, 252, 0.76);
+  padding: 14px;
+  cursor: pointer;
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    background 160ms ease;
+}
+
+.reviewSidebarButton:hover {
+  transform: translateY(-1px);
+  border-color: rgba(59, 130, 246, 0.32);
+}
+
+.reviewSidebarButtonActive {
+  border-color: rgba(29, 78, 216, 0.48);
+  background: rgba(239, 246, 255, 0.9);
+}
+
+.reviewContent {
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+}
+
 @media (max-width: 768px) {
   .frame {
     padding: 22px 16px 40px;
@@ -624,5 +741,9 @@
 
   .table {
     min-width: 680px;
+  }
+
+  .reviewLayout {
+    grid-template-columns: 1fr;
   }
 }
