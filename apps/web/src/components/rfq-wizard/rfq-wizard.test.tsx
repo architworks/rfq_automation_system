@@ -11,27 +11,27 @@ function cloneValue<T>(value: T): T {
 function createSeededDraft(overrides?: Partial<RFQDraft>): RFQDraft {
   const draft: RFQDraft = {
     general_info: {
-      title: "Global Kids Health Drink Launch Partner RFQ",
-      rfq_code: "RFQ-KHD-2026-001",
-      owner: "Growth Procurement",
-      region: "India",
+      subject: "RFQ for global launch marketing services for new kids health drink",
+      rfq_code: "RFQ-MKT-KIDS-GL-2026-001",
+      sourcing_type: "RFQ",
+      round: "Round 1",
+      status: "Draft",
+      owner: "Ava Thompson",
+      currency: "USD",
+      requestor: "Global Brand Marketing Team",
+      department: "Marketing Procurement",
+      category: "Marketing Services",
     },
     scope_overview:
       "Appoint an integrated agency partner to launch a kids health drink across creative, production, social, and governance workstreams.",
-    timelines: [
-      {
-        id: "timeline_1",
-        label: "RFQ Release",
-        target_date: "2026-04-15",
-        description: "Buyer releases the RFQ pack.",
-      },
-      {
-        id: "timeline_2",
-        label: "Agency Onboarding",
-        target_date: "2026-06-01",
-        description: "Selected partner starts the launch workstream.",
-      },
-    ],
+    timelines: {
+      clarifications_deadline: "2026-05-12",
+      technical_bid_deadline: "2026-05-19",
+      commercial_bid_deadline: "2026-05-21",
+      evaluation_start_date: "2026-05-22",
+      negotiation_start_date: "2026-05-27",
+      final_award_date: "2026-06-02",
+    },
     buyer_priorities: [
       {
         id: "priority_1",
@@ -317,17 +317,23 @@ function createLockedArtifact(
 
 function createSessionSnapshot(options?: {
   sessionId?: string;
-  title?: string;
+  subject?: string;
   withRubric?: boolean;
   withArtifact?: boolean;
 }): SessionSnapshot {
   const sessionId = options?.sessionId ?? "session_123";
   const rfqDraft = createSeededDraft({
     general_info: {
-      title: options?.title ?? "Global Kids Health Drink Launch Partner RFQ",
-      rfq_code: "RFQ-KHD-2026-001",
-      owner: "Growth Procurement",
-      region: "India",
+      subject: options?.subject ?? "RFQ for global launch marketing services for new kids health drink",
+      rfq_code: "RFQ-MKT-KIDS-GL-2026-001",
+      sourcing_type: "RFQ",
+      round: "Round 1",
+      status: "Draft",
+      owner: "Ava Thompson",
+      currency: "USD",
+      requestor: "Global Brand Marketing Team",
+      department: "Marketing Procurement",
+      category: "Marketing Services",
     },
   });
   const rubricProposal = options?.withRubric === false ? null : createRubricProposal();
@@ -435,9 +441,36 @@ describe("RfqWizard", () => {
       />,
     );
 
-    expect(await screen.findByDisplayValue("Global Kids Health Drink Launch Partner RFQ")).toBeInTheDocument();
+    expect(await screen.findByDisplayValue("RFQ for global launch marketing services for new kids health drink")).toBeInTheDocument();
     expect(screen.getByDisplayValue("Strategy & Creative Development")).toBeInTheDocument();
     expect(screen.getByDisplayValue("Launch Program Management")).toBeInTheDocument();
+  });
+
+  it("rehydrates a stale session URL instead of hanging on the loading state", async () => {
+    const snapshot = createSessionSnapshot({ withRubric: false });
+    const api: RfqApiClient = {
+      ...createStatefulApi(snapshot).api,
+      getSession: vi.fn(async () => {
+        throw new ApiError("Session not found.", 404, "Session not found.");
+      }),
+      createOrHydrateSession: vi.fn(async () => cloneValue(snapshot)),
+    };
+
+    render(
+      <RfqWizard
+        api={api}
+        autosaveMs={5}
+        onStepChange={vi.fn()}
+        sessionId="session_123"
+        step="input"
+      />,
+    );
+
+    expect(
+      await screen.findByDisplayValue("RFQ for global launch marketing services for new kids health drink"),
+    ).toBeInTheDocument();
+    expect(api.getSession).toHaveBeenCalledWith("session_123");
+    expect(api.createOrHydrateSession).toHaveBeenCalledWith("session_123");
   });
 
   it("shows exact linked questions and deterministic grading previews in the criterion cards", async () => {
@@ -478,8 +511,8 @@ describe("RfqWizard", () => {
       <RfqWizard api={api} autosaveMs={25} onStepChange={onStepChange} sessionId="session_123" step="input" />,
     );
 
-    const titleInput = await screen.findByLabelText("RFQ Title");
-    fireEvent.change(titleInput, { target: { value: "Edited RFQ Title" } });
+    const subjectInput = await screen.findByLabelText("Subject");
+    fireEvent.change(subjectInput, { target: { value: "Edited RFQ Subject" } });
 
     await waitFor(() => {
       expect(api.saveRfq).toHaveBeenCalledTimes(1);
@@ -497,8 +530,8 @@ describe("RfqWizard", () => {
       <RfqWizard api={api} autosaveMs={25} onStepChange={onStepChange} sessionId="session_123" step="input" />,
     );
 
-    expect(await screen.findByDisplayValue("Edited RFQ Title")).toBeInTheDocument();
-    expect(readSnapshot().rfq_draft.general_info.title).toBe("Edited RFQ Title");
+    expect(await screen.findByDisplayValue("Edited RFQ Subject")).toBeInTheDocument();
+    expect(readSnapshot().rfq_draft.general_info.subject).toBe("Edited RFQ Subject");
   });
 
   it("shows generation errors without losing RFQ input", async () => {
@@ -516,13 +549,13 @@ describe("RfqWizard", () => {
       />,
     );
 
-    const titleInput = await screen.findByLabelText("RFQ Title");
-    fireEvent.change(titleInput, { target: { value: "Retry-safe RFQ Title" } });
+    const subjectInput = await screen.findByLabelText("Subject");
+    fireEvent.change(subjectInput, { target: { value: "Retry-safe RFQ Subject" } });
     fireEvent.click(screen.getByRole("button", { name: "Generate AI rubric" }));
 
     expect(await screen.findByText(/Request failed\./)).toBeInTheDocument();
-    expect(screen.getByDisplayValue("Retry-safe RFQ Title")).toBeInTheDocument();
-    expect(readSnapshot().rfq_draft.general_info.title).toBe("Retry-safe RFQ Title");
+    expect(screen.getByDisplayValue("Retry-safe RFQ Subject")).toBeInTheDocument();
+    expect(readSnapshot().rfq_draft.general_info.subject).toBe("Retry-safe RFQ Subject");
     expect(api.generateRubric).toHaveBeenCalledTimes(1);
   });
 

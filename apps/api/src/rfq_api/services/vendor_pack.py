@@ -56,7 +56,7 @@ def build_vendor_pack(artifact: LockedFrameworkArtifact) -> VendorPack:
     ]
 
     return VendorPack(
-        rfq_title=artifact.rfq_snapshot.general_info.title,
+        rfq_title=artifact.rfq_snapshot.general_info.subject,
         response_instructions=[
             "Submit one complete response document covering all questionnaire items and schedules.",
             "Quote all applicable RFQ line items and state exclusions or assumptions clearly.",

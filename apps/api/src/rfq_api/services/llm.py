@@ -380,7 +380,7 @@ class OpenAIResponsesClient(LLMClient):
             instructions=instructions,
             input_payload=(
                 f"Vendor: {vendor.name}\n\n"
-                f"RFQ: {artifact.rfq_snapshot.general_info.title}\n\n"
+                f"RFQ: {artifact.rfq_snapshot.general_info.subject}\n\n"
                 "Narrative criteria to score\n"
                 f"{criteria_brief}\n\n"
                 "Vendor review summary\n"
@@ -593,8 +593,14 @@ class OpenAIResponsesClient(LLMClient):
     @staticmethod
     def _build_rfq_brief(rfq_draft: RFQDraft) -> str:
         timeline_lines = OpenAIResponsesClient._numbered_lines(
-            f"{item.label} ({item.target_date}): {OpenAIResponsesClient._shorten(item.description, 90)}"
-            for item in rfq_draft.timelines
+            [
+                f"Clarifications deadline: {rfq_draft.timelines.clarifications_deadline}",
+                f"Technical bid deadline: {rfq_draft.timelines.technical_bid_deadline}",
+                f"Commercial bid deadline: {rfq_draft.timelines.commercial_bid_deadline}",
+                f"Evaluation start date: {rfq_draft.timelines.evaluation_start_date}",
+                f"Negotiation start date: {rfq_draft.timelines.negotiation_start_date}",
+                f"Final award date: {rfq_draft.timelines.final_award_date}",
+            ]
         )
         priority_lines = OpenAIResponsesClient._numbered_lines(
             f"{item.title}: {OpenAIResponsesClient._shorten(item.description, 90)}"
@@ -614,13 +620,19 @@ class OpenAIResponsesClient(LLMClient):
 
         return (
             "RFQ summary\n"
-            f"Title: {rfq_draft.general_info.title}\n"
+            f"Subject: {rfq_draft.general_info.subject}\n"
             f"Code: {rfq_draft.general_info.rfq_code}\n"
+            f"Sourcing type: {rfq_draft.general_info.sourcing_type}\n"
+            f"Round: {rfq_draft.general_info.round}\n"
+            f"Status: {rfq_draft.general_info.status}\n"
             f"Owner: {rfq_draft.general_info.owner}\n"
-            f"Region: {rfq_draft.general_info.region}\n\n"
+            f"Currency: {rfq_draft.general_info.currency}\n"
+            f"Requestor: {rfq_draft.general_info.requestor}\n"
+            f"Department: {rfq_draft.general_info.department}\n"
+            f"Category: {rfq_draft.general_info.category}\n\n"
             "Scope\n"
             f"{OpenAIResponsesClient._shorten(rfq_draft.scope_overview, 320)}\n\n"
-            "Milestones\n"
+            "Timelines\n"
             f"{timeline_lines}\n\n"
             "Buyer priorities\n"
             f"{priority_lines}\n\n"

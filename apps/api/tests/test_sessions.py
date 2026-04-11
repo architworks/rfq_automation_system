@@ -10,7 +10,7 @@ def test_create_and_fetch_session(client) -> None:
 
     fetched = client.get(f"/sessions/{session_id}")
     assert fetched.status_code == 200
-    assert fetched.json()["rfq_draft"]["general_info"]["title"] == "Global Kids Health Drink Launch Partner RFQ"
+    assert fetched.json()["rfq_draft"]["general_info"]["subject"] == "RFQ for global launch marketing services for new kids health drink"
 
 
 def test_generate_rubric_returns_schema_valid_proposal(client) -> None:

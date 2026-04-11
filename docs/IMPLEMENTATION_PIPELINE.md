@@ -239,7 +239,7 @@ response = client.responses.parse(
     instructions=instructions,
     input=(
         f"Vendor: {vendor.name}\n\n"
-        f"RFQ: {artifact.rfq_snapshot.general_info.title}\n\n"
+        f"RFQ: {artifact.rfq_snapshot.general_info.subject}\n\n"
         "Narrative criteria to score\n"
         f"{criteria_brief}\n\n"
         "Vendor review summary\n"

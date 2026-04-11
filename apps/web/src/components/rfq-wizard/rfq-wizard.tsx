@@ -23,7 +23,6 @@ import {
   type RubricProposal,
   type ScheduleColumn,
   type SessionSnapshot,
-  type TimelineItem,
   type ValidationIssue,
   type VendorPack,
 } from "@/lib/api";
@@ -38,7 +37,6 @@ import {
   createResponseSchedule,
   createScheduleColumn,
   createSection,
-  createTimelineItem,
   parseCsv,
   toCsv,
 } from "@/lib/rubric-factories";
@@ -297,7 +295,16 @@ export function RfqWizard({
       setRequestError(null);
 
       try {
-        const loaded = await api.getSession(sessionId);
+        let loaded: SessionSnapshot;
+        try {
+          loaded = await api.getSession(sessionId);
+        } catch (error) {
+          if (error instanceof ApiError && error.status === 404) {
+            loaded = await api.createOrHydrateSession(sessionId);
+          } else {
+            throw error;
+          }
+        }
         if (cancelled) {
           return;
         }
@@ -616,11 +623,33 @@ export function RfqWizard({
     });
   }
 
-  if (isLoading || !rfqDraft) {
+  if (isLoading) {
     return (
       <div className={styles.shell}>
         <div className={styles.frame}>
           <div className={`${styles.banner} ${styles.infoBanner}`}>Loading session...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!rfqDraft) {
+    return (
+      <div className={styles.shell}>
+        <div className={styles.frame}>
+          <div className={`${styles.banner} ${styles.errorBanner}`}>
+            <strong>Request failed.</strong>{" "}
+            {requestError ?? "No RFQ draft is available for this session."}
+          </div>
+          <div className={styles.buttonGroup}>
+            <button
+              className={styles.secondaryButton}
+              onClick={() => window.location.reload()}
+              type="button"
+            >
+              Reload page
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -870,13 +899,13 @@ function InputStep({
         </div>
         <div className={`${styles.fieldGrid} ${styles.twoCol}`}>
           <label className={styles.label}>
-            RFQ Title
+            Subject
             <input
               className={styles.input}
-              value={draft.general_info.title}
+              value={draft.general_info.subject}
               onChange={(event) =>
                 onChange((current) => {
-                  current.general_info.title = event.target.value;
+                  current.general_info.subject = event.target.value;
                 })
               }
             />
@@ -894,6 +923,54 @@ function InputStep({
             />
           </label>
           <label className={styles.label}>
+            Sourcing Type
+            <select
+              className={styles.select}
+              value={draft.general_info.sourcing_type}
+              onChange={(event) =>
+                onChange((current) => {
+                  current.general_info.sourcing_type = event.target.value;
+                })
+              }
+            >
+              <option value="RFQ">RFQ</option>
+              <option value="RFP">RFP</option>
+              <option value="RFI">RFI</option>
+            </select>
+          </label>
+          <label className={styles.label}>
+            Round
+            <select
+              className={styles.select}
+              value={draft.general_info.round}
+              onChange={(event) =>
+                onChange((current) => {
+                  current.general_info.round = event.target.value;
+                })
+              }
+            >
+              <option value="Round 1">Round 1</option>
+              <option value="Round 2">Round 2</option>
+              <option value="Round 3">Round 3</option>
+            </select>
+          </label>
+          <label className={styles.label}>
+            Status
+            <select
+              className={styles.select}
+              value={draft.general_info.status}
+              onChange={(event) =>
+                onChange((current) => {
+                  current.general_info.status = event.target.value;
+                })
+              }
+            >
+              <option value="Draft">Draft</option>
+              <option value="Issued">Issued</option>
+              <option value="Closed">Closed</option>
+            </select>
+          </label>
+          <label className={styles.label}>
             Owner
             <input
               className={styles.input}
@@ -906,13 +983,54 @@ function InputStep({
             />
           </label>
           <label className={styles.label}>
-            Region
-            <input
-              className={styles.input}
-              value={draft.general_info.region}
+            Currency
+            <select
+              className={styles.select}
+              value={draft.general_info.currency}
               onChange={(event) =>
                 onChange((current) => {
-                  current.general_info.region = event.target.value;
+                  current.general_info.currency = event.target.value;
+                })
+              }
+            >
+              <option value="USD">USD</option>
+              <option value="EUR">EUR</option>
+              <option value="INR">INR</option>
+              <option value="GBP">GBP</option>
+            </select>
+          </label>
+          <label className={styles.label}>
+            Requestor
+            <input
+              className={styles.input}
+              value={draft.general_info.requestor}
+              onChange={(event) =>
+                onChange((current) => {
+                  current.general_info.requestor = event.target.value;
+                })
+              }
+            />
+          </label>
+          <label className={styles.label}>
+            Department
+            <input
+              className={styles.input}
+              value={draft.general_info.department}
+              onChange={(event) =>
+                onChange((current) => {
+                  current.general_info.department = event.target.value;
+                })
+              }
+            />
+          </label>
+          <label className={styles.label}>
+            Category
+            <input
+              className={styles.input}
+              value={draft.general_info.category}
+              onChange={(event) =>
+                onChange((current) => {
+                  current.general_info.category = event.target.value;
                 })
               }
             />
@@ -936,77 +1054,88 @@ function InputStep({
         <div className={styles.cardHeader}>
           <div>
             <h2 className={styles.cardTitle}>Timelines</h2>
-            <p className={styles.cardSubtle}>These dates help the AI decide threshold and timeline evidence.</p>
+            <p className={styles.cardSubtle}>Use the sample RFQ milestone fields from the assignment brief.</p>
           </div>
-          <button
-            className={styles.secondaryButton}
-            onClick={() =>
-              onChange((current) => {
-                current.timelines.push(createTimelineItem());
-              })
-            }
-            type="button"
-          >
-            Add Timeline
-          </button>
         </div>
-        <div className={styles.list}>
-          {draft.timelines.map((timeline: TimelineItem, index: number) => (
-            <div className={styles.itemCard} key={timeline.id}>
-              <div className={styles.itemHeader}>
-                <div className={styles.itemTitle}>{timeline.label || `Timeline ${index + 1}`}</div>
-                <button
-                  className={styles.dangerButton}
-                  onClick={() =>
-                    onChange((current) => {
-                      current.timelines.splice(index, 1);
-                    })
-                  }
-                  type="button"
-                >
-                  Remove
-                </button>
-              </div>
-              <div className={`${styles.fieldGrid} ${styles.threeCol}`}>
-                <label className={styles.label}>
-                  Label
-                  <input
-                    className={styles.input}
-                    value={timeline.label}
-                    onChange={(event) =>
-                      onChange((current) => {
-                        current.timelines[index].label = event.target.value;
-                      })
-                    }
-                  />
-                </label>
-                <label className={styles.label}>
-                  Target Date
-                  <input
-                    className={styles.input}
-                    value={timeline.target_date}
-                    onChange={(event) =>
-                      onChange((current) => {
-                        current.timelines[index].target_date = event.target.value;
-                      })
-                    }
-                  />
-                </label>
-                <label className={styles.label}>
-                  Description
-                  <input
-                    className={styles.input}
-                    value={timeline.description}
-                    onChange={(event) =>
-                      onChange((current) => {
-                        current.timelines[index].description = event.target.value;
-                      })
-                    }
-                  />
-                </label>
-              </div>
-            </div>
-          ))}
+        <div className={`${styles.fieldGrid} ${styles.twoCol}`}>
+          <label className={styles.label}>
+            Clarifications Deadline
+            <input
+              className={styles.input}
+              type="date"
+              value={draft.timelines.clarifications_deadline}
+              onChange={(event) =>
+                onChange((current) => {
+                  current.timelines.clarifications_deadline = event.target.value;
+                })
+              }
+            />
+          </label>
+          <label className={styles.label}>
+            Technical Bid Deadline
+            <input
+              className={styles.input}
+              type="date"
+              value={draft.timelines.technical_bid_deadline}
+              onChange={(event) =>
+                onChange((current) => {
+                  current.timelines.technical_bid_deadline = event.target.value;
+                })
+              }
+            />
+          </label>
+          <label className={styles.label}>
+            Commercial Bid Deadline
+            <input
+              className={styles.input}
+              type="date"
+              value={draft.timelines.commercial_bid_deadline}
+              onChange={(event) =>
+                onChange((current) => {
+                  current.timelines.commercial_bid_deadline = event.target.value;
+                })
+              }
+            />
+          </label>
+          <label className={styles.label}>
+            Evaluation Start Date
+            <input
+              className={styles.input}
+              type="date"
+              value={draft.timelines.evaluation_start_date}
+              onChange={(event) =>
+                onChange((current) => {
+                  current.timelines.evaluation_start_date = event.target.value;
+                })
+              }
+            />
+          </label>
+          <label className={styles.label}>
+            Negotiation Start Date
+            <input
+              className={styles.input}
+              type="date"
+              value={draft.timelines.negotiation_start_date}
+              onChange={(event) =>
+                onChange((current) => {
+                  current.timelines.negotiation_start_date = event.target.value;
+                })
+              }
+            />
+          </label>
+          <label className={styles.label}>
+            Final Award Date
+            <input
+              className={styles.input}
+              type="date"
+              value={draft.timelines.final_award_date}
+              onChange={(event) =>
+                onChange((current) => {
+                  current.timelines.final_award_date = event.target.value;
+                })
+              }
+            />
+          </label>
         </div>
       </section>
 
@@ -2270,7 +2399,7 @@ function LockStep({
         </div>
         <div className={styles.summaryList}>
           <div className={styles.summaryItem}>
-            <strong>RFQ</strong>: {draft.general_info.title}
+            <strong>RFQ</strong>: {draft.general_info.subject}
           </div>
           <div className={styles.summaryItem}>
             <strong>Official award basis</strong>: {proposal.official_award_basis}

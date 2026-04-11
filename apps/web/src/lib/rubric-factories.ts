@@ -7,10 +7,10 @@ import type {
   EvidenceCheck,
   LineItem,
   Question,
+  RFQTimelineSet,
   ResponseSchedule,
   RubricSection,
   ScheduleColumn,
-  TimelineItem,
 } from "@/lib/api/types";
 
 function createId(prefix: string): string {
@@ -21,12 +21,14 @@ export function cloneValue<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T;
 }
 
-export function createTimelineItem(): TimelineItem {
+export function createTimelineSet(): RFQTimelineSet {
   return {
-    id: createId("timeline"),
-    label: "New milestone",
-    target_date: "2026-06-01",
-    description: "",
+    clarifications_deadline: "2026-05-12",
+    technical_bid_deadline: "2026-05-19",
+    commercial_bid_deadline: "2026-05-21",
+    evaluation_start_date: "2026-05-22",
+    negotiation_start_date: "2026-05-27",
+    final_award_date: "2026-06-02",
   };
 }
 

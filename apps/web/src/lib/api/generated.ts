@@ -573,14 +573,26 @@ export interface components {
         };
         /** GeneralInfo */
         GeneralInfo: {
-            /** Title */
-            title: string;
+            /** Subject */
+            subject: string;
             /** Rfq Code */
             rfq_code: string;
+            /** Sourcing Type */
+            sourcing_type: string;
+            /** Round */
+            round: string;
+            /** Status */
+            status: string;
             /** Owner */
             owner: string;
-            /** Region */
-            region: string;
+            /** Currency */
+            currency: string;
+            /** Requestor */
+            requestor: string;
+            /** Department */
+            department: string;
+            /** Category */
+            category: string;
         };
         /** GovernanceInfo */
         GovernanceInfo: {
@@ -716,14 +728,28 @@ export interface components {
             general_info: components["schemas"]["GeneralInfo"];
             /** Scope Overview */
             scope_overview: string;
-            /** Timelines */
-            timelines: components["schemas"]["TimelineItem"][];
+            timelines: components["schemas"]["RFQTimelineSet"];
             /** Buyer Priorities */
             buyer_priorities: components["schemas"]["BuyerPriority"][];
             /** Mandatory Conditions */
             mandatory_conditions: string[];
             /** Line Items */
             line_items: components["schemas"]["LineItem"][];
+        };
+        /** RFQTimelineSet */
+        RFQTimelineSet: {
+            /** Clarifications Deadline */
+            clarifications_deadline: string;
+            /** Technical Bid Deadline */
+            technical_bid_deadline: string;
+            /** Commercial Bid Deadline */
+            commercial_bid_deadline: string;
+            /** Evaluation Start Date */
+            evaluation_start_date: string;
+            /** Negotiation Start Date */
+            negotiation_start_date: string;
+            /** Final Award Date */
+            final_award_date: string;
         };
         /** RawExtraction */
         RawExtraction: {
@@ -936,17 +962,6 @@ export interface components {
             criterion_results?: components["schemas"]["TechnicalCriterionResult"][];
             /** Summary */
             summary: string;
-        };
-        /** TimelineItem */
-        TimelineItem: {
-            /** Id */
-            id: string;
-            /** Label */
-            label: string;
-            /** Target Date */
-            target_date: string;
-            /** Description */
-            description: string;
         };
         /** UomOverride */
         UomOverride: {

@@ -1,45 +1,33 @@
-from .models import BuyerPriority, GeneralInfo, LineItem, RFQDraft, TimelineItem
+from .models import BuyerPriority, GeneralInfo, LineItem, RFQDraft, RFQTimelineSet
 
 
 def build_seed_rfq() -> RFQDraft:
     return RFQDraft(
         general_info=GeneralInfo(
-            title="Global Kids Health Drink Launch Partner RFQ",
-            rfq_code="KHD-GL-2026-01",
-            owner="Global Brand Procurement",
-            region="Global",
+            subject="RFQ for global launch marketing services for new kids health drink",
+            rfq_code="RFQ-MKT-KIDS-GL-2026-001",
+            sourcing_type="RFQ",
+            round="Round 1",
+            status="Draft",
+            owner="Ava Thompson",
+            currency="USD",
+            requestor="Global Brand Marketing Team",
+            department="Marketing Procurement",
+            category="Marketing Services",
         ),
         scope_overview=(
             "Select an integrated agency partner for the global launch of a new kids health drink "
             "covering strategy, creative, TVC development and production, paid and organic social, "
             "claims compliance review, and launch governance."
         ),
-        timelines=[
-            TimelineItem(
-                id="tl_submission",
-                label="Vendor submission deadline",
-                target_date="2026-05-07",
-                description="Final date for vendors to submit proposals and supporting documents.",
-            ),
-            TimelineItem(
-                id="tl_eval",
-                label="Technical and commercial evaluation complete",
-                target_date="2026-05-21",
-                description="Internal evaluation and recommendation sign-off date.",
-            ),
-            TimelineItem(
-                id="tl_award",
-                label="Award decision",
-                target_date="2026-05-26",
-                description="Buyer intends to finalize award and notify vendors.",
-            ),
-            TimelineItem(
-                id="tl_launch",
-                label="Market launch readiness",
-                target_date="2026-07-15",
-                description="All assets and media plans must be launch-ready before this date.",
-            ),
-        ],
+        timelines=RFQTimelineSet(
+            clarifications_deadline="2026-05-12",
+            technical_bid_deadline="2026-05-19",
+            commercial_bid_deadline="2026-05-21",
+            evaluation_start_date="2026-05-22",
+            negotiation_start_date="2026-05-27",
+            final_award_date="2026-06-02",
+        ),
         buyer_priorities=[
             BuyerPriority(
                 id="priority_compliance",

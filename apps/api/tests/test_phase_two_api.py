@@ -12,7 +12,7 @@ def test_vendor_pack_is_derived_from_locked_artifact(client) -> None:
 
     assert response.status_code == 200
     payload = response.json()
-    assert payload["rfq_title"] == "Global Kids Health Drink Launch Partner RFQ"
+    assert payload["rfq_title"] == "RFQ for global launch marketing services for new kids health drink"
     assert payload["official_award_basis"] == "QCBS 70/30"
     assert payload["questions"][0]["id"] == "q1"
     assert payload["response_schedules"][0]["columns"][0]["field_id"].startswith("pricing_schedule.")

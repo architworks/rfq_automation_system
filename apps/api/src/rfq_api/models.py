@@ -66,17 +66,25 @@ class TechnicalCriterionStatus(str, Enum):
 
 
 class GeneralInfo(BaseModel):
-    title: str
+    subject: str
     rfq_code: str
+    sourcing_type: str
+    round: str
+    status: str
     owner: str
-    region: str
+    currency: str
+    requestor: str
+    department: str
+    category: str
 
 
-class TimelineItem(BaseModel):
-    id: str
-    label: str
-    target_date: str
-    description: str
+class RFQTimelineSet(BaseModel):
+    clarifications_deadline: str
+    technical_bid_deadline: str
+    commercial_bid_deadline: str
+    evaluation_start_date: str
+    negotiation_start_date: str
+    final_award_date: str
 
 
 class BuyerPriority(BaseModel):
@@ -99,7 +107,7 @@ class RFQDraft(BaseModel):
 
     general_info: GeneralInfo
     scope_overview: str
-    timelines: list[TimelineItem]
+    timelines: RFQTimelineSet
     buyer_priorities: list[BuyerPriority]
     mandatory_conditions: list[str]
     line_items: list[LineItem]

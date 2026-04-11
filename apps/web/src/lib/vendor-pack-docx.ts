@@ -9,7 +9,7 @@ function sanitizeFileNamePart(value: string): string {
 }
 
 function buildFileName(artifact: LockedFrameworkArtifact): string {
-  const seed = artifact.rfq_snapshot.general_info.rfq_code || artifact.rfq_snapshot.general_info.title || "vendor-rfq";
+  const seed = artifact.rfq_snapshot.general_info.rfq_code || artifact.rfq_snapshot.general_info.subject || "vendor-rfq";
   const base = sanitizeFileNamePart(seed) || "vendor-rfq";
   return `${base}-vendor-pack.docx`;
 }
@@ -79,9 +79,9 @@ export async function buildVendorPackDocument(
         }),
     );
 
-  const title = artifact.rfq_snapshot.general_info.title;
+  const title = artifact.rfq_snapshot.general_info.subject;
   const generalInfo = artifact.rfq_snapshot.general_info;
-  const timelines = artifact.rfq_snapshot.timelines ?? [];
+  const timelines = artifact.rfq_snapshot.timelines;
   const mandatoryConditions = artifact.rfq_snapshot.mandatory_conditions ?? [];
   const lineItems = artifact.rfq_snapshot.line_items ?? [];
   const responseInstructions = vendorPack.response_instructions ?? [];
@@ -101,10 +101,19 @@ export async function buildVendorPackDocument(
     new Paragraph({ text: "" }),
     fullWidthTable([
       new TableRow({
-        children: [cell("RFQ Code", true), cell(generalInfo.rfq_code), cell("Region", true), cell(generalInfo.region)],
+        children: [cell("RFQ Code", true), cell(generalInfo.rfq_code), cell("Sourcing Type", true), cell(generalInfo.sourcing_type)],
       }),
       new TableRow({
-        children: [cell("Owner", true), cell(generalInfo.owner), cell("Submission Format", true), cell("One complete response document")],
+        children: [cell("Round", true), cell(generalInfo.round), cell("Status", true), cell(generalInfo.status)],
+      }),
+      new TableRow({
+        children: [cell("Owner", true), cell(generalInfo.owner), cell("Currency", true), cell(generalInfo.currency)],
+      }),
+      new TableRow({
+        children: [cell("Requestor", true), cell(generalInfo.requestor), cell("Department", true), cell(generalInfo.department)],
+      }),
+      new TableRow({
+        children: [cell("Category", true), cell(generalInfo.category), cell("Submission Format", true), cell("One complete response document")],
       }),
     ]),
     new Paragraph({ text: "" }),
@@ -120,7 +129,14 @@ export async function buildVendorPackDocument(
       heading: HeadingLevel.HEADING_1,
     }),
     ...bulletParagraphs(
-      timelines.map((timeline) => `${timeline.label} (${timeline.target_date}): ${timeline.description}`),
+      [
+        `Clarifications deadline: ${timelines.clarifications_deadline}`,
+        `Technical bid deadline: ${timelines.technical_bid_deadline}`,
+        `Commercial bid deadline: ${timelines.commercial_bid_deadline}`,
+        `Evaluation start date: ${timelines.evaluation_start_date}`,
+        `Negotiation start date: ${timelines.negotiation_start_date}`,
+        `Final award date: ${timelines.final_award_date}`,
+      ],
     ),
     new Paragraph({
       text: "Mandatory Conditions",
