@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from ..models import LLMSettings, OFFICIAL_AWARD_BASIS, CriterionType, RFQDraft, RubricProposal
-from .llm import LLMClient, RubricGenerationError
+from ..models import LLMSettings, OFFICIAL_AWARD_BASIS, CriterionType, RFQDraft, RubricProposal, ValidationIssue
+from .llm import LLMClient
 from .validation import validate_rubric_proposal
 
 
@@ -25,15 +25,25 @@ class RubricGenerationService:
             )
         )
         repaired_issues = validate_rubric_proposal(repaired)
-        if repaired_issues:
-            issue_summary = "; ".join(
-                f"{issue.field}: {issue.message}"
-                for issue in repaired_issues
-            )
-            raise RubricGenerationError(
-                f"Rubric generation produced an invalid proposal after repair attempt: {issue_summary}"
-            )
-        return repaired
+        if not repaired_issues:
+            return repaired
+
+        return self._pick_best_candidate(
+            primary=(proposal, issues),
+            repaired=(repaired, repaired_issues),
+        )
+
+    @staticmethod
+    def _pick_best_candidate(
+        *,
+        primary: tuple[RubricProposal, list[ValidationIssue]],
+        repaired: tuple[RubricProposal, list[ValidationIssue]],
+    ) -> RubricProposal:
+        primary_proposal, primary_issues = primary
+        repaired_proposal, repaired_issues = repaired
+        if len(repaired_issues) <= len(primary_issues):
+            return repaired_proposal
+        return primary_proposal
 
     def _normalize(self, proposal: RubricProposal) -> RubricProposal:
         normalized = proposal.model_copy(deep=True)

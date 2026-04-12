@@ -52,6 +52,20 @@ def test_generate_rubric_repairs_invalid_first_draft_before_lock(client) -> None
     assert locked.status_code == 200
 
 
+def test_generate_rubric_returns_best_effort_proposal_when_repair_still_invalid(client) -> None:
+    client.fake_llm.return_invalid_rubric_always = True  # type: ignore[attr-defined]
+    created = client.post("/sessions", json={})
+    session_id = created.json()["session_id"]
+
+    generated = client.post(f"/sessions/{session_id}/rubric/generate")
+    assert generated.status_code == 200
+    assert generated.json()["rubric_proposal"] is not None
+    assert client.fake_llm.generate_attempt_count == 2  # type: ignore[attr-defined]
+
+    locked = client.post(f"/sessions/{session_id}/rubric/lock")
+    assert locked.status_code == 422
+
+
 def test_update_llm_settings_persists_and_is_used_for_generation(client) -> None:
     created = client.post("/sessions", json={})
     session_id = created.json()["session_id"]

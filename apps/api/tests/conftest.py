@@ -217,6 +217,7 @@ def build_valid_rubric_proposal() -> RubricProposal:
 class FakeLLMClient(LLMClient):
     def __init__(self) -> None:
         self.return_invalid_rubric_once = False
+        self.return_invalid_rubric_always = False
         self.generate_attempt_count = 0
         self.last_reasoning_efforts: list[str] = []
         self.last_repair_feedback: list[ValidationIssue] | None = None
@@ -224,6 +225,12 @@ class FakeLLMClient(LLMClient):
     def generate_rubric(self, _rfq_draft, *, llm_settings: LLMSettings, repair_feedback=None):
         self.last_reasoning_efforts.append(llm_settings.reasoning_effort.value)
         self.last_repair_feedback = repair_feedback
+        if self.return_invalid_rubric_always:
+            self.generate_attempt_count += 1
+            invalid = build_valid_rubric_proposal()
+            invalid.criteria[0].linked_question_ids = []
+            invalid.criteria[1].weight = 35
+            return invalid
         if self.return_invalid_rubric_once and repair_feedback is None and self.generate_attempt_count == 0:
             self.generate_attempt_count += 1
             invalid = build_valid_rubric_proposal()
