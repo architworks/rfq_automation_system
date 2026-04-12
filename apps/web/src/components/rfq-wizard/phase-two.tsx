@@ -3,12 +3,15 @@
 import { useEffect, useMemo, useState } from "react";
 
 import type {
+    Criterion,
     ComparisonSettings,
     ExtractedField,
     EvaluationReport,
     LockedFrameworkArtifact,
     NormalizedField,
     NormalizedPricingLine,
+    Question,
+    TechnicalCriterionResult,
     VendorPack,
     VendorRecord,
     VendorReview,
@@ -49,10 +52,13 @@ type ReviewStepProps = {
 };
 
 type ResultsStepProps = {
+  artifact: LockedFrameworkArtifact | null;
+  comparisonSettings: ComparisonSettings | null;
   evaluationReport: EvaluationReport | null;
   normalizationReady: boolean;
   isRunningEvaluation: boolean;
   onRunEvaluation: () => void;
+  reviews: VendorReview[];
 };
 
 const ACCEPTED_VENDOR_FILES = ".pdf,.ppt,.pptx,.doc,.docx,.xls,.xlsx";
@@ -506,7 +512,7 @@ export function ReviewStep({
 
         <div className={styles.summaryGrid}>
           <div className={styles.summaryItem}>
-            <span className={styles.summaryLabel}>Base Currency</span>
+            <span className={styles.summaryLabel}>RFQ Currency</span>
             <span className={styles.summaryValue}>{comparisonSettings?.base_currency ?? "Not available"}</span>
           </div>
           <div className={styles.summaryItem}>
@@ -603,8 +609,14 @@ export function ReviewStep({
                       <div className={styles.previewTitle}>Canonical values, comparability, and blockers</div>
                     </div>
                   </div>
-                  <NormalizedFieldList fields={selectedReview.normalized_fields ?? []} />
-                  <NormalizedPricingTable pricingLines={selectedReview.normalized_pricing ?? []} />
+                  <NormalizedFieldList
+                    fields={selectedReview.normalized_fields ?? []}
+                    rfqCurrency={comparisonSettings?.base_currency ?? null}
+                  />
+                  <NormalizedPricingTable
+                    pricingLines={selectedReview.normalized_pricing ?? []}
+                    rfqCurrency={comparisonSettings?.base_currency ?? null}
+                  />
                 </section>
               </>
             )}
@@ -616,11 +628,44 @@ export function ReviewStep({
 }
 
 export function ResultsStep({
+  artifact,
+  comparisonSettings,
   evaluationReport,
   normalizationReady,
   isRunningEvaluation,
   onRunEvaluation,
+  reviews,
 }: ResultsStepProps) {
+  const criteriaById = useMemo(
+    () => new Map((artifact?.rubric_snapshot.criteria ?? []).map((criterion) => [criterion.id, criterion])),
+    [artifact],
+  );
+  const questionsById = useMemo(
+    () => new Map((artifact?.rubric_snapshot.questions ?? []).map((question) => [question.id, question])),
+    [artifact],
+  );
+  const evidenceLookupByVendor = useMemo(
+    () =>
+      new Map(
+        reviews.map((review) => [review.vendor_id, buildEvidenceLookup(review)]),
+      ),
+    [reviews],
+  );
+  const scoreBreakdownByVendor = useMemo(
+    () =>
+      new Map(
+        (evaluationReport?.official_recommendation.score_breakdown ?? []).map((item) => [item.vendor_id, item]),
+      ),
+    [evaluationReport],
+  );
+  const technicalThreshold = evaluationReport?.technical_results?.[0]?.threshold ?? null;
+  const winnerName =
+    (evaluationReport?.official_recommendation.winner_vendor_id
+      ? scoreBreakdownByVendor.get(evaluationReport.official_recommendation.winner_vendor_id)?.vendor_name
+      : null) ??
+    evaluationReport?.official_recommendation.winner_vendor_id ??
+    "No winner";
+
   return (
     <div className={styles.grid}>
       <section className={styles.card}>
@@ -678,14 +723,24 @@ export function ResultsStep({
                 <span className={styles.summaryValue}>{formatTimestamp(evaluationReport.generated_at)}</span>
               </div>
               <div className={styles.summaryItem}>
-                <span className={styles.summaryLabel}>Winner Vendor ID</span>
-                <span className={styles.summaryValue}>{evaluationReport.official_recommendation.winner_vendor_id ?? "No winner"}</span>
+                <span className={styles.summaryLabel}>Winner Vendor</span>
+                <span className={styles.summaryValue}>{winnerName}</span>
               </div>
               <div className={styles.summaryItem}>
                 <span className={styles.summaryLabel}>Eligible Vendors</span>
                 <span className={styles.summaryValue}>
                   {(evaluationReport.official_recommendation.eligible_vendor_ids ?? []).join(", ") || "None"}
                 </span>
+              </div>
+              <div className={styles.summaryItem}>
+                <span className={styles.summaryLabel}>Aggregate Technical Threshold</span>
+                <span className={styles.summaryValue}>
+                  {technicalThreshold !== null ? `${formatOptionalNumber(technicalThreshold)} / 100` : "Not available"}
+                </span>
+              </div>
+              <div className={styles.summaryItem}>
+                <span className={styles.summaryLabel}>Commercial Comparison Currency</span>
+                <span className={styles.summaryValue}>{comparisonSettings?.base_currency ?? "Not available"}</span>
               </div>
               <div className={styles.summaryNarrative}>
                 <span className={styles.summaryLabel}>Explanation</span>
@@ -707,7 +762,8 @@ export function ResultsStep({
               <div>
                 <h2 className={styles.cardTitle}>Official Score Breakdown</h2>
                 <p className={styles.cardSubtle}>
-                  Technical is the hard gate. Commercial scoring applies only to the technically qualified pool.
+                  Technical is the hard gate. A vendor must pass mandatory gates, criterion-level cutoffs, and the
+                  aggregate technical threshold before commercial scoring applies.
                 </p>
               </div>
             </div>
@@ -717,9 +773,10 @@ export function ResultsStep({
                   <tr>
                     <th>Vendor</th>
                     <th>Technical Score</th>
+                    <th>Technical Threshold</th>
                     <th>Commercial Score</th>
                     <th>Final QCBS Score</th>
-                    <th>Passed Technical Gate</th>
+                    <th>Technical Gate</th>
                     <th>Commercially Comparable</th>
                   </tr>
                 </thead>
@@ -728,9 +785,10 @@ export function ResultsStep({
                     <tr key={item.vendor_id}>
                       <td>{item.vendor_name}</td>
                       <td>{formatOptionalNumber(item.technical_score)}</td>
+                      <td>{technicalThreshold !== null ? formatOptionalNumber(technicalThreshold) : "N/A"}</td>
                       <td>{formatOptionalNumber(item.commercial_score)}</td>
                       <td>{formatOptionalNumber(item.final_score)}</td>
-                      <td>{item.passed_technical_gate ? "Yes" : "No"}</td>
+                      <td>{item.passed_technical_gate ? "Passed" : "Failed"}</td>
                       <td>{item.commercially_comparable ? "Yes" : "No"}</td>
                     </tr>
                   ))}
@@ -755,37 +813,43 @@ export function ResultsStep({
                       {result.passed_gate ? "Passed technical gate" : "Failed technical gate"}
                     </div>
                   </div>
-                  <div className={styles.previewItemMeta}>
-                    Aggregate score: {formatOptionalNumber(result.aggregate_score)} / Threshold {result.threshold}
+                  <div className={styles.summaryGrid} style={{ marginTop: 10 }}>
+                    <div className={styles.summaryItem}>
+                      <span className={styles.summaryLabel}>Aggregate Technical Score</span>
+                      <span className={styles.summaryValue}>{formatOptionalNumber(result.aggregate_score)} / 100</span>
+                    </div>
+                    <div className={styles.summaryItem}>
+                      <span className={styles.summaryLabel}>Aggregate Technical Threshold</span>
+                      <span className={styles.summaryValue}>{formatOptionalNumber(result.threshold)} / 100</span>
+                    </div>
+                    <div className={styles.summaryItem}>
+                      <span className={styles.summaryLabel}>Technical Gate Result</span>
+                      <span className={styles.summaryValue}>
+                        {result.passed_gate ? "Qualified for commercial evaluation" : "Stopped at technical evaluation"}
+                      </span>
+                    </div>
                   </div>
-                  <div className={styles.previewItemBody}>{result.summary}</div>
+                  <div className={styles.summaryNarrative} style={{ marginTop: 10 }}>
+                    <span className={styles.summaryLabel}>Technical Evaluation Summary</span>
+                    <span className={styles.summaryValue}>{result.summary}</span>
+                  </div>
                   {(result.disqualification_reasons ?? []).length > 0 ? (
-                    <div className={styles.previewItemMeta}>
-                      Disqualification reasons: {(result.disqualification_reasons ?? []).join(" ")}
+                    <div className={styles.summaryNarrative} style={{ marginTop: 10 }}>
+                      <span className={styles.summaryLabel}>Why This Vendor Did Not Pass</span>
+                      <span className={styles.summaryValue}>
+                        {(result.disqualification_reasons ?? []).join(" ")}
+                      </span>
                     </div>
                   ) : null}
                   <div className={styles.previewList} style={{ marginTop: 10 }}>
                     {(result.criterion_results ?? []).map((criterion) => (
-                      <div className={styles.previewItem} key={criterion.criterion_id}>
-                        <div className={styles.previewItemHeader}>
-                          <div className={styles.previewItemId}>{criterion.criterion_id}</div>
-                          <div className={styles.previewBadge}>
-                            {criterion.status}
-                            {criterion.score !== null ? ` · ${formatOptionalNumber(criterion.score)}` : ""}
-                          </div>
-                        </div>
-                        <div className={styles.previewTitle}>{criterion.title}</div>
-                        <div className={styles.previewItemBody}>{criterion.explanation}</div>
-                        <div className={styles.previewItemMeta}>
-                          Evidence refs: {(criterion.evidence_refs ?? []).join(", ") || "None"} | Confidence: {formatOptionalNumber(criterion.confidence)}
-                        </div>
-                        {(criterion.math_trace ?? []).length > 0 ? (
-                          <div className={styles.previewItemMeta}>Math trace: {(criterion.math_trace ?? []).join(" ")}</div>
-                        ) : null}
-                        {(criterion.risks ?? []).length > 0 ? (
-                          <div className={styles.previewItemMeta}>Risks: {(criterion.risks ?? []).join(" ")}</div>
-                        ) : null}
-                      </div>
+                      <TechnicalCriterionCard
+                        criterionDefinition={criteriaById.get(criterion.criterion_id) ?? null}
+                        evidenceLookup={evidenceLookupByVendor.get(result.vendor_id) ?? new Map<string, string>()}
+                        key={criterion.criterion_id}
+                        questionLookup={questionsById}
+                        result={criterion}
+                      />
                     ))}
                   </div>
                 </div>
@@ -809,16 +873,39 @@ export function ResultsStep({
                       {result.award_ready ? "Award-ready" : "Blocked"}
                     </div>
                   </div>
-                  <div className={styles.previewItemMeta}>
-                    Comparable total: {formatOptionalNumber(result.comparable_total)} {result.base_currency}
-                    {result.commercial_score !== null ? ` · Commercial score ${formatOptionalNumber(result.commercial_score)}` : ""}
+                  <div className={styles.summaryGrid} style={{ marginTop: 10 }}>
+                    <div className={styles.summaryItem}>
+                      <span className={styles.summaryLabel}>Converted Total In RFQ Currency</span>
+                      <span className={styles.summaryValue}>
+                        {formatOptionalNumber(result.comparable_total)} {result.base_currency}
+                      </span>
+                    </div>
+                    <div className={styles.summaryItem}>
+                      <span className={styles.summaryLabel}>Commercial Score</span>
+                      <span className={styles.summaryValue}>{formatOptionalNumber(result.commercial_score)}</span>
+                    </div>
+                    <div className={styles.summaryItem}>
+                      <span className={styles.summaryLabel}>Commercial Comparability</span>
+                      <span className={styles.summaryValue}>
+                        {result.award_ready ? "Comparable" : "Not yet comparable"}
+                      </span>
+                    </div>
                   </div>
-                  <div className={styles.previewItemBody}>{result.explanation}</div>
+                  <div className={styles.summaryNarrative} style={{ marginTop: 10 }}>
+                    <span className={styles.summaryLabel}>Commercial Evaluation Summary</span>
+                    <span className={styles.summaryValue}>{result.explanation}</span>
+                  </div>
                   {(result.blockers ?? []).length > 0 ? (
-                    <div className={styles.previewItemMeta}>Blockers: {(result.blockers ?? []).join(" ")}</div>
+                    <div className={styles.summaryNarrative} style={{ marginTop: 10 }}>
+                      <span className={styles.summaryLabel}>Commercial Blockers</span>
+                      <span className={styles.summaryValue}>{(result.blockers ?? []).join(" ")}</span>
+                    </div>
                   ) : null}
                   {(result.anomalies ?? []).length > 0 ? (
-                    <div className={styles.previewItemMeta}>Anomalies: {(result.anomalies ?? []).join(" ")}</div>
+                    <div className={styles.summaryNarrative} style={{ marginTop: 10 }}>
+                      <span className={styles.summaryLabel}>Commercial Anomalies</span>
+                      <span className={styles.summaryValue}>{(result.anomalies ?? []).join(" ")}</span>
+                    </div>
                   ) : null}
                 </div>
               ))}
@@ -914,7 +1001,114 @@ function FieldGroupList({ title, fields }: { title: string; fields: ExtractedFie
   );
 }
 
-function NormalizedFieldList({ fields }: { fields: NormalizedField[] }) {
+function TechnicalCriterionCard({
+  criterionDefinition,
+  evidenceLookup,
+  questionLookup,
+  result,
+}: {
+  criterionDefinition: Criterion | null;
+  evidenceLookup: Map<string, string>;
+  questionLookup: Map<string, Question>;
+  result: TechnicalCriterionResult;
+}) {
+  const { summaryText, reasoningText } = splitReasoningSummary(result.explanation);
+  const evidenceSnippets = (result.evidence_refs ?? [])
+    .map((evidenceId) => evidenceLookup.get(evidenceId))
+    .filter((snippet): snippet is string => Boolean(snippet));
+  const vendorQuestion = getCriterionQuestionText(criterionDefinition, questionLookup);
+
+  return (
+    <div className={styles.previewItem}>
+      <div className={styles.previewItemHeader}>
+        <div className={styles.previewTitle}>{criterionDefinition?.title ?? result.title}</div>
+        <div className={styles.previewBadge}>{formatCriterionOutcomeLabel(result, criterionDefinition)}</div>
+      </div>
+      <div className={styles.summaryGrid}>
+        <div className={styles.summaryItem}>
+          <span className={styles.summaryLabel}>Criterion Type</span>
+          <span className={styles.summaryValue}>
+            {formatCriterionTypeForBuyer(criterionDefinition?.criterion_type ?? result.criterion_type)}
+          </span>
+        </div>
+        <div className={styles.summaryItem}>
+          <span className={styles.summaryLabel}>Score</span>
+          <span className={styles.summaryValue}>{formatCriterionScore(result, criterionDefinition)}</span>
+        </div>
+        <div className={styles.summaryItem}>
+          <span className={styles.summaryLabel}>Minimum Qualifying Score</span>
+          <span className={styles.summaryValue}>{formatCriterionCutoffForBuyer(criterionDefinition)}</span>
+        </div>
+        <div className={styles.summaryItem}>
+          <span className={styles.summaryLabel}>Confidence</span>
+          <span className={styles.summaryValue}>{formatOptionalNumber(result.confidence)}</span>
+        </div>
+      </div>
+      {criterionDefinition?.description ? (
+        <div className={styles.summaryNarrative} style={{ marginTop: 10 }}>
+          <span className={styles.summaryLabel}>What This Criterion Checks</span>
+          <span className={styles.summaryValue}>{criterionDefinition.description}</span>
+        </div>
+      ) : null}
+      {vendorQuestion ? (
+        <div className={styles.summaryNarrative} style={{ marginTop: 10 }}>
+          <span className={styles.summaryLabel}>Vendor Question</span>
+          <span className={styles.summaryValue}>{vendorQuestion}</span>
+        </div>
+      ) : null}
+      <div className={styles.summaryNarrative} style={{ marginTop: 10 }}>
+        <span className={styles.summaryLabel}>Evaluation Summary</span>
+        <span className={styles.summaryValue}>{summaryText}</span>
+      </div>
+      <div className={styles.summaryNarrative} style={{ marginTop: 10 }}>
+        <span className={styles.summaryLabel}>Supporting Evidence</span>
+        <span className={styles.summaryValue}>
+          {evidenceSnippets.length > 0
+            ? evidenceSnippets.join(" | ")
+            : "No buyer-readable evidence snippet is available for this criterion."}
+        </span>
+      </div>
+      {(result.risks ?? []).length > 0 ? (
+        <div className={styles.summaryNarrative} style={{ marginTop: 10 }}>
+          <span className={styles.summaryLabel}>Risks</span>
+          <span className={styles.summaryValue}>{(result.risks ?? []).join(" ")}</span>
+        </div>
+      ) : null}
+      <details className={styles.advancedPanel} style={{ marginTop: 10 }}>
+        <summary className={styles.advancedSummary}>
+          <span>View Scoring Detail</span>
+          <span className={styles.advancedMeta}>{result.criterion_id}</span>
+        </summary>
+        <div className={styles.advancedBody}>
+          {reasoningText ? (
+            <div className={styles.summaryNarrative}>
+              <span className={styles.summaryLabel}>AI Reasoning Note</span>
+              <span className={styles.summaryValue}>{reasoningText}</span>
+            </div>
+          ) : null}
+          {(result.math_trace ?? []).length > 0 ? (
+            <div className={styles.summaryNarrative}>
+              <span className={styles.summaryLabel}>Scoring Trace</span>
+              <span className={styles.summaryValue}>{(result.math_trace ?? []).join(" ")}</span>
+            </div>
+          ) : null}
+          <div className={styles.summaryNarrative}>
+            <span className={styles.summaryLabel}>Evidence Reference IDs</span>
+            <span className={styles.summaryValue}>{(result.evidence_refs ?? []).join(", ") || "None"}</span>
+          </div>
+        </div>
+      </details>
+    </div>
+  );
+}
+
+function NormalizedFieldList({
+  fields,
+  rfqCurrency,
+}: {
+  fields: NormalizedField[];
+  rfqCurrency: string | null;
+}) {
   return (
     <div className={styles.previewSection}>
       <div className={styles.previewSectionTitle}>Normalized Fields</div>
@@ -931,7 +1125,9 @@ function NormalizedFieldList({ fields }: { fields: NormalizedField[] }) {
               <div className={styles.previewTitle}>{field.label}</div>
               <div className={styles.previewItemBody}>{field.normalized_value ?? "No normalized value"}</div>
               <div className={styles.previewItemMeta}>
-                Base currency value: {formatOptionalNumber(field.base_currency_value)} | Target UOM: {field.target_uom ?? "N/A"}
+                Converted value in RFQ currency: {formatOptionalNumber(field.base_currency_value)} {rfqCurrency ?? ""}
+                {" | "}
+                RFQ UOM: {field.target_uom ?? "N/A"}
               </div>
               {(field.conversion_notes ?? []).length > 0 ? (
                 <div className={styles.previewItemMeta}>Conversion notes: {(field.conversion_notes ?? []).join(" ")}</div>
@@ -948,7 +1144,13 @@ function NormalizedFieldList({ fields }: { fields: NormalizedField[] }) {
   );
 }
 
-function NormalizedPricingTable({ pricingLines }: { pricingLines: NormalizedPricingLine[] }) {
+function NormalizedPricingTable({
+  pricingLines,
+  rfqCurrency,
+}: {
+  pricingLines: NormalizedPricingLine[];
+  rfqCurrency: string | null;
+}) {
   return (
     <div className={styles.previewSection}>
       <div className={styles.previewSectionTitle}>Normalized Pricing</div>
@@ -957,28 +1159,30 @@ function NormalizedPricingTable({ pricingLines }: { pricingLines: NormalizedPric
           <thead>
             <tr>
               <th>Line Item</th>
-              <th>Total Price</th>
-              <th>Base Currency Total</th>
-              <th>Quoted UOM</th>
-              <th>Target UOM</th>
-              <th>Comparability</th>
-              <th>Notes</th>
+              <th>Vendor Quoted Price</th>
+              <th>Vendor Currency</th>
+              <th>Vendor UOM</th>
+              <th>RFQ Currency</th>
+              <th>RFQ UOM</th>
+              <th>Converted Price In RFQ Currency</th>
+              <th>Comparison Status</th>
+              <th>Conversion Applied</th>
+              <th>Buyer Notes / Blockers</th>
             </tr>
           </thead>
           <tbody>
             {pricingLines.map((line) => (
               <tr key={line.line_item_id}>
                 <td>{line.line_item_name}</td>
-                <td>
-                  {formatOptionalNumber(line.total_price)} {line.currency ?? ""}
-                </td>
-                <td>{formatOptionalNumber(line.base_currency_total)}</td>
+                <td>{formatOptionalNumber(line.total_price)}</td>
+                <td>{line.currency ?? "N/A"}</td>
                 <td>{line.uom ?? "N/A"}</td>
+                <td>{rfqCurrency ?? "N/A"}</td>
                 <td>{line.target_uom ?? "N/A"}</td>
+                <td>{formatOptionalNumber(line.base_currency_total)}</td>
                 <td>{line.comparability_status}</td>
-                <td>
-              {[...(line.exclusions ?? []), ...(line.conversion_notes ?? []), ...(line.blockers ?? [])].join(" ") || "None"}
-                </td>
+                <td>{(line.conversion_notes ?? []).join(" ") || "No currency or UOM conversion was applied."}</td>
+                <td>{[...(line.exclusions ?? []), ...(line.blockers ?? [])].join(" ") || "None"}</td>
               </tr>
             ))}
           </tbody>
@@ -986,6 +1190,116 @@ function NormalizedPricingTable({ pricingLines }: { pricingLines: NormalizedPric
       </div>
     </div>
   );
+}
+
+function buildEvidenceLookup(review: VendorReview): Map<string, string> {
+  const lookup = new Map<string, string>();
+  for (const field of [
+    ...(review.raw_extraction.question_answers ?? []),
+    ...(review.raw_extraction.schedule_answers ?? []),
+    ...(review.raw_extraction.technical_claims ?? []),
+    ...(review.raw_extraction.commercial_claims ?? []),
+  ]) {
+    for (const anchor of field.evidence ?? []) {
+      if (!lookup.has(anchor.id)) {
+        lookup.set(anchor.id, `${anchor.locator}: ${anchor.snippet}`);
+      }
+    }
+  }
+  return lookup;
+}
+
+function splitReasoningSummary(text: string): { summaryText: string; reasoningText: string | null } {
+  const marker = "Reasoning summary:";
+  const index = text.indexOf(marker);
+  if (index === -1) {
+    return { summaryText: text, reasoningText: null };
+  }
+
+  return {
+    summaryText: text.slice(0, index).trim(),
+    reasoningText: text.slice(index + marker.length).trim(),
+  };
+}
+
+function getCriterionQuestionText(
+  criterionDefinition: Criterion | null,
+  questionLookup: Map<string, Question>,
+): string | null {
+  const questionId = criterionDefinition?.linked_question_ids?.[0];
+  if (!questionId) {
+    return null;
+  }
+  return questionLookup.get(questionId)?.text ?? null;
+}
+
+function formatCriterionTypeForBuyer(criterionType: string): string {
+  switch (criterionType) {
+    case "mac":
+      return "Mandatory requirement (pass/fail)";
+    case "technical_cutoff_backed":
+      return "Scored technical criterion with a minimum qualifying score";
+    case "technical_scored_only":
+      return "Scored technical criterion without an individual cutoff";
+    case "commercial":
+      return "Commercial criterion";
+    default:
+      return criterionType;
+  }
+}
+
+function formatCriterionScore(result: TechnicalCriterionResult, criterionDefinition: Criterion | null): string {
+  const maxScore = criterionDefinition?.max_score ?? result.max_score;
+  if (criterionDefinition?.criterion_type === "mac" || result.criterion_type === "mac") {
+    return result.passed ? "Pass" : "Fail";
+  }
+  if (typeof result.score !== "number") {
+    return maxScore !== null && maxScore !== undefined ? `N/A / ${formatOptionalNumber(maxScore)}` : "N/A";
+  }
+  return maxScore !== null && maxScore !== undefined
+    ? `${formatOptionalNumber(result.score)} / ${formatOptionalNumber(maxScore)}`
+    : formatOptionalNumber(result.score);
+}
+
+function formatCriterionCutoffForBuyer(criterionDefinition: Criterion | null): string {
+  if (!criterionDefinition) {
+    return "Not available";
+  }
+  if (criterionDefinition.criterion_type === "mac") {
+    return "Pass / Fail";
+  }
+  if (criterionDefinition.criterion_type === "technical_scored_only") {
+    return "None";
+  }
+  if (criterionDefinition.criterion_type === "commercial") {
+    return "Not applicable";
+  }
+  if (typeof criterionDefinition.min_cutoff === "number" && typeof criterionDefinition.max_score === "number") {
+    return `${formatOptionalNumber(criterionDefinition.min_cutoff)} / ${formatOptionalNumber(criterionDefinition.max_score)}`;
+  }
+  if (typeof criterionDefinition.min_cutoff === "number") {
+    return formatOptionalNumber(criterionDefinition.min_cutoff);
+  }
+  return "Not set";
+}
+
+function formatCriterionOutcomeLabel(result: TechnicalCriterionResult, criterionDefinition: Criterion | null): string {
+  const criterionType = criterionDefinition?.criterion_type ?? result.criterion_type;
+  if (criterionType === "mac") {
+    return result.passed ? "Mandatory gate passed" : "Mandatory gate failed";
+  }
+  if (criterionType === "technical_cutoff_backed") {
+    const cutoff = criterionDefinition?.min_cutoff;
+    if (typeof result.score === "number" && typeof cutoff === "number") {
+      return result.score >= cutoff
+        ? `Cutoff met · ${formatOptionalNumber(result.score)}`
+        : `Cutoff not met · ${formatOptionalNumber(result.score)}`;
+    }
+  }
+  if (typeof result.score === "number") {
+    return `Scored · ${formatOptionalNumber(result.score)}`;
+  }
+  return result.status;
 }
 
 function formatOptionalNumber(value: number | null | undefined): string {

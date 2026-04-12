@@ -34,6 +34,15 @@ No detailed UI decisions have been locked yet. We have intentionally kept UI sec
   - The review step should show the RFQ base currency, FX snapshot date, and the deterministic UOM policy.
   - The UI should explain that `Lot` and `Count` do not convert, while weight and volume units do.
   - Missing or unsupported currencies should surface as evaluation blockers, not as an invitation for the buyer to patch hidden system settings.
+- Decision: Review and results screens should use procurement language instead of backend labels such as `base currency total`, raw criterion IDs, or evidence reference IDs in the primary view.
+- Why This Approach: Buyers need to understand what was quoted, how it was normalized, what parameter was judged, and why the vendor passed or failed without first learning internal data-model jargon.
+- Rejected Alternatives:
+  - Keep exposing internal labels such as `base currency total`, `evidence refs`, and raw criterion IDs in the main scoring cards.
+  - Show only the final scores and hide the RFQ-vs-vendor transformation and criterion logic.
+- Implications:
+  - Normalized pricing should clearly show vendor quoted price, vendor currency, vendor UOM, RFQ currency, RFQ UOM, converted RFQ-currency price, and buyer-readable blockers or notes.
+  - Technical result cards should show criterion type, score, cutoff when relevant, the criterion description, the vendor-facing question, the evaluation summary, buyer-readable evidence snippets, and risks.
+  - Internal evidence IDs and scoring traces should move into a collapsed detail section rather than the main view.
 
 ## Open Questions
 - How should the buyer review and lock the evaluation framework?

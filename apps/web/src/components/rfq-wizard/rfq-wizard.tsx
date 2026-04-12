@@ -946,10 +946,13 @@ export function RfqWizard({
 
         {step === "results" ? (
           <ResultsStep
+            artifact={lockedArtifact}
+            comparisonSettings={snapshot?.comparison_settings ?? null}
             normalizationReady={normalizationReady}
             evaluationReport={currentEvaluationReport}
             isRunningEvaluation={isRunningEvaluation}
             onRunEvaluation={handleRunEvaluation}
+            reviews={reviews}
           />
         ) : null}
       </div>
