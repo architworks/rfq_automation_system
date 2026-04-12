@@ -14,6 +14,7 @@ from rfq_api.models import (
     ExtractedField,
     FXRate,
     GovernanceInfo,
+    LLMSettings,
     LockedFrameworkArtifact,
     ResponseState,
     VendorDocument,
@@ -120,6 +121,7 @@ def test_commercial_like_mac_is_excluded_from_technical_gate() -> None:
         vendor=vendor,
         document=vendor.document,
         document_bytes=b"%PDF-1.4 alpha",
+        llm_settings=LLMSettings(),
     )
     comparison_settings = ComparisonSettings(
         base_currency="USD",
@@ -138,6 +140,7 @@ def test_commercial_like_mac_is_excluded_from_technical_gate() -> None:
         comparison_settings=comparison_settings,
         vendors=[vendor],
         reviews_by_vendor={vendor.id: review},
+        llm_settings=LLMSettings(),
     )
 
     report = run_evaluation(context, llm)

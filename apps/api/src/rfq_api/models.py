@@ -23,6 +23,13 @@ class SessionStatus(str, Enum):
     LOCKED = "locked"
 
 
+class ReasoningEffort(str, Enum):
+    LOW = "low"
+    MEDIUM = "medium"
+    HIGH = "high"
+    XHIGH = "xhigh"
+
+
 class VendorStatus(str, Enum):
     NO_DOCUMENT = "no_document"
     UPLOADED = "uploaded"
@@ -111,6 +118,10 @@ class RFQDraft(BaseModel):
     buyer_priorities: list[BuyerPriority]
     mandatory_conditions: list[str]
     line_items: list[LineItem]
+
+
+class LLMSettings(BaseModel):
+    reasoning_effort: ReasoningEffort = ReasoningEffort.HIGH
 
 
 class RubricSection(BaseModel):
@@ -488,6 +499,7 @@ class EvaluationReport(BaseModel):
 class SessionSnapshot(BaseModel):
     session_id: str
     status: SessionStatus
+    llm_settings: LLMSettings = Field(default_factory=LLMSettings)
     rfq_draft: RFQDraft
     rubric_proposal: RubricProposal | None = None
     locked_artifact: LockedFrameworkArtifact | None = None
@@ -501,6 +513,10 @@ class SessionSnapshot(BaseModel):
 
 class CreateSessionRequest(BaseModel):
     session_id: str | None = None
+
+
+class UpdateLLMSettingsRequest(BaseModel):
+    reasoning_effort: ReasoningEffort
 
 
 class CreateVendorRequest(BaseModel):

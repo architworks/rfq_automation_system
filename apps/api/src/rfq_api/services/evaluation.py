@@ -19,6 +19,7 @@ from ..models import (
     DeterministicScoringType,
     EvaluationReport,
     ExtractedField,
+    LLMSettings,
     LockedFrameworkArtifact,
     ScenarioKind,
     ScenarioRankingItem,
@@ -77,6 +78,7 @@ class EvaluationContext:
     comparison_settings: ComparisonSettings | None
     vendors: list[VendorRecord]
     reviews_by_vendor: dict[str, VendorReview]
+    llm_settings: LLMSettings
 
 
 def run_evaluation(context: EvaluationContext, llm_client: LLMClient) -> EvaluationReport:
@@ -91,6 +93,7 @@ def run_evaluation(context: EvaluationContext, llm_client: LLMClient) -> Evaluat
                 artifact=context.artifact,
                 technical_results=technical_results,
                 commercial_results=commercial_results,
+                llm_settings=context.llm_settings,
             )
         )
 
@@ -163,6 +166,7 @@ def _build_technical_results(
                     vendor=vendor,
                     review=review,
                     criteria=narrative_criteria,
+                    llm_settings=context.llm_settings,
                 )
             )
 

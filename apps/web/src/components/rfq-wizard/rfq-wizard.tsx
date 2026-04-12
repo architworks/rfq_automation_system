@@ -14,9 +14,11 @@ import {
   type DeterministicScoringRule,
   type EvaluationReport,
   type EvidenceCheck,
+  type LLMSettings,
   type LineItem,
   type LockedFrameworkArtifact,
   type Question,
+  type ReasoningEffort,
   type RFQDraft,
   type ResponseSchedule,
   type RubricSection,
@@ -51,6 +53,12 @@ export type WizardStep = "input" | "proposal" | "lock" | "pack" | "vendors" | "r
 
 const DEFAULT_AUTOSAVE_MS = 700;
 const DEFAULT_BASE_CURRENCY = "USD";
+const REASONING_EFFORT_OPTIONS: Array<{ value: ReasoningEffort; label: string }> = [
+  { value: "low", label: "Low" },
+  { value: "medium", label: "Medium" },
+  { value: "high", label: "High" },
+  { value: "xhigh", label: "XHigh" },
+];
 
 function parseNumber(value: string): number | null {
   if (!value.trim()) {
@@ -76,6 +84,12 @@ function createDefaultComparisonSettings(): ComparisonSettings {
     fx_effective_date: new Date().toISOString().slice(0, 10),
     fx_rates: [],
     uom_overrides: [],
+  };
+}
+
+function createDefaultLlmSettings(): LLMSettings {
+  return {
+    reasoning_effort: "high",
   };
 }
 
@@ -251,6 +265,7 @@ export function RfqWizard({
   const [lockedArtifact, setLockedArtifact] = useState<LockedFrameworkArtifact | null>(null);
   const [evaluationReport, setEvaluationReport] = useState<EvaluationReport | null>(null);
   const [comparisonSettingsDraft, setComparisonSettingsDraft] = useState<ComparisonSettings>(createDefaultComparisonSettings());
+  const [llmSettingsDraft, setLlmSettingsDraft] = useState<LLMSettings>(createDefaultLlmSettings());
   const [selectedVendorId, setSelectedVendorId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -258,6 +273,7 @@ export function RfqWizard({
   const [isResettingSession, setIsResettingSession] = useState(false);
   const [isApplyingTemplate, setIsApplyingTemplate] = useState(false);
   const [isSavingComparisonSettings, setIsSavingComparisonSettings] = useState(false);
+  const [isSavingLlmSettings, setIsSavingLlmSettings] = useState(false);
   const [isRunningEvaluation, setIsRunningEvaluation] = useState(false);
   const [uploadingVendorId, setUploadingVendorId] = useState<string | null>(null);
   const [extractingVendorId, setExtractingVendorId] = useState<string | null>(null);
@@ -275,6 +291,7 @@ export function RfqWizard({
   function applySessionSnapshot(loaded: SessionSnapshot) {
     const vendors = loaded.vendors ?? [];
     setSnapshot(loaded);
+    setLlmSettingsDraft(cloneValue(loaded.llm_settings ?? createDefaultLlmSettings()));
     setLockedArtifact(loaded.locked_artifact ?? null);
     setEvaluationReport(loaded.evaluation_report ?? null);
     setDownloadState(loaded.locked_artifact ? "ready" : "idle");
@@ -619,6 +636,25 @@ export function RfqWizard({
     }
   }
 
+  async function handleChangeReasoningEffort(reasoningEffort: ReasoningEffort) {
+    const previous = cloneValue(llmSettingsDraft);
+    const next = { reasoning_effort: reasoningEffort };
+    setLlmSettingsDraft(next);
+    setIsSavingLlmSettings(true);
+    setRequestError(null);
+
+    try {
+      const updated = await api.saveLlmSettings(sessionId, reasoningEffort);
+      applySessionSnapshot(updated);
+      setAutosaveMessage(`LLM reasoning set to ${reasoningEffort}`);
+    } catch (error) {
+      setLlmSettingsDraft(previous);
+      setRequestError(error instanceof Error ? error.message : "Failed to save LLM reasoning effort.");
+    } finally {
+      setIsSavingLlmSettings(false);
+    }
+  }
+
   async function handleApplyRfqTemplate(templateName: "blank" | "sample") {
     setIsApplyingTemplate(true);
     setRequestError(null);
@@ -769,6 +805,26 @@ export function RfqWizard({
             </span>
             <span>Last updated: {formatTimestamp(snapshot?.updated_at)}</span>
             <span className={styles.autosave}>{autosaveMessage}</span>
+          </div>
+          <div className={styles.heroControls}>
+            <label className={styles.inlineField}>
+              <span>LLM reasoning effort</span>
+              <FormSelect
+                className={styles.select}
+                disabled={isSavingLlmSettings}
+                onChange={(event) => void handleChangeReasoningEffort(event.target.value as ReasoningEffort)}
+                value={llmSettingsDraft.reasoning_effort}
+              >
+                {REASONING_EFFORT_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </FormSelect>
+            </label>
+            <span className={styles.controlHint}>
+              Applies to rubric generation, extraction, AI scoring, and AI scenarios.
+            </span>
           </div>
           <div className={styles.heroActions}>
             <button

@@ -1,7 +1,9 @@
 import type {
   ComparisonSettings,
   EvaluationReport,
+  LLMSettings,
   LockedFrameworkArtifact,
+  ReasoningEffort,
   RFQDraft,
   RubricProposal,
   SessionSnapshot,
@@ -43,6 +45,7 @@ export interface RfqApiClient {
   createOrHydrateSession(sessionId?: string): Promise<SessionSnapshot>;
   getRfqTemplate(templateName: "blank" | "sample"): Promise<RFQDraft>;
   getSession(sessionId: string): Promise<SessionSnapshot>;
+  saveLlmSettings(sessionId: string, reasoningEffort: ReasoningEffort): Promise<SessionSnapshot>;
   saveRfq(sessionId: string, draft: RFQDraft): Promise<SessionSnapshot>;
   generateRubric(sessionId: string): Promise<SessionSnapshot>;
   saveRubric(sessionId: string, proposal: RubricProposal): Promise<SessionSnapshot>;
@@ -130,6 +133,12 @@ export const apiClient: RfqApiClient = {
   getSession(sessionId) {
     return requestJson<SessionSnapshot>(`/sessions/${sessionId}`, {
       method: "GET",
+    });
+  },
+  saveLlmSettings(sessionId, reasoningEffort) {
+    return requestJson<SessionSnapshot>(`/sessions/${sessionId}/llm-settings`, {
+      method: "PUT",
+      body: JSON.stringify({ reasoning_effort: reasoningEffort } satisfies LLMSettings),
     });
   },
   saveRfq(sessionId, draft) {

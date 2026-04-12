@@ -14,6 +14,8 @@ from rfq_api.models import (
     EvidenceCheck,
     EvidenceAnchor,
     ExtractedField,
+    LLMSettings,
+    ReasoningEffort,
     RawExtraction,
     Question,
     ResponseState,
@@ -27,6 +29,7 @@ from rfq_api.models import (
     TechnicalCriterionResult,
     TechnicalCriterionStatus,
     TechnicalEvaluationResult,
+    ValidationIssue,
 )
 from rfq_api.services.llm import LLMClient
 from rfq_api.session_store import SessionStore
@@ -212,11 +215,26 @@ def build_valid_rubric_proposal() -> RubricProposal:
 
 
 class FakeLLMClient(LLMClient):
-    def generate_rubric(self, _rfq_draft):
+    def __init__(self) -> None:
+        self.return_invalid_rubric_once = False
+        self.generate_attempt_count = 0
+        self.last_reasoning_efforts: list[str] = []
+        self.last_repair_feedback: list[ValidationIssue] | None = None
+
+    def generate_rubric(self, _rfq_draft, *, llm_settings: LLMSettings, repair_feedback=None):
+        self.last_reasoning_efforts.append(llm_settings.reasoning_effort.value)
+        self.last_repair_feedback = repair_feedback
+        if self.return_invalid_rubric_once and repair_feedback is None and self.generate_attempt_count == 0:
+            self.generate_attempt_count += 1
+            invalid = build_valid_rubric_proposal()
+            invalid.criteria[0].linked_question_ids = []
+            return invalid
+        self.generate_attempt_count += 1
         return build_valid_rubric_proposal()
 
-    def extract_vendor_response(self, *, artifact, vendor, document, document_bytes):
+    def extract_vendor_response(self, *, artifact, vendor, document, document_bytes, llm_settings):
         del document_bytes
+        self.last_reasoning_efforts.append(llm_settings.reasoning_effort.value)
 
         profile = _vendor_profile(vendor.name)
         evidence = lambda suffix, snippet, locator: [
@@ -312,8 +330,9 @@ class FakeLLMClient(LLMClient):
             warnings=list(profile["warnings"]),
         )
 
-    def score_narrative_technical(self, *, artifact, vendor, review, criteria):
+    def score_narrative_technical(self, *, artifact, vendor, review, criteria, llm_settings):
         del artifact, review
+        self.last_reasoning_efforts.append(llm_settings.reasoning_effort.value)
         profile = _vendor_profile(vendor.name)
         scores_by_criterion = {
             "crit_score": float(profile["quality_score"]),
@@ -339,8 +358,9 @@ class FakeLLMClient(LLMClient):
             for criterion in criteria
         ]
 
-    def generate_ai_scenarios(self, *, artifact, technical_results, commercial_results):
+    def generate_ai_scenarios(self, *, artifact, technical_results, commercial_results, llm_settings):
         del artifact
+        self.last_reasoning_efforts.append(llm_settings.reasoning_effort.value)
         commercial_by_vendor = {
             result.vendor_id: result
             for result in commercial_results
@@ -488,8 +508,10 @@ def _vendor_profile(name: str) -> dict[str, object]:
 @pytest.fixture
 def client() -> TestClient:
     store = SessionStore(ttl_seconds=7200)
+    fake_llm = FakeLLMClient()
     app.dependency_overrides[get_session_store] = lambda: store
-    app.dependency_overrides[get_llm_client] = lambda: FakeLLMClient()
+    app.dependency_overrides[get_llm_client] = lambda: fake_llm
     with TestClient(app) as test_client:
+        test_client.fake_llm = fake_llm  # type: ignore[attr-defined]
         yield test_client
     app.dependency_overrides.clear()

@@ -23,6 +23,7 @@ from .models import (
     RubricProposal,
     SessionSnapshot,
     SessionStatus,
+    UpdateLLMSettingsRequest,
     UpdateVendorRequest,
     VendorDocument,
     VendorPack,
@@ -98,6 +99,21 @@ def create_app() -> FastAPI:
         record = _get_record_or_404(session_id, store)
         return record.snapshot()
 
+    @app.put("/sessions/{session_id}/llm-settings", response_model=SessionSnapshot)
+    def save_llm_settings(
+        session_id: str,
+        payload: UpdateLLMSettingsRequest,
+        store: SessionStore = Depends(get_session_store),
+    ) -> SessionSnapshot:
+        record = _get_record_or_404(session_id, store)
+        saved = store.save_llm_settings(
+            session_id,
+            record.llm_settings.model_copy(update={"reasoning_effort": payload.reasoning_effort}),
+        )
+        if saved is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Session not found.")
+        return saved.snapshot()
+
     @app.put("/sessions/{session_id}/rfq", response_model=SessionSnapshot)
     def save_rfq(
         session_id: str,
@@ -123,7 +139,7 @@ def create_app() -> FastAPI:
             raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Locked sessions cannot be modified.")
 
         try:
-            proposal = generation_service.generate(record.rfq_draft)
+            proposal = generation_service.generate(record.rfq_draft, record.llm_settings)
         except LLMConfigurationError as exc:
             raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc)) from exc
         except RubricGenerationError as exc:
@@ -321,6 +337,7 @@ def create_app() -> FastAPI:
                 vendor=vendor,
                 document=vendor.document,
                 document_bytes=document_bytes,
+                llm_settings=record.llm_settings,
             )
             review = build_vendor_review(
                 vendor_id=vendor_id,
@@ -398,6 +415,7 @@ def create_app() -> FastAPI:
                     comparison_settings=record.comparison_settings,
                     vendors=record.vendors,
                     reviews_by_vendor=dict(record.vendor_reviews),
+                    llm_settings=record.llm_settings,
                 ),
                 llm_client,
             )

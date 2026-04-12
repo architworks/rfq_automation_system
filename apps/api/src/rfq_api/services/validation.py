@@ -33,7 +33,12 @@ def validate_rubric_proposal(proposal: RubricProposal) -> list[ValidationIssue]:
 
     technical_weight_total = 0.0
     section_ids = {section.id for section in proposal.sections}
+    criteria_by_id = {criterion.id: criterion for criterion in proposal.criteria}
     question_ids = {question.id for question in proposal.questions}
+    question_links_by_id = {
+        question.id: set(question.linked_criteria)
+        for question in proposal.questions
+    }
     schedule_field_ids = {
         f"{schedule.id}.{column.id}"
         for schedule in proposal.response_schedules
@@ -48,6 +53,7 @@ def validate_rubric_proposal(proposal: RubricProposal) -> list[ValidationIssue]:
                 field_prefix=field_prefix,
                 known_section_ids=section_ids,
                 known_question_ids=question_ids,
+                question_links_by_id=question_links_by_id,
                 known_schedule_field_ids=schedule_field_ids,
             )
         )
@@ -56,6 +62,15 @@ def validate_rubric_proposal(proposal: RubricProposal) -> list[ValidationIssue]:
             CriterionType.TECHNICAL_SCORED_ONLY,
         }:
             technical_weight_total += criterion.weight or 0.0
+
+    for index, question in enumerate(proposal.questions):
+        issues.extend(
+            _validate_question(
+                question=question,
+                field_prefix=f"questions[{index}]",
+                criteria_by_id=criteria_by_id,
+            )
+        )
 
     if not isclose(technical_weight_total, 100.0, abs_tol=0.01):
         issues.append(
@@ -74,6 +89,7 @@ def _validate_criterion(
     field_prefix: str,
     known_section_ids: set[str],
     known_question_ids: set[str],
+    question_links_by_id: dict[str, set[str]],
     known_schedule_field_ids: set[str],
 ) -> list[ValidationIssue]:
     issues: list[ValidationIssue] = []
@@ -105,6 +121,13 @@ def _validate_criterion(
                 ValidationIssue(
                     field=f"{field_prefix}.linked_question_ids",
                     message=f"Unknown linked question id: {question_id}.",
+                )
+            )
+        elif criterion.id not in question_links_by_id.get(question_id, set()):
+            issues.append(
+                ValidationIssue(
+                    field=f"{field_prefix}.linked_question_ids",
+                    message=f"Linked question {question_id} does not reference this criterion.",
                 )
             )
 
@@ -276,6 +299,50 @@ def _validate_criterion(
                 )
             )
         return issues
+
+    return issues
+
+
+def _validate_question(
+    *,
+    question,
+    field_prefix: str,
+    criteria_by_id: dict[str, Criterion],
+) -> list[ValidationIssue]:
+    issues: list[ValidationIssue] = []
+    linked_criteria = question.linked_criteria
+
+    for criterion_id in linked_criteria:
+        criterion = criteria_by_id.get(criterion_id)
+        if criterion is None:
+            issues.append(
+                ValidationIssue(
+                    field=f"{field_prefix}.linked_criteria",
+                    message=f"Unknown linked criterion id: {criterion_id}.",
+                )
+            )
+            continue
+        if question.id not in criterion.linked_question_ids:
+            issues.append(
+                ValidationIssue(
+                    field=f"{field_prefix}.linked_criteria",
+                    message=f"Linked criterion {criterion_id} does not reference this question.",
+                )
+            )
+
+    technical_criteria = [
+        criterion_id
+        for criterion_id in linked_criteria
+        if (criterion := criteria_by_id.get(criterion_id)) is not None
+        and criterion.criterion_type != CriterionType.COMMERCIAL
+    ]
+    if technical_criteria and len(linked_criteria) != 1:
+        issues.append(
+            ValidationIssue(
+                field=f"{field_prefix}.linked_criteria",
+                message="Questions used for technical scoring must link to exactly one criterion.",
+            )
+        )
 
     return issues
 

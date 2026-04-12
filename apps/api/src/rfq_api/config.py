@@ -21,7 +21,7 @@ class Settings(BaseSettings):
     azure_openai_endpoint: str | None = None
     azure_openai_api_key: str | None = None
     azure_openai_model: str | None = Field(default=None)
-    azure_openai_timeout_seconds: float = 60.0
+    azure_openai_timeout_seconds: float = 900.0
 
 
 @lru_cache(maxsize=1)

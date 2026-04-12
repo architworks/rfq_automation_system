@@ -11,6 +11,7 @@ import tempfile
 from .models import (
     ComparisonSettings,
     EvaluationReport,
+    LLMSettings,
     LockedFrameworkArtifact,
     RFQDraft,
     RubricProposal,
@@ -29,6 +30,7 @@ from .seeds import build_blank_rfq
 class SessionRecord:
     session_id: str
     status: SessionStatus
+    llm_settings: LLMSettings
     rfq_draft: RFQDraft
     rubric_proposal: RubricProposal | None
     locked_artifact: LockedFrameworkArtifact | None
@@ -49,6 +51,7 @@ class SessionRecord:
         return SessionSnapshot(
             session_id=self.session_id,
             status=self.status,
+            llm_settings=self.llm_settings,
             rfq_draft=self.rfq_draft,
             rubric_proposal=self.rubric_proposal,
             locked_artifact=self.locked_artifact,
@@ -82,6 +85,7 @@ class SessionStore:
             record = SessionRecord(
                 session_id=new_id,
                 status=SessionStatus.DRAFT,
+                llm_settings=LLMSettings(),
                 rfq_draft=build_blank_rfq(),
                 rubric_proposal=None,
                 locked_artifact=None,
@@ -92,6 +96,15 @@ class SessionStore:
                 updated_at=datetime.now(UTC),
             )
             self._records[new_id] = record
+            return record
+
+    def save_llm_settings(self, session_id: str, llm_settings: LLMSettings) -> SessionRecord | None:
+        with self._lock:
+            record = self._records.get(session_id)
+            if not record:
+                return None
+            record.llm_settings = llm_settings
+            record.updated_at = datetime.now(UTC)
             return record
 
     def get(self, session_id: str) -> SessionRecord | None:

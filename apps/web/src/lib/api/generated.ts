@@ -89,6 +89,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/sessions/{session_id}/llm-settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Save Llm Settings */
+        put: operations["save_llm_settings_sessions__session_id__llm_settings_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/sessions/{session_id}/rfq": {
         parameters: {
             query?: never;
@@ -669,6 +686,11 @@ export interface components {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
         };
+        /** LLMSettings */
+        LLMSettings: {
+            /** @default high */
+            reasoning_effort: components["schemas"]["ReasoningEffort"];
+        };
         /** LineItem */
         LineItem: {
             /** Id */
@@ -821,6 +843,11 @@ export interface components {
             /** Warnings */
             warnings?: string[];
         };
+        /**
+         * ReasoningEffort
+         * @enum {string}
+         */
+        ReasoningEffort: "low" | "medium" | "high" | "xhigh";
         /** ResponseSchedule */
         ResponseSchedule: {
             /** Id */
@@ -948,6 +975,7 @@ export interface components {
             /** Session Id */
             session_id: string;
             status: components["schemas"]["SessionStatus"];
+            llm_settings?: components["schemas"]["LLMSettings"];
             rfq_draft: components["schemas"]["RFQDraft"];
             rubric_proposal?: components["schemas"]["RubricProposal-Output"] | null;
             locked_artifact?: components["schemas"]["LockedFrameworkArtifact"] | null;
@@ -1028,6 +1056,10 @@ export interface components {
             factor: number;
             /** Line Item Id */
             line_item_id?: string | null;
+        };
+        /** UpdateLLMSettingsRequest */
+        UpdateLLMSettingsRequest: {
+            reasoning_effort: components["schemas"]["ReasoningEffort"];
         };
         /** UpdateVendorRequest */
         UpdateVendorRequest: {
@@ -1339,6 +1371,41 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SessionSnapshot"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    save_llm_settings_sessions__session_id__llm_settings_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateLLMSettingsRequest"];
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {

@@ -53,6 +53,14 @@ def test_technical_criteria_require_exactly_one_linked_question() -> None:
     assert any(issue.field == "criteria[1].linked_question_ids" for issue in issues)
 
 
+def test_technical_questions_cannot_be_reused_across_multiple_criteria() -> None:
+    proposal = build_valid_rubric_proposal()
+    proposal.criteria[2].linked_question_ids = ["q2"]
+    proposal.questions[1].linked_criteria = ["crit_cutoff", "crit_score"]
+    issues = validate_rubric_proposal(proposal)
+    assert any(issue.field == "questions[1].linked_criteria" for issue in issues)
+
+
 def test_technical_criteria_cannot_rely_on_schedule_fields_for_scoring() -> None:
     proposal = build_valid_rubric_proposal()
     proposal.criteria[1].linked_schedule_fields = ["pricing_schedule.total_fee"]

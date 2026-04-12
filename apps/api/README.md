@@ -64,6 +64,6 @@ uv run python -m rfq_api.tools.export_openapi ../openapi.json
 - `AZURE_OPENAI_ENDPOINT`: Azure OpenAI base URL, for example `https://<resource>.openai.azure.com/openai/v1/`
 - `AZURE_OPENAI_API_KEY`: Azure OpenAI key
 - `AZURE_OPENAI_MODEL`: the model or deployment identifier passed in the OpenAI request
-- `AZURE_OPENAI_TIMEOUT_SECONDS`: request timeout, default `60`
+- `AZURE_OPENAI_TIMEOUT_SECONDS`: request timeout, default `900`
 
 If Azure variables are missing, `/sessions/{session_id}/rubric/generate` returns `503`.

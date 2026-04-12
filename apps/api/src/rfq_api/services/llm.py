@@ -23,6 +23,7 @@ from ..models import (
     EvidenceCheck,
     EvidenceAnchor,
     ExtractedField,
+    LLMSettings,
     LineItem,
     LockedFrameworkArtifact,
     Question,
@@ -39,6 +40,7 @@ from ..models import (
     TechnicalCriterionResult,
     TechnicalCriterionStatus,
     TechnicalEvaluationResult,
+    ValidationIssue,
     VendorDocument,
     VendorRecord,
     VendorReview,
@@ -59,7 +61,13 @@ class RubricGenerationError(LLMTaskError):
 
 class LLMClient(ABC):
     @abstractmethod
-    def generate_rubric(self, rfq_draft: RFQDraft) -> RubricProposal:
+    def generate_rubric(
+        self,
+        rfq_draft: RFQDraft,
+        *,
+        llm_settings: LLMSettings,
+        repair_feedback: list[ValidationIssue] | None = None,
+    ) -> RubricProposal:
         raise NotImplementedError
 
     @abstractmethod
@@ -70,6 +78,7 @@ class LLMClient(ABC):
         vendor: VendorRecord,
         document: VendorDocument,
         document_bytes: bytes,
+        llm_settings: LLMSettings,
     ) -> RawExtraction:
         raise NotImplementedError
 
@@ -81,6 +90,7 @@ class LLMClient(ABC):
         vendor: VendorRecord,
         review: VendorReview,
         criteria: list[Criterion],
+        llm_settings: LLMSettings,
     ) -> list[TechnicalCriterionResult]:
         raise NotImplementedError
 
@@ -91,6 +101,7 @@ class LLMClient(ABC):
         artifact: LockedFrameworkArtifact,
         technical_results: list[TechnicalEvaluationResult],
         commercial_results: list[CommercialEvaluationResult],
+        llm_settings: LLMSettings,
     ) -> list[ScenarioResult]:
         raise NotImplementedError
 
@@ -276,7 +287,13 @@ class OpenAIResponsesClient(LLMClient):
             timeout=settings.azure_openai_timeout_seconds,
         )
 
-    def generate_rubric(self, rfq_draft: RFQDraft) -> RubricProposal:
+    def generate_rubric(
+        self,
+        rfq_draft: RFQDraft,
+        *,
+        llm_settings: LLMSettings,
+        repair_feedback: list[ValidationIssue] | None = None,
+    ) -> RubricProposal:
         rfq_brief = self._build_rfq_brief(rfq_draft)
         instructions = (
             "Design one complete RFQ evaluation framework from the supplied RFQ brief. "
@@ -297,7 +314,13 @@ class OpenAIResponsesClient(LLMClient):
             "Set one aggregate technical threshold for qualified bids. "
             "Every criterion must include exactly one evidence check. "
             "Questions must be mutually distinct and collectively cover the criteria without unnecessary overlap. "
-            "Every technical criterion must map to exactly one vendor-facing question. "
+            "Enforce a strict one-to-one mapping between each technical criterion and its vendor-facing question. "
+            "Every technical criterion, including every MAC criterion, must map to exactly one vendor-facing question. "
+            "Do not create evaluator-only technical criteria or hidden MAC gates with no vendor-facing question. "
+            "Each technical criterion must have its own dedicated question and each generated question must link to exactly one criterion. "
+            "Do not reuse the same technical question for multiple technical criteria, even when the topics are related. "
+            "If two technical criteria are both needed, write two separate questions with narrower intent instead of one shared question. "
+            "If a mandatory gate and a scored technical judgement are related, they must still use separate questions. "
             "Do not use schedules as the primary scoring source for technical criteria. "
             "Use schedules mainly for commercial quoting or supplementary structured disclosures. "
             "Vendor-facing question text must be complete and readable, not clipped mid-sentence. "
@@ -309,18 +332,34 @@ class OpenAIResponsesClient(LLMClient):
             "Leave deterministic_scoring null only for technical criteria where objective measurement would distort the real judgement. "
             "For every such qualitative technical criterion, populate qualitative_scoring_guidance with concise internal judging guidance describing "
             "what the AI should look for, what strong evidence looks like, and what weak or risky evidence looks like. "
+            "For MAC criteria, use crisp binary or discrete vendor questions whenever possible. "
+            "If one mandatory condition contains two separate intents, split it into separate criteria with separate questions instead of leaving one criterion under-specified. "
             "Do not turn commercial quote structure into technical criteria. "
             "Keep titles short, descriptions concise, and avoid repeating the RFQ narrative."
         )
+        if repair_feedback:
+            instructions = (
+                f"{instructions} "
+                "The previous rubric draft failed downstream validation. "
+                "Regenerate the entire rubric from scratch and fix every issue listed below. "
+                "Do not patch only one field in isolation; return one coherent replacement rubric that satisfies all feedback."
+            )
         input_text = (
             "Create one coherent rubric for this RFQ brief.\n\n"
             f"{rfq_brief}"
         )
+        if repair_feedback:
+            input_text = (
+                f"{input_text}\n\n"
+                "Validation issues to fix in this full regeneration\n"
+                f"{self._format_validation_feedback(repair_feedback)}"
+            )
         generated = self._parse_structured_output(
             instructions=instructions,
             input_text=input_text,
             text_format=LLMRubricProposal,
             error_label="Rubric generation",
+            llm_settings=llm_settings,
         )
         return self._compose_rubric(generated)
 
@@ -331,6 +370,7 @@ class OpenAIResponsesClient(LLMClient):
         vendor: VendorRecord,
         document: VendorDocument,
         document_bytes: bytes,
+        llm_settings: LLMSettings,
     ) -> RawExtraction:
         framework_brief = self._build_locked_framework_brief(artifact)
         file_data = build_file_data_url(document, document_bytes)
@@ -372,6 +412,7 @@ class OpenAIResponsesClient(LLMClient):
             input_payload=input_payload,
             text_format=LLMVendorExtraction,
             error_label="Vendor extraction",
+            llm_settings=llm_settings,
         )
         raw_extraction = self._compose_raw_extraction(extracted)
         self._enforce_numeric_question_expectations(raw_extraction, artifact)
@@ -384,6 +425,7 @@ class OpenAIResponsesClient(LLMClient):
         vendor: VendorRecord,
         review: VendorReview,
         criteria: list[Criterion],
+        llm_settings: LLMSettings,
     ) -> list[TechnicalCriterionResult]:
         if not criteria:
             return []
@@ -409,6 +451,7 @@ class OpenAIResponsesClient(LLMClient):
             ),
             text_format=NarrativeCriterionScoreSet,
             error_label="Narrative technical scoring",
+            llm_settings=llm_settings,
         )
         return self._compose_narrative_scores(criteria, parsed, reasoning_summary)
 
@@ -418,6 +461,7 @@ class OpenAIResponsesClient(LLMClient):
         artifact: LockedFrameworkArtifact,
         technical_results: list[TechnicalEvaluationResult],
         commercial_results: list[CommercialEvaluationResult],
+        llm_settings: LLMSettings,
     ) -> list[ScenarioResult]:
         commercial_by_vendor = {
             result.vendor_id: result
@@ -454,6 +498,7 @@ class OpenAIResponsesClient(LLMClient):
             ),
             text_format=AIScenarioSet,
             error_label="AI scenario generation",
+            llm_settings=llm_settings,
         )
         excluded_vendor_ids = [
             result.vendor_id
@@ -511,12 +556,14 @@ class OpenAIResponsesClient(LLMClient):
         input_text: str,
         text_format: type[ParsedModelT],
         error_label: str,
+        llm_settings: LLMSettings,
     ) -> ParsedModelT:
         try:
             return self._parse_once(
                 instructions=instructions,
                 input_payload=input_text,
                 text_format=text_format,
+                llm_settings=llm_settings,
             )
         except Exception as exc:  # pragma: no cover - network/runtime dependent
             if not self._looks_like_truncated_output(exc):
@@ -536,6 +583,7 @@ class OpenAIResponsesClient(LLMClient):
                     instructions=retry_instructions,
                     input_payload=input_text,
                     text_format=text_format,
+                    llm_settings=llm_settings,
                 )
             except Exception as retry_exc:  # pragma: no cover - network/runtime dependent
                 raise RubricGenerationError(f"{error_label} failed: {retry_exc}") from retry_exc
@@ -547,12 +595,14 @@ class OpenAIResponsesClient(LLMClient):
         input_payload: str | list[dict[str, object]],
         text_format: type[ParsedModelT],
         error_label: str,
+        llm_settings: LLMSettings,
     ) -> ParsedModelT:
         try:
             return self._parse_once(
                 instructions=instructions,
                 input_payload=input_payload,
                 text_format=text_format,
+                llm_settings=llm_settings,
             )
         except Exception as exc:  # pragma: no cover - network/runtime dependent
             raise LLMTaskError(f"{error_label} failed: {exc}") from exc
@@ -564,12 +614,14 @@ class OpenAIResponsesClient(LLMClient):
         input_payload: str | list[dict[str, object]],
         text_format: type[ParsedModelT],
         error_label: str,
+        llm_settings: LLMSettings,
     ) -> tuple[ParsedModelT, str | None]:
         try:
             return self._parse_once_with_reasoning(
                 instructions=instructions,
                 input_payload=input_payload,
                 text_format=text_format,
+                llm_settings=llm_settings,
             )
         except Exception as exc:  # pragma: no cover - network/runtime dependent
             raise LLMTaskError(f"{error_label} failed: {exc}") from exc
@@ -580,12 +632,14 @@ class OpenAIResponsesClient(LLMClient):
         instructions: str,
         input_payload: str | list[dict[str, object]],
         text_format: type[ParsedModelT],
+        llm_settings: LLMSettings,
     ) -> ParsedModelT:
         response = self._client.responses.parse(
             model=self._model,
             instructions=instructions,
             input=input_payload,
             text_format=text_format,
+            reasoning={"effort": llm_settings.reasoning_effort.value},
         )
         parsed = cast(ParsedModelT | None, response.output_parsed)
         if parsed is None:
@@ -598,18 +652,29 @@ class OpenAIResponsesClient(LLMClient):
         instructions: str,
         input_payload: str | list[dict[str, object]],
         text_format: type[ParsedModelT],
+        llm_settings: LLMSettings,
     ) -> tuple[ParsedModelT, str | None]:
         response = self._client.responses.parse(
             model=self._model,
             instructions=instructions,
             input=input_payload,
             text_format=text_format,
-            reasoning={"summary": "auto"},
+            reasoning={
+                "effort": llm_settings.reasoning_effort.value,
+                "summary": "auto",
+            },
         )
         parsed = cast(ParsedModelT | None, response.output_parsed)
         if parsed is None:
             raise LLMTaskError("Structured output call returned no parsed object.")
         return parsed, self._extract_reasoning_summary(response)
+
+    @staticmethod
+    def _format_validation_feedback(issues: list[ValidationIssue]) -> str:
+        return OpenAIResponsesClient._numbered_lines(
+            f"{issue.field}: {issue.message}"
+            for issue in issues
+        )
 
     @staticmethod
     def _build_rfq_brief(rfq_draft: RFQDraft) -> str:
