@@ -70,8 +70,8 @@ def build_valid_rubric_proposal() -> RubricProposal:
             Criterion(
                 id="crit_cutoff",
                 section_id="sec_technical",
-                title="Launch program governance",
-                description="Evaluate governance depth and stakeholder management.",
+                title="Comparable launch count",
+                description="Evaluate the number of comparable launches delivered in the last three years.",
                 criterion_type=CriterionType.TECHNICAL_CUTOFF_BACKED,
                 weight=40,
                 min_cutoff=24,
@@ -79,12 +79,38 @@ def build_valid_rubric_proposal() -> RubricProposal:
                 evidence_checks=[
                     EvidenceCheck(
                         id="ev_cutoff",
-                        label="Governance approach",
-                        description="Program governance plan and escalation model.",
+                        label="Comparable launch count",
+                        description="Look for the explicitly stated number of comparable launches.",
                     )
                 ],
                 linked_question_ids=["q2"],
-                linked_schedule_fields=["timeline_schedule.delivery_model"],
+                deterministic_scoring=DeterministicScoringGuide(
+                    guide_type=DeterministicScoringType.NUMERIC_BANDED,
+                    answer_format="Explicit number of comparable launches in the last 3 years",
+                    summary="Score the vendor from the explicitly stated count of comparable launches.",
+                    rules=[
+                        DeterministicScoringRule(
+                            id="rule_cutoff_high",
+                            condition="5 or more launches",
+                            score=40,
+                        ),
+                        DeterministicScoringRule(
+                            id="rule_cutoff_mid",
+                            condition="3 to 4 launches",
+                            score=32,
+                        ),
+                        DeterministicScoringRule(
+                            id="rule_cutoff_floor",
+                            condition="2 launches",
+                            score=24,
+                        ),
+                        DeterministicScoringRule(
+                            id="rule_cutoff_low",
+                            condition="0 to 1 launch",
+                            score=0,
+                        ),
+                    ],
+                ),
             ),
             Criterion(
                 id="crit_score",
@@ -102,7 +128,11 @@ def build_valid_rubric_proposal() -> RubricProposal:
                     )
                 ],
                 linked_question_ids=["q3"],
-                linked_schedule_fields=["pricing_schedule.total_fee"],
+                qualitative_scoring_guidance=(
+                    "Judge how coherent, implementation-ready, and well integrated the launch approach is. "
+                    "Strong responses should show clear workstream coordination, realistic delivery logic, and concrete ownership. "
+                    "Weak or risky responses should be vague, generic, or missing execution detail."
+                ),
             ),
             Criterion(
                 id="crit_commercial",
@@ -147,8 +177,8 @@ def build_valid_rubric_proposal() -> RubricProposal:
             ),
             Question(
                 id="q2",
-                text="Describe program governance, escalation, and stakeholder model.",
-                purpose="Evaluate governance strength.",
+                text="How many comparable launches have you delivered in the last three years? State the exact number.",
+                purpose="Evaluate the vendor on an explicit comparable launch count.",
                 linked_criteria=["crit_cutoff"],
             ),
             Question(
@@ -172,20 +202,6 @@ def build_valid_rubric_proposal() -> RubricProposal:
                     )
                 ],
                 linked_criteria=["crit_score", "crit_commercial"],
-            ),
-            ResponseSchedule(
-                id="timeline_schedule",
-                name="Timeline Schedule",
-                purpose="Capture delivery and dependency commitments.",
-                columns=[
-                    ScheduleColumn(
-                        id="delivery_model",
-                        label="Delivery Model",
-                        description="How the vendor will deliver the launch milestones.",
-                        required=True,
-                    )
-                ],
-                linked_criteria=["crit_cutoff"],
             ),
         ],
         generation_rationale=[
@@ -225,14 +241,14 @@ class FakeLLMClient(LLMClient):
             ),
             ExtractedField(
                 id=f"{vendor.id}_q2",
-                label="Launch governance",
+                label="Comparable launch count",
                 field_group="question_answer",
                 question_id="q2",
                 criterion_ids=["crit_cutoff"],
                 state=ResponseState.ANSWERED,
-                raw_value=f"Governance strength score {profile['governance_score']}.",
-                numeric_value=float(profile["governance_score"]),
-                evidence=evidence("governance", "Governance model, escalation path, and ownership provided.", "page 2"),
+                raw_value=str(profile["comparable_launch_count"]),
+                numeric_value=float(profile["comparable_launch_count"]),
+                evidence=evidence("launch_count", "Explicit comparable launch count provided.", "page 2"),
             ),
             ExtractedField(
                 id=f"{vendor.id}_q3",
@@ -241,24 +257,12 @@ class FakeLLMClient(LLMClient):
                 question_id="q3",
                 criterion_ids=["crit_score"],
                 state=ResponseState.ANSWERED,
-                raw_value=f"Integrated launch quality score {profile['quality_score']}.",
-                numeric_value=float(profile["quality_score"]),
+                raw_value=profile["quality_answer"],
                 evidence=evidence("quality", "Integrated channel and execution approach described.", "page 3"),
             ),
         ]
 
         schedule_answers = [
-            ExtractedField(
-                id=f"{vendor.id}_timeline_delivery_model",
-                label="Delivery Model",
-                field_group="schedule_answer",
-                schedule_id="timeline_schedule",
-                schedule_column_id="delivery_model",
-                criterion_ids=["crit_cutoff"],
-                state=ResponseState.ANSWERED,
-                raw_value="Central program lead with regional workstream owners.",
-                evidence=evidence("timeline", "Delivery model table captured.", "page 4"),
-            ),
             ExtractedField(
                 id=f"{vendor.id}_pricing_total_fee",
                 label="Total Fee",
@@ -275,28 +279,7 @@ class FakeLLMClient(LLMClient):
             ),
         ]
 
-        technical_claims = [
-            ExtractedField(
-                id=f"{vendor.id}_claim_governance",
-                label="Governance claim",
-                field_group="technical_claim",
-                criterion_ids=["crit_cutoff"],
-                state=ResponseState.ANSWERED,
-                raw_value=f"Governance capability assessed at {profile['governance_score']}.",
-                numeric_value=float(profile["governance_score"]),
-                evidence=evidence("claim_governance", "Named governance leads and escalation model found.", "page 2"),
-            ),
-            ExtractedField(
-                id=f"{vendor.id}_claim_quality",
-                label="Integrated launch claim",
-                field_group="technical_claim",
-                criterion_ids=["crit_score"],
-                state=ResponseState.ANSWERED,
-                raw_value=f"Integrated quality assessed at {profile['quality_score']}.",
-                numeric_value=float(profile["quality_score"]),
-                evidence=evidence("claim_quality", "Integrated launch execution approach found.", "page 3"),
-            ),
-        ]
+        technical_claims = []
 
         commercial_claims = []
         included_line_item_ids = artifact.rfq_snapshot.line_items
@@ -333,12 +316,10 @@ class FakeLLMClient(LLMClient):
         del artifact, review
         profile = _vendor_profile(vendor.name)
         scores_by_criterion = {
-            "crit_cutoff": float(profile["governance_score"]),
             "crit_score": float(profile["quality_score"]),
         }
         evidence_ids = {
-            "crit_cutoff": [f"{vendor.id}_governance", f"{vendor.id}_claim_governance"],
-            "crit_score": [f"{vendor.id}_quality", f"{vendor.id}_claim_quality"],
+            "crit_score": [f"{vendor.id}_quality"],
         }
         return [
             TechnicalCriterionResult(
@@ -428,8 +409,9 @@ def _vendor_profile(name: str) -> dict[str, object]:
     profiles = {
         "alpha": {
             "mac_pass": True,
-            "governance_score": 36,
+            "comparable_launch_count": 5,
             "quality_score": 54,
+            "quality_answer": "Integrated launch plan with clear workstream ownership, stage gates, and cross-channel execution detail.",
             "line_item_total": 100.0,
             "currency": "USD",
             "uom": "Lot",
@@ -439,8 +421,9 @@ def _vendor_profile(name: str) -> dict[str, object]:
         },
         "beta": {
             "mac_pass": True,
-            "governance_score": 30,
+            "comparable_launch_count": 4,
             "quality_score": 48,
+            "quality_answer": "Solid integrated launch plan with named leads and channel coordination, though execution detail is moderate.",
             "line_item_total": 110.0,
             "currency": "USD",
             "uom": "Lot",
@@ -450,8 +433,9 @@ def _vendor_profile(name: str) -> dict[str, object]:
         },
         "gamma": {
             "mac_pass": True,
-            "governance_score": 20,
+            "comparable_launch_count": 1,
             "quality_score": 52,
+            "quality_answer": "Integrated launch plan is creative but lighter on execution detail and stakeholder control.",
             "line_item_total": 90.0,
             "currency": "USD",
             "uom": "Lot",
@@ -461,8 +445,9 @@ def _vendor_profile(name: str) -> dict[str, object]:
         },
         "delta": {
             "mac_pass": True,
-            "governance_score": 35,
+            "comparable_launch_count": 5,
             "quality_score": 56,
+            "quality_answer": "Very strong integrated launch plan with detailed cadence, accountability, and execution readiness.",
             "line_item_total": 95.0,
             "currency": "EUR",
             "uom": "Lot",
@@ -472,8 +457,9 @@ def _vendor_profile(name: str) -> dict[str, object]:
         },
         "incomplete": {
             "mac_pass": True,
-            "governance_score": 34,
+            "comparable_launch_count": 4,
             "quality_score": 50,
+            "quality_answer": "Reasonable integrated launch plan, but some execution dependencies remain underspecified.",
             "line_item_total": 102.0,
             "currency": "USD",
             "uom": "Lot",
@@ -486,8 +472,9 @@ def _vendor_profile(name: str) -> dict[str, object]:
         normalized,
         {
             "mac_pass": True,
-            "governance_score": 32,
+            "comparable_launch_count": 3,
             "quality_score": 50,
+            "quality_answer": "Adequate integrated launch plan with moderate detail and limited evidence of cross-workstream rigor.",
             "line_item_total": 105.0,
             "currency": "USD",
             "uom": "Lot",

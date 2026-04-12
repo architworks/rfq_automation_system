@@ -143,6 +143,7 @@ export function createCriterion(
     linked_question_ids: [],
     linked_schedule_fields: [],
     deterministic_scoring: null,
+    qualitative_scoring_guidance: null,
   };
 }
 

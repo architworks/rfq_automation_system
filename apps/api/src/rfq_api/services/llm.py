@@ -27,6 +27,7 @@ from ..models import (
     LockedFrameworkArtifact,
     Question,
     RawExtraction,
+    ResponseState,
     ResponseSchedule,
     RFQDraft,
     RubricProposal,
@@ -104,6 +105,7 @@ FormatText = Annotated[str, Field(min_length=3)]
 ConditionText = Annotated[str, Field(min_length=3)]
 LongText = Annotated[str, Field(min_length=8)]
 LocatorText = Annotated[str, Field(min_length=2)]
+FreeText = Annotated[str, Field(min_length=1)]
 
 
 class GeneratedSection(BaseModel):
@@ -143,13 +145,14 @@ class CriterionDraft(BaseModel):
     max_score: float | None = Field(default=None, ge=0, le=100)
     evidence_checks: list[GeneratedEvidenceCheck] = Field(default_factory=list, min_length=1, max_length=1)
     deterministic_scoring: GeneratedDeterministicScoringGuide | None = None
+    qualitative_scoring_guidance: LongText | None = None
 
 
 class GeneratedQuestion(BaseModel):
     id: Identifier
     text: QuestionText
     purpose: PurposeText
-    linked_criteria: list[Identifier] = Field(default_factory=list, min_length=1, max_length=3)
+    linked_criteria: list[Identifier] = Field(default_factory=list, min_length=1, max_length=1)
 
 
 class GeneratedScheduleColumn(BaseModel):
@@ -179,7 +182,7 @@ class LLMRubricProposal(BaseModel):
 
 class GeneratedEvidenceAnchor(BaseModel):
     id: Identifier
-    snippet: LongText
+    snippet: FreeText
     locator: LocatorText
     source_label: ShortTitle | None = None
 
@@ -199,13 +202,13 @@ class GeneratedExtractedField(BaseModel):
         "conflicting_evidence",
         "not_applicable",
     ]
-    raw_value: LongText | None = None
-    normalized_hint: LongText | None = None
+    raw_value: FreeText | None = None
+    normalized_hint: FreeText | None = None
     quantity_value: float | None = None
     numeric_value: float | None = None
     currency: Annotated[str, Field(min_length=3, max_length=8)] | None = None
     uom: ShortTitle | None = None
-    notes: LongText | None = None
+    notes: FreeText | None = None
     evidence: list[GeneratedEvidenceAnchor] = Field(default_factory=list, max_length=4)
 
 
@@ -294,12 +297,19 @@ class OpenAIResponsesClient(LLMClient):
             "Set one aggregate technical threshold for qualified bids. "
             "Every criterion must include exactly one evidence check. "
             "Questions must be mutually distinct and collectively cover the criteria without unnecessary overlap. "
-            "Schedules must capture structured vendor inputs a buyer can compare later. "
+            "Every technical criterion must map to exactly one vendor-facing question. "
+            "Do not use schedules as the primary scoring source for technical criteria. "
+            "Use schedules mainly for commercial quoting or supplementary structured disclosures. "
             "Vendor-facing question text must be complete and readable, not clipped mid-sentence. "
-            "When a criterion can be evaluated directly from a binary answer, a numeric count, or a discrete stated choice, "
-            "include a deterministic_scoring guide with explicit rules. "
-            "Use deterministic scoring mainly for objective compliance, completeness, count, or threshold checks. "
-            "Leave deterministic_scoring null for narrative or evaluator-judgement criteria. "
+            "Apply a quantification-first rule to technical criteria. "
+            "If a technical intent can be measured reliably through an explicit numeric, binary, or discrete answer "
+            "without distorting the procurement intent, ask for that measurable answer directly instead of a broad narrative response. "
+            "When a technical criterion can be evaluated directly from a binary answer, an explicit numeric answer, or a discrete stated choice, "
+            "you must include a deterministic_scoring guide with explicit rules and keep qualitative_scoring_guidance null. "
+            "Leave deterministic_scoring null only for technical criteria where objective measurement would distort the real judgement. "
+            "For every such qualitative technical criterion, populate qualitative_scoring_guidance with concise internal judging guidance describing "
+            "what the AI should look for, what strong evidence looks like, and what weak or risky evidence looks like. "
+            "Do not turn commercial quote structure into technical criteria. "
             "Keep titles short, descriptions concise, and avoid repeating the RFQ narrative."
         )
         input_text = (
@@ -331,7 +341,10 @@ class OpenAIResponsesClient(LLMClient):
             "Use the response states answered, missing_vendor_response, missing_extractable_evidence, conflicting_evidence, or not_applicable precisely. "
             "Map commercial claims to the supplied RFQ line_item_id values when possible. "
             "Capture short evidence snippets and precise locators such as page, slide, sheet, row, or cell. "
-            "Use quantity_value only when the document states a quantity clearly, and numeric_value only when a comparable number is visible in the document."
+            "For technical questions tied to numeric deterministic scoring, populate numeric_value only when the vendor explicitly states a number. "
+            "Do not infer counts from narrative examples, named project lists, or descriptive prose. "
+            "If a numeric technical question is answered vaguely or descriptively without an explicit number, keep the raw answer and evidence but mark it as missing_extractable_evidence for scoring. "
+            "Use quantity_value only when the document states a quantity clearly, and numeric_value only when an explicit comparable number is visible in the document."
         )
         input_payload = [
             {
@@ -360,7 +373,9 @@ class OpenAIResponsesClient(LLMClient):
             text_format=LLMVendorExtraction,
             error_label="Vendor extraction",
         )
-        return self._compose_raw_extraction(extracted)
+        raw_extraction = self._compose_raw_extraction(extracted)
+        self._enforce_numeric_question_expectations(raw_extraction, artifact)
+        return raw_extraction
 
     def score_narrative_technical(
         self,
@@ -373,7 +388,7 @@ class OpenAIResponsesClient(LLMClient):
         if not criteria:
             return []
 
-        criteria_brief = self._build_narrative_criteria_brief(criteria)
+        criteria_brief = self._build_narrative_criteria_brief(criteria, artifact)
         review_brief = self._build_vendor_review_brief(review)
         instructions = (
             "Score only the listed narrative technical criteria using the extracted evidence summary. "
@@ -732,10 +747,25 @@ class OpenAIResponsesClient(LLMClient):
             weight = criterion.weight
             min_cutoff = criterion.min_cutoff
             max_score = criterion.max_score
+            linked_question_ids = OpenAIResponsesClient._dedupe(question_links[criterion.id])
+            linked_schedule_fields = OpenAIResponsesClient._dedupe(schedule_links[criterion.id])
+            qualitative_scoring_guidance = criterion.qualitative_scoring_guidance
             if normalized_type == CriterionType.COMMERCIAL:
                 weight = None
                 min_cutoff = None
                 max_score = None
+                qualitative_scoring_guidance = None
+            elif normalized_type == CriterionType.MAC:
+                qualitative_scoring_guidance = None
+            elif criterion.deterministic_scoring is not None:
+                qualitative_scoring_guidance = None
+            else:
+                qualitative_scoring_guidance = OpenAIResponsesClient._normalize_qualitative_guidance(
+                    criterion=criterion,
+                    evidence_checks=evidence_checks,
+                )
+            if normalized_type != CriterionType.COMMERCIAL:
+                linked_schedule_fields = []
             criteria.append(
                 Criterion(
                     id=criterion.id,
@@ -754,8 +784,8 @@ class OpenAIResponsesClient(LLMClient):
                         )
                         for check in evidence_checks
                     ],
-                    linked_question_ids=OpenAIResponsesClient._dedupe(question_links[criterion.id]),
-                    linked_schedule_fields=OpenAIResponsesClient._dedupe(schedule_links[criterion.id]),
+                    linked_question_ids=linked_question_ids,
+                    linked_schedule_fields=linked_schedule_fields,
                     deterministic_scoring=(
                         DeterministicScoringGuide(
                             guide_type=criterion.deterministic_scoring.guide_type,
@@ -774,6 +804,7 @@ class OpenAIResponsesClient(LLMClient):
                         if criterion.deterministic_scoring is not None
                         else None
                     ),
+                    qualitative_scoring_guidance=qualitative_scoring_guidance,
                 )
             )
 
@@ -929,14 +960,21 @@ class OpenAIResponsesClient(LLMClient):
                 f"{criterion.id} | {criterion.title} | {criterion.criterion_type} | "
                 f"max {criterion.max_score if criterion.max_score is not None else 'n/a'} | "
                 f"cutoff {criterion.min_cutoff if criterion.min_cutoff is not None else 'n/a'} | "
-                f"questions: {', '.join(criterion.linked_question_ids) or 'none'} | "
+                f"question: {criterion.linked_question_ids[0] if criterion.linked_question_ids else 'none'} | "
+                f"guide: {criterion.deterministic_scoring.guide_type if criterion.deterministic_scoring is not None else 'qualitative'} | "
+                f"answer format: {criterion.deterministic_scoring.answer_format if criterion.deterministic_scoring is not None else 'narrative judgement'} | "
                 f"schedules: {', '.join(criterion.linked_schedule_fields) or 'none'} | "
+                f"qualitative guidance: {OpenAIResponsesClient._shorten(criterion.qualitative_scoring_guidance or 'none', 140)} | "
                 f"{OpenAIResponsesClient._shorten(criterion.description, 120)}"
             )
             for criterion in proposal.criteria
         )
         question_lines = OpenAIResponsesClient._numbered_lines(
-            f"{question.id}: {question.text} | purpose: {OpenAIResponsesClient._shorten(question.purpose, 90)}"
+            (
+                f"{question.id}: {question.text} | purpose: {OpenAIResponsesClient._shorten(question.purpose, 90)} | "
+                f"linked criterion: {question.linked_criteria[0] if question.linked_criteria else 'none'} | "
+                f"expected answer: {OpenAIResponsesClient._expected_answer_summary(question.id, proposal.criteria)}"
+            )
             for question in proposal.questions
         )
         schedule_lines = OpenAIResponsesClient._numbered_lines(
@@ -968,12 +1006,21 @@ class OpenAIResponsesClient(LLMClient):
         )
 
     @staticmethod
-    def _build_narrative_criteria_brief(criteria: list[Criterion]) -> str:
+    def _build_narrative_criteria_brief(
+        criteria: list[Criterion],
+        artifact: LockedFrameworkArtifact,
+    ) -> str:
+        questions_by_id = {
+            question.id: question
+            for question in artifact.rubric_snapshot.questions
+        }
         return OpenAIResponsesClient._numbered_lines(
             (
                 f"{criterion.id}: {criterion.title} | max score {criterion.max_score or 0:g} | "
                 f"{OpenAIResponsesClient._shorten(criterion.description, 160)} | "
-                f"evidence check: {criterion.evidence_checks[0].label if criterion.evidence_checks else 'Supporting evidence'}"
+                f"question: {questions_by_id[criterion.linked_question_ids[0]].text if criterion.linked_question_ids and criterion.linked_question_ids[0] in questions_by_id else 'none'} | "
+                f"guidance: {OpenAIResponsesClient._shorten(criterion.qualitative_scoring_guidance or 'none', 180)} | "
+                f"evidence check: {criterion.evidence_checks[0].description if criterion.evidence_checks else 'Supporting evidence'}"
             )
             for criterion in criteria
         )
@@ -983,6 +1030,7 @@ class OpenAIResponsesClient(LLMClient):
         question_lines = OpenAIResponsesClient._numbered_lines(
             (
                 f"{field.id} | {field.label} | state {field.state.value} | value: {field.raw_value or 'none'} | "
+                f"numeric: {field.numeric_value if field.numeric_value is not None else 'n/a'} | "
                 f"evidence ids: {', '.join(anchor.id for anchor in field.evidence) or 'none'}"
             )
             for field in review.raw_extraction.question_answers
@@ -997,7 +1045,8 @@ class OpenAIResponsesClient(LLMClient):
         technical_lines = OpenAIResponsesClient._numbered_lines(
             (
                 f"{field.id} | {field.label} | state {field.state.value} | value: {field.raw_value or 'none'} | "
-                f"notes: {field.notes or 'none'} | evidence ids: {', '.join(anchor.id for anchor in field.evidence) or 'none'}"
+                f"notes: {field.notes or 'none'} | numeric: {field.numeric_value if field.numeric_value is not None else 'n/a'} | "
+                f"evidence ids: {', '.join(anchor.id for anchor in field.evidence) or 'none'}"
             )
             for field in review.raw_extraction.technical_claims
         )
@@ -1103,6 +1152,65 @@ class OpenAIResponsesClient(LLMClient):
             if parts:
                 return " ".join(parts)
         return None
+
+    @staticmethod
+    def _expected_answer_summary(question_id: str, criteria: list[Criterion]) -> str:
+        criterion = next(
+            (
+                item
+                for item in criteria
+                if question_id in item.linked_question_ids
+            ),
+            None,
+        )
+        if criterion is None:
+            return "Not specified."
+        if criterion.deterministic_scoring is not None:
+            return (
+                f"{criterion.deterministic_scoring.guide_type} | "
+                f"{criterion.deterministic_scoring.answer_format}"
+            )
+        return "Qualitative narrative response."
+
+    @staticmethod
+    def _normalize_qualitative_guidance(
+        *,
+        criterion: CriterionDraft,
+        evidence_checks: list[GeneratedEvidenceCheck],
+    ) -> str:
+        guidance = " ".join((criterion.qualitative_scoring_guidance or "").split())
+        if guidance:
+            return guidance
+        evidence_text = evidence_checks[0].description if evidence_checks else "Look for direct supporting evidence."
+        return (
+            f"Judge how well the response addresses {criterion.description}. "
+            f"Strong evidence should be specific, credible, and implementation-ready. "
+            f"Weak or risky evidence should be vague, generic, unsupported, or incomplete. "
+            f"Evaluator check: {evidence_text}"
+        )
+
+    @staticmethod
+    def _enforce_numeric_question_expectations(
+        raw_extraction: RawExtraction,
+        artifact: LockedFrameworkArtifact,
+    ) -> None:
+        numeric_question_ids = {
+            criterion.linked_question_ids[0]
+            for criterion in artifact.rubric_snapshot.criteria
+            if criterion.criterion_type in {
+                CriterionType.TECHNICAL_CUTOFF_BACKED,
+                CriterionType.TECHNICAL_SCORED_ONLY,
+            }
+            and criterion.deterministic_scoring is not None
+            and criterion.deterministic_scoring.guide_type == DeterministicScoringType.NUMERIC_BANDED
+            and len(criterion.linked_question_ids) == 1
+        }
+
+        for field in raw_extraction.question_answers:
+            if field.question_id not in numeric_question_ids:
+                continue
+            if field.numeric_value is None and field.state == ResponseState.ANSWERED:
+                field.state = ResponseState.MISSING_EXTRACTABLE_EVIDENCE
 
     @staticmethod
     def _looks_like_truncated_output(exc: Exception) -> bool:

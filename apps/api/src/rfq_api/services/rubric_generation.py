@@ -21,8 +21,10 @@ class RubricGenerationService:
                 criterion.weight = None
                 criterion.min_cutoff = None
                 criterion.max_score = None
+                criterion.qualitative_scoring_guidance = None
             elif criterion.criterion_type == CriterionType.COMMERCIAL:
                 criterion.weight = None
                 criterion.min_cutoff = None
+                criterion.qualitative_scoring_guidance = None
 
         return normalized

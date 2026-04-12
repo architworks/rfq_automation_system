@@ -46,6 +46,34 @@ def test_deterministic_scoring_requires_rules() -> None:
     assert any(issue.field == "criteria[3].deterministic_scoring.rules" for issue in issues)
 
 
+def test_technical_criteria_require_exactly_one_linked_question() -> None:
+    proposal = build_valid_rubric_proposal()
+    proposal.criteria[1].linked_question_ids = []
+    issues = validate_rubric_proposal(proposal)
+    assert any(issue.field == "criteria[1].linked_question_ids" for issue in issues)
+
+
+def test_technical_criteria_cannot_rely_on_schedule_fields_for_scoring() -> None:
+    proposal = build_valid_rubric_proposal()
+    proposal.criteria[1].linked_schedule_fields = ["pricing_schedule.total_fee"]
+    issues = validate_rubric_proposal(proposal)
+    assert any(issue.field == "criteria[1].linked_schedule_fields" for issue in issues)
+
+
+def test_qualitative_technical_criteria_require_scoring_guidance() -> None:
+    proposal = build_valid_rubric_proposal()
+    proposal.criteria[2].qualitative_scoring_guidance = None
+    issues = validate_rubric_proposal(proposal)
+    assert any(issue.field == "criteria[2].qualitative_scoring_guidance" for issue in issues)
+
+
+def test_objective_technical_criteria_cannot_define_qualitative_guidance() -> None:
+    proposal = build_valid_rubric_proposal()
+    proposal.criteria[1].qualitative_scoring_guidance = "Do not use."
+    issues = validate_rubric_proposal(proposal)
+    assert any(issue.field == "criteria[1].qualitative_scoring_guidance" for issue in issues)
+
+
 def test_session_ttl_cleanup_removes_stale_records() -> None:
     from datetime import UTC, datetime, timedelta
 

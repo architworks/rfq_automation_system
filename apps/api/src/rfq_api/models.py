@@ -180,6 +180,7 @@ class Criterion(BaseModel):
     linked_question_ids: list[str] = Field(default_factory=list)
     linked_schedule_fields: list[str] = Field(default_factory=list)
     deterministic_scoring: DeterministicScoringGuide | None = None
+    qualitative_scoring_guidance: str | None = None
 
 
 class RubricProposal(BaseModel):

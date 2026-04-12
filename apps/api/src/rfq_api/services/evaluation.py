@@ -340,6 +340,14 @@ def _candidate_fields_for_criterion(
     criterion: Criterion,
     review: VendorReview,
 ) -> list[ExtractedField]:
+    if criterion.criterion_type != CriterionType.COMMERCIAL and criterion.linked_question_ids:
+        primary_question_id = criterion.linked_question_ids[0]
+        return [
+            field
+            for field in review.raw_extraction.question_answers
+            if field.question_id == primary_question_id
+        ]
+
     linked_question_ids = set(criterion.linked_question_ids)
     linked_schedule_fields = set(criterion.linked_schedule_fields)
     return [

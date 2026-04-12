@@ -1,4 +1,7 @@
+from datetime import UTC, datetime
+
 from rfq_api.seeds import build_blank_rfq, build_seed_rfq
+from rfq_api.models import DownloadMetadata, GovernanceInfo, LockedFrameworkArtifact
 from rfq_api.services.llm import (
     AIScenarioDraft,
     AIScenarioRankingDraft,
@@ -19,7 +22,9 @@ from rfq_api.services.llm import (
     NarrativeCriterionScoreSet,
     OpenAIResponsesClient,
 )
-from rfq_api.models import CriterionType, DeterministicScoringType
+from rfq_api.models import CriterionType, DeterministicScoringType, ResponseState
+
+from .conftest import build_valid_rubric_proposal
 
 
 def test_build_rfq_brief_is_readable_text() -> None:
@@ -111,6 +116,7 @@ def test_compose_rubric_backfills_question_and_schedule_links() -> None:
                         description="Provide delivery evidence.",
                     )
                 ],
+                qualitative_scoring_guidance="Judge delivery quality from the specificity and credibility of the response.",
             ),
             CriterionDraft(
                 id="crit_4",
@@ -180,7 +186,7 @@ def test_compose_rubric_backfills_question_and_schedule_links() -> None:
                 id="q_1",
                 text=long_question_text,
                 purpose="Check governance.",
-                linked_criteria=["crit_1", "unknown_criterion"],
+                linked_criteria=["crit_1"],
             ),
             GeneratedQuestion(
                 id="q_2",
@@ -246,17 +252,61 @@ def test_compose_rubric_backfills_question_and_schedule_links() -> None:
     proposal = OpenAIResponsesClient._compose_rubric(generated)
 
     assert proposal.criteria[0].linked_question_ids == ["q_1"]
-    assert proposal.criteria[0].linked_schedule_fields == ["pricing_schedule.total_fee"]
+    assert proposal.criteria[0].linked_schedule_fields == []
     assert proposal.criteria[1].linked_question_ids == []
     assert proposal.criteria[1].linked_schedule_fields == ["pricing_schedule.total_fee"]
     assert proposal.criteria[1].criterion_type == CriterionType.COMMERCIAL
     assert proposal.criteria[1].weight is None
     assert proposal.criteria[1].min_cutoff is None
     assert proposal.criteria[1].max_score is None
+    assert proposal.criteria[2].qualitative_scoring_guidance is not None
     assert proposal.criteria[5].deterministic_scoring is not None
     assert proposal.criteria[5].deterministic_scoring.rules[0].outcome == "pass"
     assert proposal.questions[0].text == long_question_text
     assert proposal.questions[0].linked_criteria == ["crit_1"]
+
+
+def test_numeric_question_without_explicit_number_is_marked_missing_extractable_evidence() -> None:
+    rubric = build_valid_rubric_proposal()
+    artifact = LockedFrameworkArtifact(
+        locked_at=datetime.now(UTC),
+        rfq_snapshot=build_seed_rfq(),
+        rubric_snapshot=rubric,
+        governance=GovernanceInfo(
+            official_award_basis="QCBS 70/30",
+            technical_threshold_strategy="Test threshold strategy",
+            advisory_outputs=["LCS", "QBS", "RFQ-specific AI scenarios"],
+            persistence_scope="Test scope",
+        ),
+        download_metadata=DownloadMetadata(file_name="artifact.json"),
+    )
+    raw = OpenAIResponsesClient._compose_raw_extraction(
+        LLMVendorExtraction(
+            document_summary="Vendor answered with narrative only.",
+            question_answers=[
+                GeneratedExtractedField(
+                    id="field_numeric",
+                    label="Comparable launch count",
+                    question_id="q2",
+                    criterion_ids=["crit_cutoff"],
+                    state="answered",
+                    raw_value="We have delivered several relevant launches.",
+                    evidence=[
+                        GeneratedEvidenceAnchor(
+                            id="ev_numeric",
+                            snippet="We have delivered several relevant launches.",
+                            locator="page 2",
+                            source_label="vendor.pdf",
+                        )
+                    ],
+                )
+            ],
+        )
+    )
+
+    OpenAIResponsesClient._enforce_numeric_question_expectations(raw, artifact)
+
+    assert raw.question_answers[0].state == ResponseState.MISSING_EXTRACTABLE_EVIDENCE
 
 
 def test_structured_rubric_schema_accepts_long_free_text_fields() -> None:

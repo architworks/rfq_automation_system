@@ -160,6 +160,18 @@ function formatCriterionMode(criterion: Criterion): string {
   }
 }
 
+function isTechnicalCriterion(criterion: Criterion): boolean {
+  return criterion.criterion_type !== "commercial";
+}
+
+function usesQualitativeScoring(criterion: Criterion): boolean {
+  return (
+    criterion.criterion_type !== "mac" &&
+    criterion.criterion_type !== "commercial" &&
+    !criterion.deterministic_scoring
+  );
+}
+
 function formatCriterionTypeLabel(criterionType: CriterionType): string {
   return CRITERION_TYPE_OPTIONS.find((option) => option.value === criterionType)?.label ?? criterionType;
 }
@@ -1880,7 +1892,9 @@ function CriterionEditor({
         </section>
 
         <section className={`${styles.previewSection} ${styles.previewBox}`}>
-          <div className={styles.previewSectionTitle}>Vendor questionnaire</div>
+          <div className={styles.previewSectionTitle}>
+            {isTechnicalCriterion(criterion) ? "Primary vendor question" : "Vendor questionnaire"}
+          </div>
           {linkedQuestions.length > 0 ? (
             <div className={styles.previewList}>
               {linkedQuestions.map(({ id, question }) => (
@@ -1908,6 +1922,15 @@ function CriterionEditor({
             </div>
           )}
         </section>
+
+        {usesQualitativeScoring(criterion) ? (
+          <section className={`${styles.previewSection} ${styles.previewBox}`}>
+            <div className={styles.previewSectionTitle}>AI judging guidance</div>
+            <div className={styles.previewSummary}>
+              {criterion.qualitative_scoring_guidance || "No qualitative scoring guidance is set yet."}
+            </div>
+          </section>
+        ) : null}
 
         {linkedScheduleFields.length > 0 ? (
           <section className={`${styles.previewSection} ${styles.previewBox}`}>
@@ -1963,18 +1986,26 @@ function CriterionEditor({
                     current.weight = null;
                     current.min_cutoff = null;
                     current.max_score = null;
+                    current.linked_schedule_fields = [];
+                    current.qualitative_scoring_guidance = null;
+                    if (current.deterministic_scoring?.guide_type !== "pass_fail") {
+                      current.deterministic_scoring = null;
+                    }
                   } else if (nextType === "commercial") {
                     current.weight = null;
                     current.min_cutoff = null;
                     current.max_score = current.max_score ?? 10;
+                    current.qualitative_scoring_guidance = null;
                   } else if (nextType === "technical_scored_only") {
                     current.weight = current.weight ?? 0;
                     current.min_cutoff = null;
                     current.max_score = current.max_score ?? 10;
+                    current.linked_schedule_fields = [];
                   } else if (nextType === "technical_cutoff_backed") {
                     current.weight = current.weight ?? 0;
                     current.min_cutoff = current.min_cutoff ?? 0;
                     current.max_score = current.max_score ?? 10;
+                    current.linked_schedule_fields = [];
                   }
                 })
               }
@@ -2057,6 +2088,20 @@ function CriterionEditor({
             }
           />
         </label>
+        {usesQualitativeScoring(criterion) ? (
+          <label className={styles.label} style={{ marginTop: 12 }}>
+            Qualitative Scoring Guidance
+            <FormTextarea
+              className={styles.textarea}
+              value={criterion.qualitative_scoring_guidance ?? ""}
+              onChange={(event) =>
+                onChange((current) => {
+                  current.qualitative_scoring_guidance = event.target.value || null;
+                })
+              }
+            />
+          </label>
+        ) : null}
       </div>
 
       <details className={styles.advancedPanel}>
@@ -2098,29 +2143,35 @@ function CriterionEditor({
                 />
               </label>
               <label className={styles.label}>
-                Linked Vendor Question IDs (comma separated)
+                {isTechnicalCriterion(criterion) ? "Linked Vendor Question ID" : "Linked Vendor Question IDs (comma separated)"}
                 <FormInput
                   className={styles.input}
-                  value={toCsv(criterion.linked_question_ids)}
+                  value={isTechnicalCriterion(criterion) ? (criterion.linked_question_ids?.[0] ?? "") : toCsv(criterion.linked_question_ids)}
                   onChange={(event) =>
                     onChange((current) => {
+                      if (isTechnicalCriterion(current)) {
+                        current.linked_question_ids = event.target.value.trim() ? [event.target.value.trim()] : [];
+                        return;
+                      }
                       current.linked_question_ids = parseCsv(event.target.value);
                     })
                   }
                 />
               </label>
-              <label className={styles.label}>
-                Linked Structured Input Field IDs (comma separated)
-                <FormInput
-                  className={styles.input}
-                  value={toCsv(criterion.linked_schedule_fields)}
-                  onChange={(event) =>
-                    onChange((current) => {
-                      current.linked_schedule_fields = parseCsv(event.target.value);
-                    })
-                  }
-                />
-              </label>
+              {criterion.criterion_type === "commercial" ? (
+                <label className={styles.label}>
+                  Linked Structured Input Field IDs (comma separated)
+                  <FormInput
+                    className={styles.input}
+                    value={toCsv(criterion.linked_schedule_fields)}
+                    onChange={(event) =>
+                      onChange((current) => {
+                        current.linked_schedule_fields = parseCsv(event.target.value);
+                      })
+                    }
+                  />
+                </label>
+              ) : null}
             </div>
           </div>
 
@@ -2239,7 +2290,7 @@ function DeterministicScoringPreview({
         ? "No explicit rule table is defined yet. This criterion is currently treated as a mandatory pass/fail gate based on the linked evidence."
         : criterion.criterion_type === "commercial"
           ? "No explicit rule table is defined yet. This criterion is currently informational and intended for downstream commercial comparison."
-          : "No explicit rule table is defined for this criterion. This criterion is expected to rely on evaluator judgement, evidence review, and the score / cutoff settings shown above.";
+          : "No explicit rule table is defined for this criterion. This criterion is expected to rely on AI judgement against the linked question, internal scoring guidance, and the score / cutoff settings shown above.";
 
     return (
       <div className={styles.previewSection}>

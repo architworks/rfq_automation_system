@@ -77,6 +77,7 @@ def _validate_criterion(
     known_schedule_field_ids: set[str],
 ) -> list[ValidationIssue]:
     issues: list[ValidationIssue] = []
+    is_technical = criterion.criterion_type != CriterionType.COMMERCIAL
 
     if criterion.section_id not in known_section_ids:
         issues.append(
@@ -116,6 +117,22 @@ def _validate_criterion(
                 )
             )
 
+    if is_technical:
+        if len(criterion.linked_question_ids) != 1:
+            issues.append(
+                ValidationIssue(
+                    field=f"{field_prefix}.linked_question_ids",
+                    message="Technical criteria must link to exactly one vendor-facing question.",
+                )
+            )
+        if criterion.linked_schedule_fields:
+            issues.append(
+                ValidationIssue(
+                    field=f"{field_prefix}.linked_schedule_fields",
+                    message="Technical criteria cannot rely on schedule fields for scoring.",
+                )
+            )
+
     if criterion.deterministic_scoring is not None:
         issues.extend(_validate_deterministic_scoring(criterion=criterion, field_prefix=field_prefix))
 
@@ -132,6 +149,23 @@ def _validate_criterion(
                 ValidationIssue(
                     field=f"{field_prefix}.min_cutoff",
                     message="MAC criteria cannot carry cutoffs.",
+                )
+            )
+        if criterion.qualitative_scoring_guidance not in (None, ""):
+            issues.append(
+                ValidationIssue(
+                    field=f"{field_prefix}.qualitative_scoring_guidance",
+                    message="MAC criteria cannot carry qualitative scoring guidance.",
+                )
+            )
+        if (
+            criterion.deterministic_scoring is not None
+            and criterion.deterministic_scoring.guide_type != DeterministicScoringType.PASS_FAIL
+        ):
+            issues.append(
+                ValidationIssue(
+                    field=f"{field_prefix}.deterministic_scoring.guide_type",
+                    message="MAC criteria may only use pass/fail deterministic scoring.",
                 )
             )
         return issues
@@ -156,6 +190,20 @@ def _validate_criterion(
                 ValidationIssue(
                     field=f"{field_prefix}.min_cutoff",
                     message="Scored-only technical criteria cannot define a cutoff.",
+                )
+            )
+        if criterion.deterministic_scoring is None and not (criterion.qualitative_scoring_guidance or "").strip():
+            issues.append(
+                ValidationIssue(
+                    field=f"{field_prefix}.qualitative_scoring_guidance",
+                    message="Qualitative technical criteria must define qualitative scoring guidance.",
+                )
+            )
+        if criterion.deterministic_scoring is not None and (criterion.qualitative_scoring_guidance or "").strip():
+            issues.append(
+                ValidationIssue(
+                    field=f"{field_prefix}.qualitative_scoring_guidance",
+                    message="Objective technical criteria should not define qualitative scoring guidance.",
                 )
             )
         return issues
@@ -189,6 +237,20 @@ def _validate_criterion(
                     message="Cutoff-backed technical criteria must keep the minimum cutoff within the max score range.",
                 )
             )
+        if criterion.deterministic_scoring is None and not (criterion.qualitative_scoring_guidance or "").strip():
+            issues.append(
+                ValidationIssue(
+                    field=f"{field_prefix}.qualitative_scoring_guidance",
+                    message="Qualitative technical criteria must define qualitative scoring guidance.",
+                )
+            )
+        if criterion.deterministic_scoring is not None and (criterion.qualitative_scoring_guidance or "").strip():
+            issues.append(
+                ValidationIssue(
+                    field=f"{field_prefix}.qualitative_scoring_guidance",
+                    message="Objective technical criteria should not define qualitative scoring guidance.",
+                )
+            )
         return issues
 
     if criterion.criterion_type == CriterionType.COMMERCIAL:
@@ -204,6 +266,13 @@ def _validate_criterion(
                 ValidationIssue(
                     field=f"{field_prefix}.min_cutoff",
                     message="Commercial criteria cannot define technical cutoffs.",
+                )
+            )
+        if criterion.qualitative_scoring_guidance not in (None, ""):
+            issues.append(
+                ValidationIssue(
+                    field=f"{field_prefix}.qualitative_scoring_guidance",
+                    message="Commercial criteria cannot define qualitative scoring guidance.",
                 )
             )
         return issues
@@ -226,11 +295,19 @@ def _validate_deterministic_scoring(*, criterion: Criterion, field_prefix: str) 
         )
         return issues
 
-    if not (criterion.linked_question_ids or criterion.linked_schedule_fields):
+    if criterion.criterion_type == CriterionType.COMMERCIAL:
+        if not (criterion.linked_question_ids or criterion.linked_schedule_fields):
+            issues.append(
+                ValidationIssue(
+                    field=f"{field_prefix}.deterministic_scoring",
+                    message="Deterministic scoring must reference at least one linked question or schedule field.",
+                )
+            )
+    elif not criterion.linked_question_ids:
         issues.append(
             ValidationIssue(
                 field=f"{field_prefix}.deterministic_scoring",
-                message="Deterministic scoring must reference at least one linked question or schedule field.",
+                message="Deterministic technical scoring must reference the linked vendor question.",
             )
         )
 

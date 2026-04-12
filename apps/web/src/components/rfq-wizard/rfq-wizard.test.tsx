@@ -188,7 +188,7 @@ function createRubricProposal(): RubricProposal {
           },
         ],
         linked_question_ids: ["question_experience"],
-        linked_schedule_fields: ["schedule_team.lead_experience"],
+        linked_schedule_fields: [],
         deterministic_scoring: {
           guide_type: "numeric_banded",
           answer_format: "Comparable launches in last 3 years",
@@ -218,8 +218,10 @@ function createRubricProposal(): RubricProposal {
           },
         ],
         linked_question_ids: ["question_governance"],
-        linked_schedule_fields: ["schedule_team.program_lead"],
+        linked_schedule_fields: [],
         deterministic_scoring: null,
+        qualitative_scoring_guidance:
+          "Judge whether the governance response is specific, implementation-ready, and backed by clear ownership, cadence, and escalation logic.",
       },
       {
         id: "criterion_pricing",
@@ -282,26 +284,6 @@ function createRubricProposal(): RubricProposal {
       },
     ],
     response_schedules: [
-      {
-        id: "schedule_team",
-        name: "Team Schedule",
-        purpose: "Capture proposed team structure and experience.",
-        linked_criteria: ["criterion_experience", "criterion_governance"],
-        columns: [
-          {
-            id: "lead_experience",
-            label: "Lead Experience",
-            description: "Years and relevant category exposure for the account lead.",
-            required: true,
-          },
-          {
-            id: "program_lead",
-            label: "Program Lead",
-            description: "Named program lead and governance owner.",
-            required: true,
-          },
-        ],
-      },
       {
         id: "schedule_commercial",
         name: "Commercial Schedule",
@@ -540,7 +522,7 @@ describe("RfqWizard", () => {
     expect(await screen.findByText("Rubric Governance")).toBeInTheDocument();
     expect(screen.getAllByText("Buyer-facing criterion view").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Criterion summary").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("Vendor questionnaire").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Primary vendor question").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Scoring and qualifying rule").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Advanced traceability and evaluator checks").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Scored Criterion with Minimum Qualifying Score").length).toBeGreaterThan(0);
@@ -558,6 +540,12 @@ describe("RfqWizard", () => {
     expect(
       screen.getByText("All applicable line items are quoted and exclusions are stated clearly."),
     ).toBeInTheDocument();
+    expect(screen.getByText("AI judging guidance")).toBeInTheDocument();
+    expect(
+      screen.getAllByText(
+        "Judge whether the governance response is specific, implementation-ready, and backed by clear ownership, cadence, and escalation logic.",
+      ).length,
+    ).toBeGreaterThan(0);
   });
 
   it("keeps buyer RFQ edits across step changes and refresh within the same session", async () => {

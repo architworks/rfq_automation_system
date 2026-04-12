@@ -129,6 +129,10 @@ def test_evaluation_run_excludes_disqualified_and_non_comparable_vendors(client)
 def _lock_session(client) -> str:
     created = client.post("/sessions", json={})
     session_id = created.json()["session_id"]
+    sample_rfq = client.get("/rfq-templates/sample")
+    assert sample_rfq.status_code == 200
+    saved_rfq = client.put(f"/sessions/{session_id}/rfq", json=sample_rfq.json())
+    assert saved_rfq.status_code == 200
     client.post(f"/sessions/{session_id}/rubric/generate")
     client.post(f"/sessions/{session_id}/rubric/lock")
     return session_id
