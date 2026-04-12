@@ -2588,6 +2588,7 @@ function LockStep({
       criterion.criterion_type === "technical_cutoff_backed" ||
       criterion.criterion_type === "technical_scored_only",
   );
+  const artifactWarnings = artifact?.governance.rubric_warnings ?? [];
 
   return (
     <div className={styles.grid}>
@@ -2656,6 +2657,18 @@ function LockStep({
           <div className={`${styles.banner} ${styles.successBanner}`}>
             Framework locked successfully. The session now holds the frozen artifact for downstream phases.
           </div>
+          {artifactWarnings.length > 0 ? (
+            <div className={`${styles.banner} ${styles.infoBanner}`}>
+              <strong>Rubric warnings were preserved on lock.</strong>
+              <div className={styles.validationList}>
+                {artifactWarnings.map((issue) => (
+                  <div className={styles.validationItem} key={`${issue.field}-${issue.message}`}>
+                    <strong>{issue.field}</strong>: {issue.message}
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
           <section className={styles.card}>
             <div className={styles.cardHeader}>
               <div>

@@ -323,6 +323,7 @@ function createLockedArtifact(
         "RFQ-specific threshold proposed by AI and approved by buyer before lock.",
       advisory_outputs: ["LCS", "QBS", "RFQ-specific AI scenarios"],
       persistence_scope: "Browser session plus in-memory backend session state with TTL.",
+      rubric_warnings: [],
     },
     download_metadata: {
       file_name: `locked-framework-${sessionId}.json`,

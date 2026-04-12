@@ -63,7 +63,8 @@ def test_generate_rubric_returns_best_effort_proposal_when_repair_still_invalid(
     assert client.fake_llm.generate_attempt_count == 2  # type: ignore[attr-defined]
 
     locked = client.post(f"/sessions/{session_id}/rubric/lock")
-    assert locked.status_code == 422
+    assert locked.status_code == 200
+    assert len(locked.json()["governance"]["rubric_warnings"]) >= 1
 
 
 def test_update_llm_settings_persists_and_is_used_for_generation(client) -> None:

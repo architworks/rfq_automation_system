@@ -697,6 +697,8 @@ export interface components {
             advisory_outputs: string[];
             /** Persistence Scope */
             persistence_scope: string;
+            /** Rubric Warnings */
+            rubric_warnings?: components["schemas"]["ValidationIssue"][];
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -1095,6 +1097,13 @@ export interface components {
             input?: unknown;
             /** Context */
             ctx?: Record<string, never>;
+        };
+        /** ValidationIssue */
+        ValidationIssue: {
+            /** Field */
+            field: string;
+            /** Message */
+            message: string;
         };
         /** VendorDocument */
         VendorDocument: {

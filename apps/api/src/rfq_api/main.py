@@ -40,7 +40,7 @@ from .services.llm import (
     RubricGenerationError,
 )
 from .services.review import build_vendor_review
-from .services.rubric_generation import RubricGenerationService
+from .services.rubric_generation import RubricGenerationService, normalize_rubric_proposal
 from .services.validation import validate_rubric_proposal
 from .services.vendor_pack import build_vendor_pack
 from .seeds import build_blank_rfq, build_sample_rfq
@@ -177,22 +177,19 @@ def create_app() -> FastAPI:
             _ensure_vendor_pack(session_id, record, store)
             return record.locked_artifact
 
-        issues = validate_rubric_proposal(record.rubric_proposal)
-        if issues:
-            raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                detail=[issue.model_dump() for issue in issues],
-            )
+        normalized_proposal = normalize_rubric_proposal(record.rubric_proposal)
+        issues = validate_rubric_proposal(normalized_proposal)
 
         artifact = LockedFrameworkArtifact(
             locked_at=datetime.now(UTC),
             rfq_snapshot=record.rfq_draft,
-            rubric_snapshot=record.rubric_proposal,
+            rubric_snapshot=normalized_proposal,
             governance=GovernanceInfo(
                 official_award_basis=OFFICIAL_AWARD_BASIS,
                 technical_threshold_strategy="RFQ-specific threshold proposed by AI and approved by buyer before lock.",
                 advisory_outputs=["LCS", "QBS", "RFQ-specific AI scenarios"],
                 persistence_scope="Browser session plus in-memory backend session state with TTL-managed temp files.",
+                rubric_warnings=issues,
             ),
             download_metadata=DownloadMetadata(
                 file_name=f"locked-framework-{session_id}.json",

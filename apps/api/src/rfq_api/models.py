@@ -204,11 +204,17 @@ class RubricProposal(BaseModel):
     generation_rationale: list[str]
 
 
+class ValidationIssue(BaseModel):
+    field: str
+    message: str
+
+
 class GovernanceInfo(BaseModel):
     official_award_basis: Literal["QCBS 70/30"] = OFFICIAL_AWARD_BASIS
     technical_threshold_strategy: str
     advisory_outputs: list[str]
     persistence_scope: str
+    rubric_warnings: list[ValidationIssue] = Field(default_factory=list)
 
 
 class DownloadMetadata(BaseModel):
@@ -223,11 +229,6 @@ class LockedFrameworkArtifact(BaseModel):
     rubric_snapshot: RubricProposal
     governance: GovernanceInfo
     download_metadata: DownloadMetadata
-
-
-class ValidationIssue(BaseModel):
-    field: str
-    message: str
 
 
 class VendorPackQuestion(BaseModel):
