@@ -564,6 +564,13 @@
   color: #64748b;
 }
 
+.heroActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
 .code {
   font-family: var(--font-geist-mono), monospace;
   background: rgba(15, 23, 42, 0.06);

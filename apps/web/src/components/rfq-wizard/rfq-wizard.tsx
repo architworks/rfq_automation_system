@@ -40,6 +40,7 @@ import {
   parseCsv,
   toCsv,
 } from "@/lib/rubric-factories";
+import { setStoredSessionId } from "@/lib/session";
 import { buildVendorPackDocument } from "@/lib/vendor-pack-docx";
 import { PackStep, ResultsStep, ReviewStep, VendorsStep } from "./phase-two";
 
@@ -218,6 +219,7 @@ type RfqWizardProps = {
   sessionId: string;
   step: WizardStep;
   onStepChange: (step: WizardStep) => void;
+  onSessionReplace?: (sessionId: string, step: WizardStep) => void;
   api?: RfqApiClient;
   autosaveMs?: number;
 };
@@ -226,6 +228,7 @@ export function RfqWizard({
   sessionId,
   step,
   onStepChange,
+  onSessionReplace,
   api = apiClient,
   autosaveMs = DEFAULT_AUTOSAVE_MS,
 }: RfqWizardProps) {
@@ -239,6 +242,7 @@ export function RfqWizard({
   const [isLoading, setIsLoading] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isLocking, setIsLocking] = useState(false);
+  const [isResettingSession, setIsResettingSession] = useState(false);
   const [isSavingComparisonSettings, setIsSavingComparisonSettings] = useState(false);
   const [isRunningEvaluation, setIsRunningEvaluation] = useState(false);
   const [uploadingVendorId, setUploadingVendorId] = useState<string | null>(null);
@@ -601,6 +605,36 @@ export function RfqWizard({
     }
   }
 
+  async function handleResetSession() {
+    if (
+      !window.confirm(
+        "Start a fresh seeded session? Your current work will remain only in the old session link.",
+      )
+    ) {
+      return;
+    }
+
+    setIsResettingSession(true);
+    setRequestError(null);
+    setValidationIssues([]);
+
+    try {
+      const freshSession = await api.createOrHydrateSession();
+      setStoredSessionId(freshSession.session_id);
+      setAutosaveMessage("Fresh session ready");
+
+      if (onSessionReplace) {
+        onSessionReplace(freshSession.session_id, "input");
+      } else {
+        window.location.assign(`/rfq/${freshSession.session_id}?step=input`);
+      }
+    } catch (error) {
+      setRequestError(error instanceof Error ? error.message : "Failed to reset the session.");
+    } finally {
+      setIsResettingSession(false);
+    }
+  }
+
   function updateDraft(mutator: (draft: RFQDraft) => void) {
     setRfqDraft((current: RFQDraft | null) => {
       if (!current) {
@@ -698,6 +732,16 @@ export function RfqWizard({
             </span>
             <span>Last updated: {formatTimestamp(snapshot?.updated_at)}</span>
             <span className={styles.autosave}>{autosaveMessage}</span>
+          </div>
+          <div className={styles.heroActions}>
+            <button
+              className={styles.ghostButton}
+              disabled={isResettingSession}
+              onClick={handleResetSession}
+              type="button"
+            >
+              {isResettingSession ? "Resetting..." : "Reset session"}
+            </button>
           </div>
         </header>
 

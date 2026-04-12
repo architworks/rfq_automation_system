@@ -34,6 +34,11 @@ export default function RfqSessionPage() {
           router.replace(`/rfq/${sessionId}?step=${nextStep}`);
         });
       }}
+      onSessionReplace={(nextSessionId, nextStep) => {
+        startTransition(() => {
+          router.replace(`/rfq/${nextSessionId}?step=${nextStep}`);
+        });
+      }}
     />
   );
 }

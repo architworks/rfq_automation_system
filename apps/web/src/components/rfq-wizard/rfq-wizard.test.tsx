@@ -426,6 +426,8 @@ function createStatefulApi(
 describe("RfqWizard", () => {
   afterEach(() => {
     vi.useRealTimers();
+    vi.restoreAllMocks();
+    window.sessionStorage.clear();
   });
 
   it("loads the seeded RFQ on first session render", async () => {
@@ -532,6 +534,50 @@ describe("RfqWizard", () => {
 
     expect(await screen.findByDisplayValue("Edited RFQ Subject")).toBeInTheDocument();
     expect(readSnapshot().rfq_draft.general_info.subject).toBe("Edited RFQ Subject");
+  });
+
+  it("resets to a fresh seeded session without mutating the current session", async () => {
+    const currentSnapshot = createSessionSnapshot({
+      sessionId: "session_current",
+      subject: "Changed in current session",
+      withArtifact: true,
+    });
+    const freshSnapshot = createSessionSnapshot({
+      sessionId: "session_fresh",
+      withRubric: false,
+    });
+    const { api } = createStatefulApi(currentSnapshot);
+    const onSessionReplace = vi.fn();
+    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(true);
+    api.createOrHydrateSession = vi.fn(async (requestedSessionId?: string) => {
+      expect(requestedSessionId).toBeUndefined();
+      return cloneValue(freshSnapshot);
+    });
+
+    render(
+      <RfqWizard
+        api={api}
+        autosaveMs={25}
+        onSessionReplace={onSessionReplace}
+        onStepChange={vi.fn()}
+        sessionId="session_current"
+        step="lock"
+      />,
+    );
+
+    expect(await screen.findByText("Lock Review")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Reset session" }));
+
+    await waitFor(() => {
+      expect(api.createOrHydrateSession).toHaveBeenCalledWith();
+    });
+
+    expect(confirmSpy).toHaveBeenCalledTimes(1);
+    expect(onSessionReplace).toHaveBeenCalledWith("session_fresh", "input");
+    expect(window.sessionStorage.getItem("rfq-prototype-session-id")).toBe("session_fresh");
+    expect(api.saveRfq).not.toHaveBeenCalled();
+    expect(api.saveRubric).not.toHaveBeenCalled();
   });
 
   it("shows generation errors without losing RFQ input", async () => {
