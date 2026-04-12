@@ -17,7 +17,6 @@ import {
   type LLMSettings,
   type LineItem,
   type LockedFrameworkArtifact,
-  type Question,
   type ReasoningEffort,
   type RFQDraft,
   type ResponseSchedule,
@@ -35,7 +34,6 @@ import {
   createCriterion,
   createEvidenceCheck,
   createLineItem,
-  createQuestion,
   createResponseSchedule,
   createScheduleColumn,
   createSection,
@@ -135,10 +133,6 @@ type ScheduleFieldPreview = {
   description: string;
   required: boolean;
 };
-
-function buildQuestionLookup(questions: Question[]): Map<string, Question> {
-  return new Map(questions.map((question) => [question.id, question]));
-}
 
 function buildScheduleFieldLookup(responseSchedules: ResponseSchedule[]): Map<string, ScheduleFieldPreview> {
   const entries = responseSchedules.flatMap((schedule) =>
@@ -1551,7 +1545,6 @@ function ProposalStep({
   onBackToInput: () => void;
   onReviewLock: () => void;
 }) {
-  const questionsById = useMemo(() => buildQuestionLookup(proposal.questions), [proposal.questions]);
   const scheduleFieldById = useMemo(
     () => buildScheduleFieldLookup(proposal.response_schedules),
     [proposal.response_schedules],
@@ -1688,8 +1681,8 @@ function ProposalStep({
           <div>
             <h2 className={styles.cardTitle}>Criteria</h2>
             <p className={styles.cardSubtle}>
-              Edit classifications, technical weights, cutoffs, evidence links, and linked questions or
-              schedule fields.
+              Edit classifications, technical weights, cutoffs, evaluator checks, and the exact vendor-facing
+              question that belongs to each non-commercial criterion.
             </p>
           </div>
           <button
@@ -1710,7 +1703,6 @@ function ProposalStep({
             <CriterionEditor
               criterion={criterion}
               key={criterion.id}
-              questionsById={questionsById}
               scheduleFieldById={scheduleFieldById}
               onChange={(mutator) =>
                 onChange((current) => {
@@ -1723,96 +1715,6 @@ function ProposalStep({
                 })
               }
             />
-          ))}
-        </div>
-      </section>
-
-      <section className={styles.card}>
-        <div className={styles.cardHeader}>
-          <div>
-            <h2 className={styles.cardTitle}>Questions</h2>
-            <p className={styles.cardSubtle}>Questions should gather evidence for the rubric, not stand alone.</p>
-          </div>
-          <button
-            className={styles.secondaryButton}
-            onClick={() =>
-              onChange((current) => {
-                current.questions.push(createQuestion());
-              })
-            }
-            type="button"
-          >
-            Add Question
-          </button>
-        </div>
-        <div className={styles.list}>
-          {proposal.questions.map((question: Question, index: number) => (
-            <div className={styles.itemCard} key={question.id}>
-              <div className={styles.itemHeader}>
-                <div className={styles.itemTitle}>{question.id}</div>
-                <button
-                  className={styles.dangerButton}
-                  onClick={() =>
-                    onChange((current) => {
-                      current.questions.splice(index, 1);
-                    })
-                  }
-                  type="button"
-                >
-                  Remove
-                </button>
-              </div>
-              <div className={`${styles.fieldGrid} ${styles.twoCol}`}>
-                <label className={styles.label}>
-                  Question ID
-                  <FormInput
-                    className={styles.input}
-                    value={question.id}
-                    onChange={(event) =>
-                      onChange((current) => {
-                        current.questions[index].id = event.target.value;
-                      })
-                    }
-                  />
-                </label>
-                <label className={styles.label}>
-                  Linked Criteria (comma separated IDs)
-                  <FormInput
-                    className={styles.input}
-                    value={toCsv(question.linked_criteria)}
-                    onChange={(event) =>
-                      onChange((current) => {
-                        current.questions[index].linked_criteria = parseCsv(event.target.value);
-                      })
-                    }
-                  />
-                </label>
-              </div>
-              <label className={styles.label} style={{ marginTop: 12 }}>
-                Question Text
-                <FormTextarea
-                  className={styles.textarea}
-                  value={question.text}
-                  onChange={(event) =>
-                    onChange((current) => {
-                      current.questions[index].text = event.target.value;
-                    })
-                  }
-                />
-              </label>
-              <label className={styles.label} style={{ marginTop: 12 }}>
-                Purpose
-                <FormInput
-                  className={styles.input}
-                  value={question.purpose}
-                  onChange={(event) =>
-                    onChange((current) => {
-                      current.questions[index].purpose = event.target.value;
-                    })
-                  }
-                />
-              </label>
-            </div>
           ))}
         </div>
       </section>
@@ -1873,23 +1775,16 @@ function ProposalStep({
 
 function CriterionEditor({
   criterion,
-  questionsById,
   scheduleFieldById,
   onChange,
   onRemove,
 }: {
   criterion: Criterion;
-  questionsById: Map<string, Question>;
   scheduleFieldById: Map<string, ScheduleFieldPreview>;
   onChange: (mutator: (criterion: Criterion) => void) => void;
   onRemove: () => void;
 }) {
-  const linkedQuestions: Array<{ id: string; question: Question | null }> = (
-    criterion.linked_question_ids ?? []
-  ).map((questionId: string) => ({
-    id: questionId,
-    question: questionsById.get(questionId) ?? null,
-  }));
+  const vendorQuestion = criterion.vendor_question ?? null;
   const linkedScheduleFields: Array<{ id: string; field: ScheduleFieldPreview | null }> = (
     criterion.linked_schedule_fields ?? []
   ).map((fieldId: string) => ({
@@ -1951,30 +1846,21 @@ function CriterionEditor({
           <div className={styles.previewSectionTitle}>
             {isTechnicalCriterion(criterion) ? "Primary vendor question" : "Vendor questionnaire"}
           </div>
-          {linkedQuestions.length > 0 ? (
+          {vendorQuestion ? (
             <div className={styles.previewList}>
-              {linkedQuestions.map(({ id, question }) => (
-                <div className={styles.previewItem} key={id}>
-                  <div className={styles.previewItemHeader}>
-                    <span className={styles.previewItemId}>{id}</span>
-                    <span className={styles.previewItemMeta}>Vendor-facing question</span>
-                  </div>
-                  {question ? (
-                    <>
-                      <div className={styles.previewItemBody}>{question.text}</div>
-                      <div className={styles.summaryLabel}>Why this question exists</div>
-                      <div className={styles.previewItemMeta}>{question.purpose}</div>
-                    </>
-                  ) : (
-                    <div className={styles.previewItemMeta}>Question text is not resolved yet for this ID.</div>
-                  )}
+              <div className={styles.previewItem}>
+                <div className={styles.previewItemHeader}>
+                  <span className={styles.previewItemId}>{vendorQuestion.id}</span>
+                  <span className={styles.previewItemMeta}>Vendor-facing question</span>
                 </div>
-              ))}
+                <div className={styles.previewItemBody}>{vendorQuestion.text}</div>
+                <div className={styles.summaryLabel}>Why this question exists</div>
+                <div className={styles.previewItemMeta}>{vendorQuestion.purpose || "No purpose note yet."}</div>
+              </div>
             </div>
           ) : (
             <div className={styles.previewEmpty}>
-              No exact vendor question is linked yet. This criterion is currently being fed only by structured
-              input fields or evaluator checks.
+              No exact vendor question is defined yet for this criterion.
             </div>
           )}
         </section>
@@ -2044,6 +1930,12 @@ function CriterionEditor({
                     current.max_score = null;
                     current.linked_schedule_fields = [];
                     current.qualitative_scoring_guidance = null;
+                    current.vendor_question = current.vendor_question ?? {
+                      id: current.linked_question_ids?.[0] ?? "",
+                      text: "",
+                      purpose: "",
+                      linked_criteria: [current.id],
+                    };
                     if (current.deterministic_scoring?.guide_type !== "pass_fail") {
                       current.deterministic_scoring = null;
                     }
@@ -2052,16 +1944,29 @@ function CriterionEditor({
                     current.min_cutoff = null;
                     current.max_score = current.max_score ?? 10;
                     current.qualitative_scoring_guidance = null;
+                    current.vendor_question = null;
                   } else if (nextType === "technical_scored_only") {
                     current.weight = current.weight ?? 0;
                     current.min_cutoff = null;
                     current.max_score = current.max_score ?? 10;
                     current.linked_schedule_fields = [];
+                    current.vendor_question = current.vendor_question ?? {
+                      id: current.linked_question_ids?.[0] ?? "",
+                      text: "",
+                      purpose: "",
+                      linked_criteria: [current.id],
+                    };
                   } else if (nextType === "technical_cutoff_backed") {
                     current.weight = current.weight ?? 0;
                     current.min_cutoff = current.min_cutoff ?? 0;
                     current.max_score = current.max_score ?? 10;
                     current.linked_schedule_fields = [];
+                    current.vendor_question = current.vendor_question ?? {
+                      id: current.linked_question_ids?.[0] ?? "",
+                      text: "",
+                      purpose: "",
+                      linked_criteria: [current.id],
+                    };
                   }
                 })
               }
@@ -2113,6 +2018,61 @@ function CriterionEditor({
             />
           </label>
         </div>
+      </div>
+
+      <div className={styles.editorSection}>
+        <div className={styles.editorSectionTitle}>Vendor-facing question</div>
+        <div className={styles.editorSectionSubtle}>
+          This is the exact question that will be sent to the vendor for this non-commercial criterion.
+        </div>
+        {criterion.criterion_type === "commercial" ? (
+          <div className={styles.previewEmpty}>
+            Commercial criteria stay schedule-backed in the current model and do not own a vendor question.
+          </div>
+        ) : (
+          <>
+            <label className={styles.label}>
+              Vendor Question Text
+              <FormTextarea
+                className={styles.textarea}
+                value={vendorQuestion?.text ?? ""}
+                onChange={(event) =>
+                  onChange((current) => {
+                    if (!current.vendor_question) {
+                      current.vendor_question = {
+                        id: current.linked_question_ids?.[0] ?? "",
+                        text: "",
+                        purpose: "",
+                        linked_criteria: [current.id],
+                      };
+                    }
+                    current.vendor_question.text = event.target.value;
+                  })
+                }
+              />
+            </label>
+            <label className={styles.label}>
+              Vendor Question Purpose
+              <FormInput
+                className={styles.input}
+                value={vendorQuestion?.purpose ?? ""}
+                onChange={(event) =>
+                  onChange((current) => {
+                    if (!current.vendor_question) {
+                      current.vendor_question = {
+                        id: current.linked_question_ids?.[0] ?? "",
+                        text: "",
+                        purpose: "",
+                        linked_criteria: [current.id],
+                      };
+                    }
+                    current.vendor_question.purpose = event.target.value;
+                  })
+                }
+              />
+            </label>
+          </>
+        )}
       </div>
 
       <div className={styles.editorSection}>
@@ -2182,6 +2142,9 @@ function CriterionEditor({
                   onChange={(event) =>
                     onChange((current) => {
                       current.id = event.target.value;
+                      if (current.vendor_question) {
+                        current.vendor_question.linked_criteria = [current.id];
+                      }
                     })
                   }
                 />
@@ -2198,22 +2161,28 @@ function CriterionEditor({
                   }
                 />
               </label>
-              <label className={styles.label}>
-                {isTechnicalCriterion(criterion) ? "Linked Vendor Question ID" : "Linked Vendor Question IDs (comma separated)"}
-                <FormInput
-                  className={styles.input}
-                  value={isTechnicalCriterion(criterion) ? (criterion.linked_question_ids?.[0] ?? "") : toCsv(criterion.linked_question_ids)}
-                  onChange={(event) =>
-                    onChange((current) => {
-                      if (isTechnicalCriterion(current)) {
-                        current.linked_question_ids = event.target.value.trim() ? [event.target.value.trim()] : [];
-                        return;
-                      }
-                      current.linked_question_ids = parseCsv(event.target.value);
-                    })
-                  }
-                />
-              </label>
+              {criterion.criterion_type !== "commercial" ? (
+                <label className={styles.label}>
+                  Internal Vendor Question ID
+                  <FormInput
+                    className={styles.input}
+                    value={vendorQuestion?.id ?? ""}
+                    onChange={(event) =>
+                      onChange((current) => {
+                        if (!current.vendor_question) {
+                          current.vendor_question = {
+                            id: "",
+                            text: "",
+                            purpose: "",
+                            linked_criteria: [current.id],
+                          };
+                        }
+                        current.vendor_question.id = event.target.value;
+                      })
+                    }
+                  />
+                </label>
+              ) : null}
               {criterion.criterion_type === "commercial" ? (
                 <label className={styles.label}>
                   Linked Structured Input Field IDs (comma separated)
@@ -2588,6 +2557,7 @@ function LockStep({
       criterion.criterion_type === "technical_cutoff_backed" ||
       criterion.criterion_type === "technical_scored_only",
   );
+  const vendorQuestionCount = proposal.criteria.filter((criterion) => criterion.vendor_question).length;
   const artifactWarnings = artifact?.governance.rubric_warnings ?? [];
 
   return (
@@ -2615,7 +2585,7 @@ function LockStep({
             <strong>Technical criteria count</strong>: {technicalCriteria.length}
           </div>
           <div className={styles.summaryItem}>
-            <strong>Questions</strong>: {proposal.questions.length} | <strong>Schedules</strong>:{" "}
+            <strong>Questions</strong>: {vendorQuestionCount} | <strong>Schedules</strong>:{" "}
             {proposal.response_schedules.length}
           </div>
         </div>

@@ -145,6 +145,12 @@ class GeneratedDeterministicScoringGuide(BaseModel):
     rules: list[GeneratedDeterministicScoringRule] = Field(default_factory=list, min_length=1, max_length=6)
 
 
+class GeneratedCriterionQuestion(BaseModel):
+    id: Identifier
+    text: QuestionText
+    purpose: PurposeText
+
+
 class CriterionDraft(BaseModel):
     id: Identifier
     section_id: Identifier
@@ -155,15 +161,9 @@ class CriterionDraft(BaseModel):
     min_cutoff: float | None = Field(default=None, ge=0, le=100)
     max_score: float | None = Field(default=None, ge=0, le=100)
     evidence_checks: list[GeneratedEvidenceCheck] = Field(default_factory=list, min_length=1, max_length=1)
+    vendor_question: GeneratedCriterionQuestion | None = None
     deterministic_scoring: GeneratedDeterministicScoringGuide | None = None
     qualitative_scoring_guidance: LongText | None = None
-
-
-class GeneratedQuestion(BaseModel):
-    id: Identifier
-    text: QuestionText
-    purpose: PurposeText
-    linked_criteria: list[Identifier] = Field(default_factory=list, min_length=1, max_length=1)
 
 
 class GeneratedScheduleColumn(BaseModel):
@@ -185,7 +185,6 @@ class LLMRubricProposal(BaseModel):
     sections: list[GeneratedSection] = Field(min_length=2, max_length=4)
     criteria: list[CriterionDraft] = Field(min_length=6, max_length=9)
     aggregate_technical_threshold: float = Field(ge=0, le=100)
-    questions: list[GeneratedQuestion] = Field(min_length=5, max_length=8)
     response_schedules: list[GeneratedResponseSchedule] = Field(min_length=2, max_length=3)
     official_award_basis: Literal["QCBS 70/30"] = OFFICIAL_AWARD_BASIS
     generation_rationale: list[ReasonText] = Field(min_length=2, max_length=4)
@@ -313,12 +312,12 @@ class OpenAIResponsesClient(LLMClient):
             "Commercial criteria must have no weight and no cutoff. "
             "Set one aggregate technical threshold for qualified bids. "
             "Every criterion must include exactly one evidence check. "
+            "For every non-commercial criterion, include one nested vendor_question inside that criterion instead of returning a separate question list. "
             "Questions must be mutually distinct and collectively cover the criteria without unnecessary overlap. "
             "Enforce a strict one-to-one mapping between each technical criterion and its vendor-facing question. "
-            "Every technical criterion, including every MAC criterion, must map to exactly one vendor-facing question. "
+            "Every technical criterion, including every MAC criterion, must own exactly one vendor-facing question. "
             "Do not create evaluator-only technical criteria or hidden MAC gates with no vendor-facing question. "
-            "Each technical criterion must have its own dedicated question and each generated question must link to exactly one criterion. "
-            "Do not reuse the same technical question for multiple technical criteria, even when the topics are related. "
+            "Do not reuse the same technical question across multiple technical criteria, even when the topics are related. "
             "If two technical criteria are both needed, write two separate questions with narrower intent instead of one shared question. "
             "If a mandatory gate and a scored technical judgement are related, they must still use separate questions. "
             "Do not use schedules as the primary scoring source for technical criteria. "
@@ -573,7 +572,7 @@ class OpenAIResponsesClient(LLMClient):
                 f"{instructions} "
                 "Retry in ultra-compact mode. "
                 "Use a compact response shape that still satisfies the schema. "
-                "Prefer 2 sections, 6 criteria, 5 questions, 2 schedules, and 2 rationale bullets. "
+                "Prefer 2 sections, 6 criteria, 2 schedules, and 2 rationale bullets. "
                 "Keep every free-text field complete and readable even in compact mode. "
                 "Do not clip sentences or abbreviate content unnaturally. "
                 "Avoid duplicate phrasing and do not include extra narrative."
@@ -752,23 +751,8 @@ class OpenAIResponsesClient(LLMClient):
         generated: LLMRubricProposal,
     ) -> RubricProposal:
         known_criteria = {criterion.id for criterion in generated.criteria}
-        question_links: dict[str, list[str]] = defaultdict(list)
         schedule_links: dict[str, list[str]] = defaultdict(list)
-
         questions = []
-        for question in generated.questions:
-            linked = OpenAIResponsesClient._dedupe(
-                criterion_id for criterion_id in question.linked_criteria if criterion_id in known_criteria
-            )
-            normalized_question = Question(
-                id=question.id,
-                text=question.text,
-                purpose=question.purpose,
-                linked_criteria=linked,
-            )
-            questions.append(normalized_question)
-            for criterion_id in linked:
-                question_links[criterion_id].append(normalized_question.id)
 
         schedules = []
         for schedule in generated.response_schedules:
@@ -804,15 +788,15 @@ class OpenAIResponsesClient(LLMClient):
                     description="Vendor must provide supporting evidence.",
                 )
             ]
+            normalized_question = OpenAIResponsesClient._normalize_generated_vendor_question(criterion)
             normalized_type = OpenAIResponsesClient._normalize_generated_criterion_type(
                 criterion=criterion,
-                questions=questions,
-                linked_question_ids=OpenAIResponsesClient._dedupe(question_links[criterion.id]),
+                vendor_question=normalized_question,
             )
             weight = criterion.weight
             min_cutoff = criterion.min_cutoff
             max_score = criterion.max_score
-            linked_question_ids = OpenAIResponsesClient._dedupe(question_links[criterion.id])
+            linked_question_ids = [normalized_question.id] if normalized_question is not None else []
             linked_schedule_fields = OpenAIResponsesClient._dedupe(schedule_links[criterion.id])
             qualitative_scoring_guidance = criterion.qualitative_scoring_guidance
             if normalized_type == CriterionType.COMMERCIAL:
@@ -820,6 +804,7 @@ class OpenAIResponsesClient(LLMClient):
                 min_cutoff = None
                 max_score = None
                 qualitative_scoring_guidance = None
+                normalized_question = None
             elif normalized_type == CriterionType.MAC:
                 qualitative_scoring_guidance = None
             elif criterion.deterministic_scoring is not None:
@@ -849,6 +834,7 @@ class OpenAIResponsesClient(LLMClient):
                         )
                         for check in evidence_checks
                     ],
+                    vendor_question=normalized_question,
                     linked_question_ids=linked_question_ids,
                     linked_schedule_fields=linked_schedule_fields,
                     deterministic_scoring=(
@@ -872,6 +858,8 @@ class OpenAIResponsesClient(LLMClient):
                     qualitative_scoring_guidance=qualitative_scoring_guidance,
                 )
             )
+            if normalized_question is not None:
+                questions.append(normalized_question.model_copy(deep=True))
 
         return RubricProposal(
             sections=[
@@ -894,23 +882,14 @@ class OpenAIResponsesClient(LLMClient):
     def _normalize_generated_criterion_type(
         *,
         criterion: CriterionDraft,
-        questions: list[Question],
-        linked_question_ids: list[str],
+        vendor_question: Question | None,
     ) -> CriterionType:
         if criterion.criterion_type == CriterionType.COMMERCIAL:
             return CriterionType.COMMERCIAL
 
-        questions_by_id = {
-            question.id: question
-            for question in questions
-        }
-
         snippets = [criterion.title, criterion.description]
-        for question_id in linked_question_ids:
-            question = questions_by_id.get(question_id)
-            if question is None:
-                continue
-            snippets.extend([question.text, question.purpose])
+        if vendor_question is not None:
+            snippets.extend([vendor_question.text, vendor_question.purpose])
 
         commercial_text = " ".join(snippets).lower()
         if any(
@@ -920,6 +899,18 @@ class OpenAIResponsesClient(LLMClient):
             return CriterionType.COMMERCIAL
 
         return criterion.criterion_type
+
+    @staticmethod
+    def _normalize_generated_vendor_question(criterion: CriterionDraft) -> Question | None:
+        generated_question = criterion.vendor_question
+        if generated_question is None:
+            return None
+        return Question(
+            id=generated_question.id,
+            text=generated_question.text,
+            purpose=generated_question.purpose,
+            linked_criteria=[criterion.id],
+        )
 
     @staticmethod
     def _compose_raw_extraction(generated: LLMVendorExtraction) -> RawExtraction:

@@ -59,6 +59,17 @@ The RFQ lifecycle should follow a strict sequence so that evaluation logic is es
   - Each question should correspond to a specific evaluation intent.
   - The extraction layer should know which question or criterion each piece of evidence supports.
 
+### Criterion Owns Its Question
+- Decision: Every non-commercial criterion should own its exact vendor-facing question inside the criterion object, instead of generating a separate question list and linking them later by ID.
+- Why This Approach: In this system, the question exists only to gather evidence for that criterion. Nesting removes unnecessary indirection and reduces LLM linkage failures.
+- Rejected Alternatives:
+  - Generating `criteria[]` and `questions[]` independently and asking the model to cross-link them with IDs.
+  - Treating vendor questions as first-class standalone objects for technical scoring when the intended mapping is one criterion to one question.
+- Implications:
+  - One non-commercial criterion maps to one vendor-facing question.
+  - The top-level question list can remain as a derived export/view for compatibility, but the criterion is the source of truth.
+  - Commercial criteria remain primarily schedule-backed.
+
 ### Questions Plus Structured Schedules
 - Decision: The RFQ response package should include both freeform questions and structured response schedules.
 - Why This Approach: Questions capture qualitative evidence, while schedules improve comparability for pricing, scope, compliance, timelines, and commercial terms.

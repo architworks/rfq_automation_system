@@ -68,6 +68,12 @@ def build_valid_rubric_proposal() -> RubricProposal:
                         description="Look for explicit compliance confirmation.",
                     )
                 ],
+                vendor_question=Question(
+                    id="q1",
+                    text="Confirm child-directed advertising and claims review capability.",
+                    purpose="Validate compliance readiness.",
+                    linked_criteria=["crit_mac"],
+                ),
                 linked_question_ids=["q1"],
             ),
             Criterion(
@@ -86,6 +92,12 @@ def build_valid_rubric_proposal() -> RubricProposal:
                         description="Look for the explicitly stated number of comparable launches.",
                     )
                 ],
+                vendor_question=Question(
+                    id="q2",
+                    text="How many comparable launches have you delivered in the last three years? State the exact number.",
+                    purpose="Evaluate the vendor on an explicit comparable launch count.",
+                    linked_criteria=["crit_cutoff"],
+                ),
                 linked_question_ids=["q2"],
                 deterministic_scoring=DeterministicScoringGuide(
                     guide_type=DeterministicScoringType.NUMERIC_BANDED,
@@ -130,6 +142,12 @@ def build_valid_rubric_proposal() -> RubricProposal:
                         description="Overall launch strategy and channel integration quality.",
                     )
                 ],
+                vendor_question=Question(
+                    id="q3",
+                    text="Describe your integrated launch strategy across all requested workstreams.",
+                    purpose="Evaluate end-to-end technical quality.",
+                    linked_criteria=["crit_score"],
+                ),
                 linked_question_ids=["q3"],
                 qualitative_scoring_guidance=(
                     "Judge how coherent, implementation-ready, and well integrated the launch approach is. "
@@ -228,13 +246,17 @@ class FakeLLMClient(LLMClient):
         if self.return_invalid_rubric_always:
             self.generate_attempt_count += 1
             invalid = build_valid_rubric_proposal()
+            invalid.criteria[0].vendor_question = None
             invalid.criteria[0].linked_question_ids = []
+            invalid.questions = [question for question in invalid.questions if question.id != "q1"]
             invalid.criteria[1].weight = 35
             return invalid
         if self.return_invalid_rubric_once and repair_feedback is None and self.generate_attempt_count == 0:
             self.generate_attempt_count += 1
             invalid = build_valid_rubric_proposal()
+            invalid.criteria[0].vendor_question = None
             invalid.criteria[0].linked_question_ids = []
+            invalid.questions = [question for question in invalid.questions if question.id != "q1"]
             return invalid
         self.generate_attempt_count += 1
         return build_valid_rubric_proposal()

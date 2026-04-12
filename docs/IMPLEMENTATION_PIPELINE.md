@@ -162,6 +162,9 @@ response = client.responses.parse(
   - A human-readable RFQ brief string
   - Not a raw Pydantic JSON dump
   - No uploaded files
+- Structured rubric shape:
+  - Non-commercial criteria own their `vendor_question` directly
+  - The top-level `questions[]` list is derived after parsing for compatibility with extraction, export, and vendor-pack views
 
 ### Phase 2 Vendor Extraction
 - SDK call: `client.responses.parse(...)`

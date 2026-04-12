@@ -503,6 +503,7 @@ export interface components {
             max_score?: number | null;
             /** Evidence Checks */
             evidence_checks?: components["schemas"]["EvidenceCheck"][];
+            vendor_question?: components["schemas"]["Question"] | null;
             /** Linked Question Ids */
             linked_question_ids?: string[];
             /** Linked Schedule Fields */
@@ -530,6 +531,7 @@ export interface components {
             max_score?: number | null;
             /** Evidence Checks */
             evidence_checks?: components["schemas"]["EvidenceCheck"][];
+            vendor_question?: components["schemas"]["Question"] | null;
             /** Linked Question Ids */
             linked_question_ids?: string[];
             /** Linked Schedule Fields */

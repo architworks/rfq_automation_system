@@ -40,7 +40,8 @@ from .services.llm import (
     RubricGenerationError,
 )
 from .services.review import build_vendor_review
-from .services.rubric_generation import RubricGenerationService, normalize_rubric_proposal
+from .services.rubric_generation import RubricGenerationService
+from .services.rubric_normalization import normalize_rubric_proposal
 from .services.validation import validate_rubric_proposal
 from .services.vendor_pack import build_vendor_pack
 from .seeds import build_blank_rfq, build_sample_rfq
@@ -160,7 +161,7 @@ def create_app() -> FastAPI:
         record = _get_record_or_404(session_id, store)
         if record.status == SessionStatus.LOCKED:
             raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Locked sessions cannot be modified.")
-        saved = store.save_rubric(session_id, rubric_proposal)
+        saved = store.save_rubric(session_id, normalize_rubric_proposal(rubric_proposal))
         if saved is None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Session not found.")
         return saved.snapshot()

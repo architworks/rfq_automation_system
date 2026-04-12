@@ -187,6 +187,12 @@ function createRubricProposal(): RubricProposal {
             description: "At least two relevant launches in the last three years.",
           },
         ],
+        vendor_question: {
+          id: "question_experience",
+          text: "How many comparable nutrition or kids-focused launches have you delivered in the last three years? List them with outcomes.",
+          purpose: "Validate relevant launch experience.",
+          linked_criteria: ["criterion_experience"],
+        },
         linked_question_ids: ["question_experience"],
         linked_schedule_fields: [],
         deterministic_scoring: {
@@ -217,6 +223,12 @@ function createRubricProposal(): RubricProposal {
             description: "Describe operating model and reporting rhythm.",
           },
         ],
+        vendor_question: {
+          id: "question_governance",
+          text: "Describe the team structure, reporting cadence, and decision governance.",
+          purpose: "Validate execution governance.",
+          linked_criteria: ["criterion_governance"],
+        },
         linked_question_ids: ["question_governance"],
         linked_schedule_fields: [],
         deterministic_scoring: null,
@@ -239,6 +251,7 @@ function createRubricProposal(): RubricProposal {
             description: "All commercial fields populated.",
           },
         ],
+        vendor_question: null,
         linked_question_ids: ["question_pricing"],
         linked_schedule_fields: ["schedule_commercial.total_fee"],
         deterministic_scoring: {
@@ -534,10 +547,10 @@ describe("RfqWizard", () => {
     ).toBeGreaterThan(0);
     expect(screen.getByText("5 or more launches")).toBeInTheDocument();
     expect(
-      screen.getAllByText(
-        "Confirm that you are quoting all applicable RFQ line items and clearly identify all exclusions or assumptions.",
-      ).length,
-    ).toBeGreaterThan(0);
+      screen.getByText(
+        "Commercial criteria stay schedule-backed in the current model and do not own a vendor question.",
+      ),
+    ).toBeInTheDocument();
     expect(
       screen.getByText("All applicable line items are quoted and exclusions are stated clearly."),
     ).toBeInTheDocument();

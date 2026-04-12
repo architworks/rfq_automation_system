@@ -1,26 +1,9 @@
 from __future__ import annotations
 
-from ..models import LLMSettings, OFFICIAL_AWARD_BASIS, CriterionType, RFQDraft, RubricProposal, ValidationIssue
+from ..models import LLMSettings, RFQDraft, RubricProposal, ValidationIssue
 from .llm import LLMClient
+from .rubric_normalization import normalize_rubric_proposal
 from .validation import validate_rubric_proposal
-
-
-def normalize_rubric_proposal(proposal: RubricProposal) -> RubricProposal:
-    normalized = proposal.model_copy(deep=True)
-    normalized.official_award_basis = OFFICIAL_AWARD_BASIS
-
-    for criterion in normalized.criteria:
-        if criterion.criterion_type == CriterionType.MAC:
-            criterion.weight = None
-            criterion.min_cutoff = None
-            criterion.max_score = None
-            criterion.qualitative_scoring_guidance = None
-        elif criterion.criterion_type == CriterionType.COMMERCIAL:
-            criterion.weight = None
-            criterion.min_cutoff = None
-            criterion.qualitative_scoring_guidance = None
-
-    return normalized
 
 
 class RubricGenerationService:

@@ -107,6 +107,15 @@ export function createQuestion(): Question {
   };
 }
 
+export function createCriterionQuestion(criterionId?: string): Question {
+  return {
+    id: createId("question"),
+    text: "New vendor-facing question",
+    purpose: "",
+    linked_criteria: criterionId ? [criterionId] : [],
+  };
+}
+
 export function createScheduleColumn(): ScheduleColumn {
   return {
     id: createId("column"),
@@ -130,8 +139,9 @@ export function createCriterion(
   sectionId: string,
   criterionType: CriterionType = "technical_scored_only",
 ): Criterion {
+  const criterionId = createId("criterion");
   return {
-    id: createId("criterion"),
+    id: criterionId,
     section_id: sectionId,
     title: "New criterion",
     description: "",
@@ -140,6 +150,7 @@ export function createCriterion(
     min_cutoff: criterionType === "technical_cutoff_backed" ? 0 : null,
     max_score: criterionType === "mac" ? null : 10,
     evidence_checks: [createEvidenceCheck()],
+    vendor_question: criterionType === "commercial" ? null : createCriterionQuestion(criterionId),
     linked_question_ids: [],
     linked_schedule_fields: [],
     deterministic_scoring: null,

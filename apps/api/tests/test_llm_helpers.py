@@ -7,12 +7,12 @@ from rfq_api.services.llm import (
     AIScenarioRankingDraft,
     AIScenarioSet,
     CriterionDraft,
+    GeneratedCriterionQuestion,
     GeneratedDeterministicScoringGuide,
     GeneratedDeterministicScoringRule,
     GeneratedEvidenceCheck,
     GeneratedEvidenceAnchor,
     GeneratedExtractedField,
-    GeneratedQuestion,
     GeneratedResponseSchedule,
     GeneratedScheduleColumn,
     GeneratedSection,
@@ -83,6 +83,11 @@ def test_compose_rubric_backfills_question_and_schedule_links() -> None:
                         description="Provide governance proof.",
                     )
                 ],
+                vendor_question=GeneratedCriterionQuestion(
+                    id="q_1",
+                    text=long_question_text,
+                    purpose="Check governance.",
+                ),
             ),
             CriterionDraft(
                 id="crit_2",
@@ -116,6 +121,11 @@ def test_compose_rubric_backfills_question_and_schedule_links() -> None:
                         description="Provide delivery evidence.",
                     )
                 ],
+                vendor_question=GeneratedCriterionQuestion(
+                    id="q_2",
+                    text="Describe delivery quality.",
+                    purpose="Check delivery.",
+                ),
                 qualitative_scoring_guidance="Judge delivery quality from the specificity and credibility of the response.",
             ),
             CriterionDraft(
@@ -131,6 +141,11 @@ def test_compose_rubric_backfills_question_and_schedule_links() -> None:
                         description="Provide capability evidence.",
                     )
                 ],
+                vendor_question=GeneratedCriterionQuestion(
+                    id="q_3",
+                    text="Describe capability fit.",
+                    purpose="Check capability.",
+                ),
             ),
             CriterionDraft(
                 id="crit_5",
@@ -147,6 +162,11 @@ def test_compose_rubric_backfills_question_and_schedule_links() -> None:
                         description="Provide control evidence.",
                     )
                 ],
+                vendor_question=GeneratedCriterionQuestion(
+                    id="q_4",
+                    text="Describe program control.",
+                    purpose="Check control.",
+                ),
             ),
             CriterionDraft(
                 id="crit_6",
@@ -181,38 +201,6 @@ def test_compose_rubric_backfills_question_and_schedule_links() -> None:
             ),
         ],
         aggregate_technical_threshold=70,
-        questions=[
-            GeneratedQuestion(
-                id="q_1",
-                text=long_question_text,
-                purpose="Check governance.",
-                linked_criteria=["crit_1"],
-            ),
-            GeneratedQuestion(
-                id="q_2",
-                text="Describe delivery quality.",
-                purpose="Check delivery.",
-                linked_criteria=["crit_3"],
-            ),
-            GeneratedQuestion(
-                id="q_3",
-                text="Describe capability fit.",
-                purpose="Check capability.",
-                linked_criteria=["crit_4"],
-            ),
-            GeneratedQuestion(
-                id="q_4",
-                text="Describe program control.",
-                purpose="Check control.",
-                linked_criteria=["crit_5"],
-            ),
-            GeneratedQuestion(
-                id="q_5",
-                text="Describe pricing clarity.",
-                purpose="Check pricing.",
-                linked_criteria=["crit_6"],
-            ),
-        ],
         response_schedules=[
             GeneratedResponseSchedule(
                 id="pricing_schedule",
@@ -252,6 +240,8 @@ def test_compose_rubric_backfills_question_and_schedule_links() -> None:
     proposal = OpenAIResponsesClient._compose_rubric(generated)
 
     assert proposal.criteria[0].linked_question_ids == ["q_1"]
+    assert proposal.criteria[0].vendor_question is not None
+    assert proposal.criteria[0].vendor_question.text == long_question_text
     assert proposal.criteria[0].linked_schedule_fields == []
     assert proposal.criteria[1].linked_question_ids == []
     assert proposal.criteria[1].linked_schedule_fields == ["pricing_schedule.total_fee"]
@@ -343,6 +333,7 @@ def test_structured_rubric_schema_accepts_long_free_text_fields() -> None:
                         description=long_text,
                     )
                 ],
+                vendor_question=GeneratedCriterionQuestion(id="q_1", text=long_text, purpose=long_text),
             ),
             CriterionDraft(
                 id="crit_2",
@@ -360,6 +351,7 @@ def test_structured_rubric_schema_accepts_long_free_text_fields() -> None:
                         description=long_text,
                     )
                 ],
+                vendor_question=GeneratedCriterionQuestion(id="q_2", text=long_text, purpose=long_text),
             ),
             CriterionDraft(
                 id="crit_3",
@@ -376,6 +368,7 @@ def test_structured_rubric_schema_accepts_long_free_text_fields() -> None:
                         description=long_text,
                     )
                 ],
+                vendor_question=GeneratedCriterionQuestion(id="q_3", text=long_text, purpose=long_text),
             ),
             CriterionDraft(
                 id="crit_4",
@@ -404,6 +397,7 @@ def test_structured_rubric_schema_accepts_long_free_text_fields() -> None:
                         description=long_text,
                     )
                 ],
+                vendor_question=GeneratedCriterionQuestion(id="q_5", text=long_text, purpose=long_text),
             ),
             CriterionDraft(
                 id="crit_6",
@@ -421,13 +415,6 @@ def test_structured_rubric_schema_accepts_long_free_text_fields() -> None:
             ),
         ],
         aggregate_technical_threshold=70,
-        questions=[
-            GeneratedQuestion(id="q_1", text=long_text, purpose=long_text, linked_criteria=["crit_1"]),
-            GeneratedQuestion(id="q_2", text=long_text, purpose=long_text, linked_criteria=["crit_2"]),
-            GeneratedQuestion(id="q_3", text=long_text, purpose=long_text, linked_criteria=["crit_3"]),
-            GeneratedQuestion(id="q_4", text=long_text, purpose=long_text, linked_criteria=["crit_4"]),
-            GeneratedQuestion(id="q_5", text=long_text, purpose=long_text, linked_criteria=["crit_5"]),
-        ],
         response_schedules=[
             GeneratedResponseSchedule(
                 id="schedule_1",
@@ -462,7 +449,8 @@ def test_structured_rubric_schema_accepts_long_free_text_fields() -> None:
     )
 
     assert proposal.criteria[0].description == long_text
-    assert proposal.questions[0].text == long_text
+    assert proposal.criteria[0].vendor_question is not None
+    assert proposal.criteria[0].vendor_question.text == long_text
     assert proposal.response_schedules[0].columns[0].description == long_text
     assert proposal.generation_rationale[0] == long_text
 

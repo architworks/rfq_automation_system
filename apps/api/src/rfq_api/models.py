@@ -188,6 +188,7 @@ class Criterion(BaseModel):
     min_cutoff: float | None = None
     max_score: float | None = None
     evidence_checks: list[EvidenceCheck] = Field(default_factory=list)
+    vendor_question: Question | None = None
     linked_question_ids: list[str] = Field(default_factory=list)
     linked_schedule_fields: list[str] = Field(default_factory=list)
     deterministic_scoring: DeterministicScoringGuide | None = None
