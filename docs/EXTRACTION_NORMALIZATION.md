@@ -57,6 +57,17 @@ Extraction should be guided by both the locked rubric and the linked response sc
   - `numeric_value`, `currency`, `quantity_value`, and `uom` are populated separately when explicit evidence exists.
   - Numeric technical questions still require explicit numeric evidence and are not inferred from prose.
 
+### Commercial Pricing Has One Canonical Path
+- Decision: Line-item commercial pricing is canonical only in `schedule_answers`.
+- Why This Approach: Pricing is inherently tabular, and normalization should read one structured source of truth instead of reconciling prices from multiple extraction buckets.
+- Rejected Alternatives:
+  - Allow both `schedule_answers` and `commercial_claims` to populate normalized pricing.
+  - Treat freeform commercial claims as equivalent to structured schedule rows.
+- Implications:
+  - The extraction prompt must place quoted line-item prices into schedule rows with `schedule_id`, `schedule_column_id`, and `line_item_id`.
+  - `commercial_claims` are reserved for supporting commercial notes, exclusions, assumptions, or anomalies that do not fit the requested schedule fields.
+  - Normalized pricing ignores `commercial_claims` as a pricing source.
+
 ### Controlled Currency And UOM Inputs
 - Decision: RFQ currency and line-item UOMs are selected from controlled catalogs instead of free text.
 - Why This Approach: The normalization engine can only be deterministic if the RFQ itself uses known currencies and allowed units.

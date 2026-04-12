@@ -309,35 +309,18 @@ class FakeLLMClient(LLMClient):
             ),
         ]
 
-        schedule_answers = [
-            ExtractedField(
-                id=f"{vendor.id}_pricing_total_fee",
-                label="Total Fee",
-                field_group="schedule_answer",
-                schedule_id="pricing_schedule",
-                schedule_column_id="total_fee",
-                criterion_ids=["crit_score", "crit_commercial"],
-                state=ResponseState.ANSWERED,
-                raw_value=f"{profile['currency']} {profile['line_item_total']}",
-                numeric_value=float(profile["line_item_total"]),
-                currency=profile["currency"],
-                uom="Lot",
-                evidence=evidence("price_schedule", "Pricing schedule total fee row captured.", "page 5"),
-            ),
-        ]
-
-        technical_claims = []
-
-        commercial_claims = []
-        included_line_item_ids = artifact.rfq_snapshot.line_items
+        schedule_answers = []
+        included_line_items = artifact.rfq_snapshot.line_items
         if profile["missing_line_item"]:
-            included_line_item_ids = artifact.rfq_snapshot.line_items[:-1]
-        for line_item in included_line_item_ids:
-            commercial_claims.append(
+            included_line_items = artifact.rfq_snapshot.line_items[:-1]
+        for line_item in included_line_items:
+            schedule_answers.append(
                 ExtractedField(
-                    id=f"{vendor.id}_{line_item.id}",
-                    label=f"{line_item.product_name} price",
-                    field_group="commercial_claim",
+                    id=f"{vendor.id}_{line_item.id}_pricing_total_fee",
+                    label="Total Fee",
+                    field_group="schedule_answer",
+                    schedule_id="pricing_schedule",
+                    schedule_column_id="total_fee",
                     criterion_ids=["crit_commercial"],
                     line_item_id=line_item.id,
                     state=ResponseState.ANSWERED,
@@ -346,9 +329,13 @@ class FakeLLMClient(LLMClient):
                     currency=profile["currency"],
                     uom=profile["uom"],
                     notes=profile["commercial_note"],
-                    evidence=evidence(line_item.id, f"Quoted price for {line_item.product_name}.", "pricing table"),
+                    evidence=evidence(line_item.id, f"Pricing schedule total fee row captured for {line_item.product_name}.", "page 5"),
                 )
             )
+
+        technical_claims = []
+
+        commercial_claims = []
 
         return RawExtraction(
             document_summary=f"Extracted proposal summary for {vendor.name}.",

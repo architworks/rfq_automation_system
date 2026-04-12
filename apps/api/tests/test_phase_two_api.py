@@ -43,7 +43,8 @@ def test_upload_replace_and_review_flow(client) -> None:
     assert review.status_code == 200
     payload = review.json()
     assert payload["raw_extraction"]["document_summary"] == "Extracted proposal summary for Alpha."
-    assert len(payload["raw_extraction"]["commercial_claims"]) == 8
+    assert len(payload["raw_extraction"]["schedule_answers"]) == 8
+    assert payload["raw_extraction"]["commercial_claims"] == []
     assert payload["normalized_pricing"][0]["comparability_status"] == "comparable"
 
 

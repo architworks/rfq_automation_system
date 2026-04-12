@@ -13,13 +13,22 @@ import type {
 
 function resolveApiBaseUrl(): string {
   if (process.env.NEXT_PUBLIC_API_BASE_URL) {
-    return process.env.NEXT_PUBLIC_API_BASE_URL;
+    return stripTrailingSlash(process.env.NEXT_PUBLIC_API_BASE_URL);
+  }
+
+  if (typeof window !== "undefined") {
+    const hostname = window.location.hostname;
+    if (hostname === "localhost" || hostname === "127.0.0.1") {
+      return "http://127.0.0.1:8000";
+    }
   }
 
   return "";
 }
 
-const API_BASE_URL = resolveApiBaseUrl();
+function stripTrailingSlash(value: string): string {
+  return value.endsWith("/") ? value.slice(0, -1) : value;
+}
 
 type ErrorDetail = string | { detail?: unknown } | ValidationIssue[];
 
@@ -95,11 +104,22 @@ async function requestJson<T>(path: string, init: RequestInit): Promise<T> {
     headers.set("Content-Type", "application/json");
   }
 
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    ...init,
-    headers,
-    cache: "no-store",
-  });
+  const apiBaseUrl = resolveApiBaseUrl();
+  let response: Response;
+  try {
+    response = await fetch(`${apiBaseUrl}${path}`, {
+      ...init,
+      headers,
+      cache: "no-store",
+    });
+  } catch (error) {
+    const target = apiBaseUrl || "same-origin API route";
+    throw new ApiError(
+      `Failed to reach the API at ${target}.`,
+      0,
+      error instanceof Error ? error.message : "Network request failed.",
+    );
+  }
 
   if (!response.ok) {
     throw await parseError(response);
@@ -163,10 +183,21 @@ export const apiClient: RfqApiClient = {
     });
   },
   async downloadArtifact(sessionId) {
-    const response = await fetch(`${API_BASE_URL}/sessions/${sessionId}/artifact`, {
-      method: "GET",
-      cache: "no-store",
-    });
+    const apiBaseUrl = resolveApiBaseUrl();
+    let response: Response;
+    try {
+      response = await fetch(`${apiBaseUrl}/sessions/${sessionId}/artifact`, {
+        method: "GET",
+        cache: "no-store",
+      });
+    } catch (error) {
+      const target = apiBaseUrl || "same-origin API route";
+      throw new ApiError(
+        `Failed to reach the API at ${target}.`,
+        0,
+        error instanceof Error ? error.message : "Network request failed.",
+      );
+    }
 
     if (!response.ok) {
       throw await parseError(response);
@@ -183,10 +214,21 @@ export const apiClient: RfqApiClient = {
     });
   },
   async downloadVendorPack(sessionId) {
-    const response = await fetch(`${API_BASE_URL}/sessions/${sessionId}/vendor-pack/export`, {
-      method: "GET",
-      cache: "no-store",
-    });
+    const apiBaseUrl = resolveApiBaseUrl();
+    let response: Response;
+    try {
+      response = await fetch(`${apiBaseUrl}/sessions/${sessionId}/vendor-pack/export`, {
+        method: "GET",
+        cache: "no-store",
+      });
+    } catch (error) {
+      const target = apiBaseUrl || "same-origin API route";
+      throw new ApiError(
+        `Failed to reach the API at ${target}.`,
+        0,
+        error instanceof Error ? error.message : "Network request failed.",
+      );
+    }
 
     if (!response.ok) {
       throw await parseError(response);

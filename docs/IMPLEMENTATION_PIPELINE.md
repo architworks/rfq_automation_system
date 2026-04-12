@@ -85,7 +85,7 @@ flowchart TD
     VFILE["Original uploaded vendor file<br/>PDF / PPT / PPTX / DOC / DOCX / XLS / XLSX"]
     FRAMEWORK["Locked framework brief text<br/>criteria, schedule fields, vendor questions, line item IDs"]
     EXTRACTCALL["OpenAI SDK call<br/>client.responses.parse(<br/>input=[input_file + input_text],<br/>text_format=LLMVendorExtraction<br/>)"]
-    EXTRACTOUT["Structured extraction output<br/>document_summary<br/>question_answers<br/>schedule_answers<br/>technical_claims<br/>commercial_claims<br/>evidence anchors<br/>response states"]
+    EXTRACTOUT["Structured extraction output<br/>document_summary<br/>question_answers<br/>schedule_answers (canonical commercial pricing path)<br/>technical_claims<br/>commercial_claims (notes only)<br/>evidence anchors<br/>response states"]
 
     SCOREINPUT["Text-only scoring prompt<br/>narrative criteria brief + vendor review summary"]
     SCORECALL["OpenAI SDK call<br/>client.responses.parse(<br/>input=plain text,<br/>text_format=NarrativeCriterionScoreSet,<br/>reasoning summary enabled<br/>)"]
@@ -207,6 +207,7 @@ response = client.responses.parse(
   - It is one LLM call per vendor document, not one call per question
   - The model is asked to return all requested questionnaire evidence in one schema-bound response
   - Commercial and measurable fields should separate `numeric_value`, `currency`, `quantity_value`, and `uom` instead of collapsing them into one prose string
+  - Line-item commercial pricing is canonical only in `schedule_answers`; `commercial_claims` are for supporting notes that do not fit a requested schedule field
 
 ### What the extraction model is expected to produce
 - One structured extraction object for the whole vendor submission

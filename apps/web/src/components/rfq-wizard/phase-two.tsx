@@ -593,7 +593,7 @@ export function ReviewStep({
                   <FieldGroupList title="Question Answers" fields={selectedReview.raw_extraction.question_answers ?? []} />
                   <FieldGroupList title="Schedule Answers" fields={selectedReview.raw_extraction.schedule_answers ?? []} />
                   <FieldGroupList title="Technical Claims" fields={selectedReview.raw_extraction.technical_claims ?? []} />
-                  <FieldGroupList title="Commercial Claims" fields={selectedReview.raw_extraction.commercial_claims ?? []} />
+                  <FieldGroupList title="Commercial Notes / Anomalies" fields={selectedReview.raw_extraction.commercial_claims ?? []} />
                 </section>
 
                 <section className={styles.previewPanel}>
