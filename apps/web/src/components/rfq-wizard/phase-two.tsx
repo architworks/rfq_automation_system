@@ -3,19 +3,16 @@
 import { useEffect, useMemo, useState } from "react";
 
 import type {
-  ComparisonSettings,
-  ExtractedField,
-  EvaluationReport,
-  FXRate,
-  LockedFrameworkArtifact,
-  NormalizedField,
-  NormalizedPricingLine,
-  UomOverride,
-  VendorPack,
-  VendorRecord,
-  VendorReview,
+    ComparisonSettings,
+    ExtractedField,
+    EvaluationReport,
+    LockedFrameworkArtifact,
+    NormalizedField,
+    NormalizedPricingLine,
+    VendorPack,
+    VendorRecord,
+    VendorReview,
 } from "@/lib/api";
-
 import { FormInput } from "./form-fields";
 import styles from "./rfq-wizard.module.css";
 
@@ -46,17 +43,14 @@ type ReviewStepProps = {
   vendors: VendorRecord[];
   reviews: VendorReview[];
   selectedVendorId: string | null;
-  comparisonSettingsDraft: ComparisonSettings;
-  isSavingComparison: boolean;
+  comparisonSettings: ComparisonSettings | null;
   onSelectVendor: (vendorId: string) => void;
-  onChangeComparison: (mutator: (current: ComparisonSettings) => void) => void;
-  onSaveComparison: () => void;
   onGoToResults: () => void;
 };
 
 type ResultsStepProps = {
   evaluationReport: EvaluationReport | null;
-  comparisonSettingsReady: boolean;
+  normalizationReady: boolean;
   isRunningEvaluation: boolean;
   onRunEvaluation: () => void;
 };
@@ -483,11 +477,8 @@ export function ReviewStep({
   vendors,
   reviews,
   selectedVendorId,
-  comparisonSettingsDraft,
-  isSavingComparison,
+  comparisonSettings,
   onSelectVendor,
-  onChangeComparison,
-  onSaveComparison,
   onGoToResults,
 }: ReviewStepProps) {
   const reviewsByVendor = useMemo(
@@ -495,235 +486,45 @@ export function ReviewStep({
     [reviews],
   );
   const selectedReview = selectedVendorId ? reviewsByVendor.get(selectedVendorId) ?? null : null;
-  const fxRates = comparisonSettingsDraft.fx_rates ?? [];
-  const uomOverrides = comparisonSettingsDraft.uom_overrides ?? [];
 
   return (
     <div className={styles.grid}>
       <section className={styles.card}>
         <div className={styles.cardHeader}>
           <div>
-            <h2 className={styles.cardTitle}>Comparison Settings</h2>
+            <h2 className={styles.cardTitle}>Normalization Basis</h2>
             <p className={styles.cardSubtle}>
-              These settings govern cross-currency and cross-UOM comparability before the final commercial run.
+              Commercial normalization is automatic. The RFQ base currency drives FX conversion, and only weight or volume UOMs convert mathematically.
             </p>
           </div>
           <div className={styles.buttonGroup}>
             <button className={styles.secondaryButton} onClick={onGoToResults} type="button">
               Go to results
             </button>
-            <button className={styles.primaryButton} disabled={isSavingComparison} onClick={onSaveComparison} type="button">
-              {isSavingComparison ? "Saving..." : "Save comparison settings"}
-            </button>
           </div>
         </div>
 
-        <div className={`${styles.fieldGrid} ${styles.twoCol}`}>
-          <label className={styles.label}>
-            Base Currency
-            <FormInput
-              className={styles.input}
-              name="base_currency"
-              value={comparisonSettingsDraft.base_currency}
-              onChange={(event) =>
-                onChangeComparison((current) => {
-                  current.base_currency = event.target.value.toUpperCase();
-                })
-              }
-            />
-          </label>
-          <label className={styles.label}>
-            FX Effective Date
-            <FormInput
-              className={styles.input}
-              name="fx_effective_date"
-              type="date"
-              value={comparisonSettingsDraft.fx_effective_date}
-              onChange={(event) =>
-                onChangeComparison((current) => {
-                  current.fx_effective_date = event.target.value;
-                })
-              }
-            />
-          </label>
-        </div>
-
-        <div className={styles.editorSection}>
-          <div className={styles.editorSectionTitle}>FX Rates</div>
-          <div className={styles.editorSectionSubtle}>
-            Enter only the currencies you need for this session. Live lookup is intentionally out of scope here.
+        <div className={styles.summaryGrid}>
+          <div className={styles.summaryItem}>
+            <span className={styles.summaryLabel}>Base Currency</span>
+            <span className={styles.summaryValue}>{comparisonSettings?.base_currency ?? "Not available"}</span>
           </div>
-          <div className={styles.list}>
-            {fxRates.map((rate: FXRate, index: number) => (
-              <div className={styles.itemCard} key={`${rate.currency}-${index}`}>
-                <div className={`${styles.fieldGrid} ${styles.twoCol}`}>
-                  <label className={styles.label}>
-                    Currency
-                    <FormInput
-                      className={styles.input}
-                      name={`fx_currency_${index}`}
-                      value={rate.currency}
-                        onChange={(event) =>
-                          onChangeComparison((current) => {
-                            current.fx_rates ??= [];
-                            current.fx_rates[index].currency = event.target.value.toUpperCase();
-                          })
-                        }
-                    />
-                  </label>
-                  <label className={styles.label}>
-                    Rate To Base
-                    <FormInput
-                      className={styles.input}
-                      name={`fx_rate_to_base_${index}`}
-                      type="number"
-                      step="0.0001"
-                      value={rate.rate_to_base}
-                        onChange={(event) =>
-                          onChangeComparison((current) => {
-                            current.fx_rates ??= [];
-                            current.fx_rates[index].rate_to_base = Number(event.target.value || 0);
-                          })
-                        }
-                    />
-                  </label>
-                </div>
-                <div className={styles.buttonGroup} style={{ marginTop: 12 }}>
-                  <button
-                    className={styles.dangerButton}
-                    onClick={() =>
-                      onChangeComparison((current) => {
-                        current.fx_rates ??= [];
-                        current.fx_rates.splice(index, 1);
-                      })
-                    }
-                    type="button"
-                  >
-                    Remove FX rate
-                  </button>
-                </div>
-              </div>
-            ))}
+          <div className={styles.summaryItem}>
+            <span className={styles.summaryLabel}>FX Effective Date</span>
+            <span className={styles.summaryValue}>{comparisonSettings?.fx_effective_date ?? "Not available"}</span>
           </div>
-          <button
-            className={styles.secondaryButton}
-            onClick={() =>
-              onChangeComparison((current) => {
-                current.fx_rates ??= [];
-                current.fx_rates.push({
-                  currency: "",
-                  rate_to_base: 1,
-                });
-              })
-            }
-            type="button"
-          >
-            Add FX rate
-          </button>
-        </div>
-
-        <div className={styles.editorSection}>
-          <div className={styles.editorSectionTitle}>UOM Overrides</div>
-          <div className={styles.editorSectionSubtle}>
-            Use overrides only when the app cannot deterministically normalize a quoted unit to the RFQ unit.
+          <div className={styles.summaryItem}>
+            <span className={styles.summaryLabel}>FX Coverage</span>
+            <span className={styles.summaryValue}>
+              {comparisonSettings ? `${(comparisonSettings.fx_rates ?? []).length + 1} currencies` : "Not available"}
+            </span>
           </div>
-          <div className={styles.list}>
-            {uomOverrides.map((override: UomOverride, index: number) => (
-              <div className={styles.itemCard} key={`${override.from_uom}-${override.to_uom}-${index}`}>
-                <div className={`${styles.fieldGrid} ${styles.threeCol}`}>
-                  <label className={styles.label}>
-                    From UOM
-                    <FormInput
-                      className={styles.input}
-                      name={`uom_from_${index}`}
-                      value={override.from_uom}
-                      onChange={(event) =>
-                        onChangeComparison((current) => {
-                          current.uom_overrides ??= [];
-                          current.uom_overrides[index].from_uom = event.target.value;
-                        })
-                      }
-                    />
-                  </label>
-                  <label className={styles.label}>
-                    To UOM
-                    <FormInput
-                      className={styles.input}
-                      name={`uom_to_${index}`}
-                      value={override.to_uom}
-                      onChange={(event) =>
-                        onChangeComparison((current) => {
-                          current.uom_overrides ??= [];
-                          current.uom_overrides[index].to_uom = event.target.value;
-                        })
-                      }
-                    />
-                  </label>
-                  <label className={styles.label}>
-                    Factor
-                    <FormInput
-                      className={styles.input}
-                      name={`uom_factor_${index}`}
-                      type="number"
-                      step="0.0001"
-                      value={override.factor}
-                      onChange={(event) =>
-                        onChangeComparison((current) => {
-                          current.uom_overrides ??= [];
-                          current.uom_overrides[index].factor = Number(event.target.value || 0);
-                        })
-                      }
-                    />
-                  </label>
-                </div>
-                <label className={styles.label} style={{ marginTop: 12 }}>
-                  Line Item ID (optional)
-                  <FormInput
-                    className={styles.input}
-                    name={`uom_line_item_id_${index}`}
-                    value={override.line_item_id ?? ""}
-                    onChange={(event) =>
-                      onChangeComparison((current) => {
-                        current.uom_overrides ??= [];
-                        current.uom_overrides[index].line_item_id = event.target.value || null;
-                      })
-                    }
-                  />
-                </label>
-                <div className={styles.buttonGroup} style={{ marginTop: 12 }}>
-                  <button
-                    className={styles.dangerButton}
-                    onClick={() =>
-                      onChangeComparison((current) => {
-                        current.uom_overrides ??= [];
-                        current.uom_overrides.splice(index, 1);
-                      })
-                    }
-                    type="button"
-                  >
-                    Remove override
-                  </button>
-                </div>
-              </div>
-            ))}
+          <div className={styles.summaryNarrative}>
+            <span className={styles.summaryLabel}>Normalization Policy</span>
+            <span className={styles.summaryValue}>
+              Currency conversion uses the stored ECB snapshot. Lot and Count do not convert. Only weight and volume units convert mathematically.
+            </span>
           </div>
-          <button
-            className={styles.secondaryButton}
-            onClick={() =>
-              onChangeComparison((current) => {
-                current.uom_overrides ??= [];
-                current.uom_overrides.push({
-                  from_uom: "",
-                  to_uom: "",
-                  factor: 1,
-                  line_item_id: null,
-                });
-              })
-            }
-            type="button"
-          >
-            Add UOM override
-          </button>
         </div>
       </section>
 
@@ -816,7 +617,7 @@ export function ReviewStep({
 
 export function ResultsStep({
   evaluationReport,
-  comparisonSettingsReady,
+  normalizationReady,
   isRunningEvaluation,
   onRunEvaluation,
 }: ResultsStepProps) {
@@ -833,7 +634,7 @@ export function ResultsStep({
           <div className={styles.buttonGroup}>
             <button
               className={styles.primaryButton}
-              disabled={!comparisonSettingsReady || isRunningEvaluation}
+              disabled={!normalizationReady || isRunningEvaluation}
               onClick={onRunEvaluation}
               type="button"
             >
@@ -842,16 +643,16 @@ export function ResultsStep({
           </div>
         </div>
 
-        {!comparisonSettingsReady ? (
+        {!normalizationReady ? (
           <div className={`${styles.banner} ${styles.errorBanner}`}>
-            Comparison settings must be saved before the official evaluation can run.
+            Automatic normalization basis is unavailable. Set a supported RFQ currency and lock the framework again.
           </div>
         ) : null}
       </section>
 
       {!evaluationReport ? (
         <div className={`${styles.banner} ${styles.infoBanner}`}>
-          No evaluation report is available yet. Run the official evaluation when comparison settings and vendor reviews are ready.
+          No evaluation report is available yet. Run the official evaluation when vendor reviews and automatic normalization are ready.
         </div>
       ) : (
         <>

@@ -45,6 +45,7 @@ from ..models import (
     VendorRecord,
     VendorReview,
 )
+from .normalization_catalog import ALLOWED_EXTRACTION_UOM_TOKENS, supported_currency_codes
 
 
 class LLMConfigurationError(RuntimeError):
@@ -117,6 +118,7 @@ ConditionText = Annotated[str, Field(min_length=3)]
 LongText = Annotated[str, Field(min_length=8)]
 LocatorText = Annotated[str, Field(min_length=2)]
 FreeText = Annotated[str, Field(min_length=1)]
+UomToken = Annotated[str, Field(min_length=1, max_length=12)]
 
 
 class GeneratedSection(BaseModel):
@@ -177,7 +179,7 @@ class GeneratedResponseSchedule(BaseModel):
     id: Identifier
     name: ShortTitle
     purpose: PurposeText
-    columns: list[GeneratedScheduleColumn] = Field(default_factory=list, min_length=1, max_length=3)
+    columns: list[GeneratedScheduleColumn] = Field(default_factory=list, min_length=1, max_length=6)
     linked_criteria: list[Identifier] = Field(default_factory=list, min_length=1, max_length=4)
 
 
@@ -217,7 +219,7 @@ class GeneratedExtractedField(BaseModel):
     quantity_value: float | None = None
     numeric_value: float | None = None
     currency: Annotated[str, Field(min_length=3, max_length=8)] | None = None
-    uom: ShortTitle | None = None
+    uom: UomToken | None = None
     notes: FreeText | None = None
     evidence: list[GeneratedEvidenceAnchor] = Field(default_factory=list, max_length=4)
 
@@ -333,6 +335,8 @@ class OpenAIResponsesClient(LLMClient):
             "what the AI should look for, what strong evidence looks like, and what weak or risky evidence looks like. "
             "For MAC criteria, use crisp binary or discrete vendor questions whenever possible. "
             "If one mandatory condition contains two separate intents, split it into separate criteria with separate questions instead of leaving one criterion under-specified. "
+            "Commercial response schedules must ask for structured values in separate columns whenever that improves extraction reliability. "
+            "For line-item pricing capture, prefer separate fields for line-item reference, currency, total price, quantity if applicable, UOM if applicable, and exclusions or assumptions, instead of one free-text commercial narrative. "
             "Do not turn commercial quote structure into technical criteria. "
             "Keep titles short, descriptions concise, and avoid repeating the RFQ narrative."
         )
@@ -380,10 +384,18 @@ class OpenAIResponsesClient(LLMClient):
             "Use the response states answered, missing_vendor_response, missing_extractable_evidence, conflicting_evidence, or not_applicable precisely. "
             "Map commercial claims to the supplied RFQ line_item_id values when possible. "
             "Capture short evidence snippets and precise locators such as page, slide, sheet, row, or cell. "
+            "Populate the structured numeric fields explicitly instead of burying values inside prose. "
+            "Use raw_value for the exact source text or table cell text, but store the parsed numeric amount separately in numeric_value, "
+            "the explicit currency code separately in currency, the explicit quantity separately in quantity_value, and the explicit unit separately in uom. "
+            "For quoted commercial totals, numeric_value must contain only the monetary amount, never the currency symbol or unit text. "
+            "When a quantity and unit are stated, quantity_value and uom must be populated separately from the price amount. "
+            "Do not normalize or convert currencies or units during extraction. "
             "For technical questions tied to numeric deterministic scoring, populate numeric_value only when the vendor explicitly states a number. "
             "Do not infer counts from narrative examples, named project lists, or descriptive prose. "
             "If a numeric technical question is answered vaguely or descriptively without an explicit number, keep the raw answer and evidence but mark it as missing_extractable_evidence for scoring. "
-            "Use quantity_value only when the document states a quantity clearly, and numeric_value only when an explicit comparable number is visible in the document."
+            "Use quantity_value only when the document states a quantity clearly, and numeric_value only when an explicit comparable number is visible in the document. "
+            f"When a unit is visible, use one of these canonical UOM tokens where the document clearly supports it: {', '.join(ALLOWED_EXTRACTION_UOM_TOKENS)}. "
+            f"When a currency is visible, prefer a standard code from this supported list when the document clearly supports it: {', '.join(supported_currency_codes())}."
         )
         input_payload = [
             {
@@ -1011,6 +1023,7 @@ class OpenAIResponsesClient(LLMClient):
     @staticmethod
     def _build_locked_framework_brief(artifact: LockedFrameworkArtifact) -> str:
         proposal = artifact.rubric_snapshot
+        base_currency = artifact.rfq_snapshot.general_info.currency or "not provided"
         criteria_lines = OpenAIResponsesClient._numbered_lines(
             (
                 f"{criterion.id} | {criterion.title} | {criterion.criterion_type} | "
@@ -1051,6 +1064,10 @@ class OpenAIResponsesClient(LLMClient):
             f"{OpenAIResponsesClient._build_rfq_brief(artifact.rfq_snapshot)}\n\n"
             f"Official award basis: {proposal.official_award_basis}\n"
             f"Aggregate technical threshold: {proposal.aggregate_technical_threshold}\n\n"
+            "Commercial normalization basis\n"
+            f"RFQ base currency: {base_currency}\n"
+            f"Allowed UOM tokens for structured extraction: {', '.join(ALLOWED_EXTRACTION_UOM_TOKENS)}\n"
+            "UOM conversion policy: only weight and volume units convert mathematically; Lot and Count do not convert.\n\n"
             "Criteria\n"
             f"{criteria_lines}\n\n"
             "Vendor questions\n"

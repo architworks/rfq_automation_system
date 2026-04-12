@@ -30,7 +30,7 @@ flowchart TD
     S["VendorReview stored<br/>SessionStore.save_vendor_review()"]
     N --> S
 
-    C["Buyer saves comparison settings<br/>main.save_comparison_settings()<br/>SessionStore.save_comparison_settings()<br/>build_vendor_review() rerun for all vendors"]
+    C["Automatic normalization basis<br/>RFQ base currency + stored ECB FX snapshot<br/>Weight/volume UOM math only<br/>No buyer-entered comparison settings"]
     S --> C
 
     E["Buyer runs evaluation<br/>POST /sessions/:session_id/evaluation/run<br/>main.run_session_evaluation()"]
@@ -206,6 +206,7 @@ response = client.responses.parse(
   - The extraction step uses the original vendor file, not pre-extracted text
   - It is one LLM call per vendor document, not one call per question
   - The model is asked to return all requested questionnaire evidence in one schema-bound response
+  - Commercial and measurable fields should separate `numeric_value`, `currency`, `quantity_value`, and `uom` instead of collapsing them into one prose string
 
 ### What the extraction model is expected to produce
 - One structured extraction object for the whole vendor submission
@@ -215,9 +216,10 @@ response = client.responses.parse(
   - answer value or missing-state
 - For technical and commercial claims:
   - extracted value
-  - optional numeric quantity
-  - optional currency
-  - optional UOM
+  - `numeric_value` for the explicit amount or numeric answer only
+  - `quantity_value` for the explicit quantity only
+  - `currency` as a separate structured field
+  - `uom` as a separate structured field
   - normalized hint
   - evidence snippet
   - location marker such as page, slide, or sheet/cell
@@ -227,6 +229,12 @@ response = client.responses.parse(
   - `missing_extractable_evidence`
   - `conflicting_evidence`
   - `not_applicable`
+
+### Automatic Normalization Basis
+- Currency conversion is derived automatically from the RFQ base currency and a checked-in ECB reference-rate snapshot.
+- The buyer does not enter FX rates in the main demo flow.
+- `Lot` and count-style units do not convert mathematically.
+- Only weight and volume units convert mathematically.
 
 ### Phase 2 Narrative Technical Scoring
 - SDK call: `client.responses.parse(...)`

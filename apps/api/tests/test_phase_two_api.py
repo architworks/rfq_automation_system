@@ -2,9 +2,6 @@ from __future__ import annotations
 
 import pytest
 
-from rfq_api.models import ComparisonSettings, FXRate
-
-
 def test_vendor_pack_is_derived_from_locked_artifact(client) -> None:
     session_id = _lock_session(client)
 
@@ -40,14 +37,14 @@ def test_upload_replace_and_review_flow(client) -> None:
 
     extracted = client.post(f"/sessions/{session_id}/vendors/{vendor_id}/extract")
     assert extracted.status_code == 200
-    assert extracted.json()["vendors"][0]["status"] == "extracted"
+    assert extracted.json()["vendors"][0]["status"] == "evaluation_ready"
 
     review = client.get(f"/sessions/{session_id}/vendors/{vendor_id}/review")
     assert review.status_code == 200
     payload = review.json()
     assert payload["raw_extraction"]["document_summary"] == "Extracted proposal summary for Alpha."
     assert len(payload["raw_extraction"]["commercial_claims"]) == 8
-    assert payload["normalized_pricing"][0]["comparability_status"] == "needs_buyer_input"
+    assert payload["normalized_pricing"][0]["comparability_status"] == "comparable"
 
 
 def test_bulk_extract_runs_for_all_uploaded_vendors(client) -> None:
@@ -74,8 +71,8 @@ def test_bulk_extract_runs_for_all_uploaded_vendors(client) -> None:
     assert extracted.status_code == 200
     payload = extracted.json()
     vendors_by_id = {vendor["id"]: vendor for vendor in payload["vendors"]}
-    assert vendors_by_id[alpha_id]["status"] == "extracted"
-    assert vendors_by_id[beta_id]["status"] == "extracted"
+    assert vendors_by_id[alpha_id]["status"] == "evaluation_ready"
+    assert vendors_by_id[beta_id]["status"] == "evaluation_ready"
     assert vendors_by_id[gamma_id]["status"] == "no_document"
 
     alpha_review = client.get(f"/sessions/{session_id}/vendors/{alpha_id}/review")
@@ -84,30 +81,19 @@ def test_bulk_extract_runs_for_all_uploaded_vendors(client) -> None:
     assert beta_review.status_code == 200
 
 
-def test_comparison_settings_re_normalize_review_and_mark_vendor_ready(client) -> None:
+def test_locked_session_applies_automatic_fx_normalization(client) -> None:
     session_id = _lock_session(client)
-    vendor_id = _add_and_extract_vendor(client, session_id, "Delta", "delta.pdf")
+    vendor_id = _add_and_extract_vendor(client, session_id, "Euro", "euro.pdf")
 
-    initial_review = client.get(f"/sessions/{session_id}/vendors/{vendor_id}/review")
-    assert initial_review.status_code == 200
-    assert initial_review.json()["normalized_pricing"][0]["comparability_status"] == "needs_buyer_input"
+    session = client.get(f"/sessions/{session_id}")
+    assert session.status_code == 200
+    assert session.json()["comparison_settings"]["base_currency"] == "USD"
 
-    saved = client.put(
-        f"/sessions/{session_id}/comparison-settings",
-        json=ComparisonSettings(
-            base_currency="USD",
-            fx_effective_date="2026-04-11",
-            fx_rates=[FXRate(currency="EUR", rate_to_base=1.1)],
-        ).model_dump(mode="json"),
-    )
-    assert saved.status_code == 200
-    assert saved.json()["vendors"][0]["status"] == "evaluation_ready"
-
-    updated_review = client.get(f"/sessions/{session_id}/vendors/{vendor_id}/review")
-    assert updated_review.status_code == 200
-    first_line = updated_review.json()["normalized_pricing"][0]
+    review = client.get(f"/sessions/{session_id}/vendors/{vendor_id}/review")
+    assert review.status_code == 200
+    first_line = review.json()["normalized_pricing"][0]
     assert first_line["comparability_status"] == "comparable"
-    assert first_line["base_currency_total"] == pytest.approx(104.5)
+    assert first_line["base_currency_total"] == pytest.approx(111.2545)
 
 
 def test_evaluation_run_excludes_disqualified_and_non_comparable_vendors(client) -> None:
@@ -116,17 +102,6 @@ def test_evaluation_run_excludes_disqualified_and_non_comparable_vendors(client)
     beta_id = _add_and_extract_vendor(client, session_id, "Beta", "beta.pdf")
     gamma_id = _add_and_extract_vendor(client, session_id, "Gamma", "gamma.pdf")
     delta_id = _add_and_extract_vendor(client, session_id, "Delta", "delta.pdf")
-
-    comparison_settings = ComparisonSettings(
-        base_currency="USD",
-        fx_effective_date="2026-04-11",
-        fx_rates=[],
-    )
-    saved = client.put(
-        f"/sessions/{session_id}/comparison-settings",
-        json=comparison_settings.model_dump(mode="json"),
-    )
-    assert saved.status_code == 200
 
     evaluation = client.post(f"/sessions/{session_id}/evaluation/run")
     assert evaluation.status_code == 200
@@ -147,7 +122,7 @@ def test_evaluation_run_excludes_disqualified_and_non_comparable_vendors(client)
     assert commercial_by_vendor[alpha_id]["commercial_score"] == 100.0
     assert commercial_by_vendor[beta_id]["commercial_score"] == 90.91
     assert commercial_by_vendor[delta_id]["award_ready"] is False
-    assert "Missing FX rate for EUR." in commercial_by_vendor[delta_id]["blockers"]
+    assert "Missing FX rate for AED in the stored FX snapshot." in commercial_by_vendor[delta_id]["blockers"]
     assert technical_by_vendor[gamma_id]["passed_gate"] is False
     assert any("Failed technical cutoff" in reason for reason in technical_by_vendor[gamma_id]["disqualification_reasons"])
 

@@ -138,6 +138,50 @@ def test_missing_currency_marks_pricing_line_non_comparable() -> None:
     assert "No currency could be extracted" in first_line.blockers[0]
 
 
+def test_count_based_units_align_without_mathematical_conversion() -> None:
+    artifact = _build_artifact()
+    artifact.rfq_snapshot.line_items[0].uom = "Count"
+    review = build_vendor_review(
+        vendor_id="vendor_alpha",
+        document=_build_document("alpha.pdf"),
+        raw_extraction=RawExtraction(
+            document_summary="Alpha summary",
+            question_answers=[],
+            schedule_answers=[],
+            technical_claims=[],
+            commercial_claims=[
+                ExtractedField(
+                    id="claim_1",
+                    label="Strategy price",
+                    field_group="commercial_claim",
+                    criterion_ids=["crit_commercial"],
+                    line_item_id=artifact.rfq_snapshot.line_items[0].id,
+                    state=ResponseState.ANSWERED,
+                    raw_value="USD 100 for 100 units",
+                    numeric_value=100,
+                    quantity_value=100,
+                    currency="USD",
+                    uom="units",
+                    evidence=[],
+                )
+            ],
+            warnings=[],
+        ),
+        artifact=artifact,
+        comparison_settings=ComparisonSettings(
+            base_currency="USD",
+            fx_effective_date="2026-04-11",
+            fx_rates=[FXRate(currency="USD", rate_to_base=1.0)],
+        ),
+    )
+
+    first_line = review.normalized_pricing[0]
+    assert first_line.comparability_status == "comparable"
+    assert first_line.base_currency_total == 100
+    assert first_line.uom == "count"
+    assert first_line.target_uom == "count"
+
+
 def _build_artifact() -> LockedFrameworkArtifact:
     return LockedFrameworkArtifact(
         locked_at=datetime.now(UTC),

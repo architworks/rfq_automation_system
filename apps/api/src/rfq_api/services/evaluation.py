@@ -99,7 +99,9 @@ def run_evaluation(context: EvaluationContext, llm_client: LLMClient) -> Evaluat
 
     blocked_reasons: list[str] = []
     if context.comparison_settings is None:
-        blocked_reasons.append("Comparison settings must be provided before final commercial evaluation.")
+        blocked_reasons.append(
+            "Automatic normalization basis is unavailable, so final commercial evaluation cannot run."
+        )
     if not official_recommendation.eligible_vendor_ids:
         blocked_reasons.append(
             "No vendor remained both technically qualified and commercially comparable for award."

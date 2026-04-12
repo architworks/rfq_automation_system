@@ -6,7 +6,6 @@ import {
   ApiError,
   apiClient,
   type BuyerPriority,
-  type ComparisonSettings,
   type RfqApiClient,
   type Criterion,
   type CriterionType,
@@ -27,6 +26,7 @@ import {
   type ValidationIssue,
   type VendorPack,
 } from "@/lib/api";
+import { RFQ_UOM_OPTIONS, SUPPORTED_RFQ_CURRENCIES } from "@/lib/normalization-catalog";
 import {
   CRITERION_TYPE_OPTIONS,
   cloneValue,
@@ -50,7 +50,6 @@ import styles from "./rfq-wizard.module.css";
 export type WizardStep = "input" | "proposal" | "lock" | "pack" | "vendors" | "review" | "results";
 
 const DEFAULT_AUTOSAVE_MS = 700;
-const DEFAULT_BASE_CURRENCY = "USD";
 const REASONING_EFFORT_OPTIONS: Array<{ value: ReasoningEffort; label: string }> = [
   { value: "low", label: "Low" },
   { value: "medium", label: "Medium" },
@@ -74,15 +73,6 @@ function formatTimestamp(value?: string): string {
 
   const date = new Date(value);
   return Number.isNaN(date.getTime()) ? value : date.toLocaleString();
-}
-
-function createDefaultComparisonSettings(): ComparisonSettings {
-  return {
-    base_currency: DEFAULT_BASE_CURRENCY,
-    fx_effective_date: new Date().toISOString().slice(0, 10),
-    fx_rates: [],
-    uom_overrides: [],
-  };
 }
 
 function createDefaultLlmSettings(): LLMSettings {
@@ -258,7 +248,6 @@ export function RfqWizard({
   const [rubricProposal, setRubricProposal] = useState<RubricProposal | null>(null);
   const [lockedArtifact, setLockedArtifact] = useState<LockedFrameworkArtifact | null>(null);
   const [evaluationReport, setEvaluationReport] = useState<EvaluationReport | null>(null);
-  const [comparisonSettingsDraft, setComparisonSettingsDraft] = useState<ComparisonSettings>(createDefaultComparisonSettings());
   const [llmSettingsDraft, setLlmSettingsDraft] = useState<LLMSettings>(createDefaultLlmSettings());
   const [selectedVendorId, setSelectedVendorId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -266,7 +255,6 @@ export function RfqWizard({
   const [isLocking, setIsLocking] = useState(false);
   const [isResettingSession, setIsResettingSession] = useState(false);
   const [isApplyingTemplate, setIsApplyingTemplate] = useState(false);
-  const [isSavingComparisonSettings, setIsSavingComparisonSettings] = useState(false);
   const [isSavingLlmSettings, setIsSavingLlmSettings] = useState(false);
   const [isRunningEvaluation, setIsRunningEvaluation] = useState(false);
   const [uploadingVendorId, setUploadingVendorId] = useState<string | null>(null);
@@ -291,20 +279,6 @@ export function RfqWizard({
     setDownloadState(loaded.locked_artifact ? "ready" : "idle");
     setVendorPackDownloadState(loaded.vendor_pack ? "ready" : "idle");
     setVendorDocumentDownloadState(loaded.locked_artifact && loaded.vendor_pack ? "ready" : "idle");
-    if (loaded.comparison_settings) {
-      setComparisonSettingsDraft(cloneValue(loaded.comparison_settings));
-    } else if (loaded.locked_artifact) {
-      setComparisonSettingsDraft((current) => {
-        if (
-          current.base_currency ||
-          (current.fx_rates ?? []).length > 0 ||
-          (current.uom_overrides ?? []).length > 0
-        ) {
-          return current;
-        }
-        return createDefaultComparisonSettings();
-      });
-    }
     setSelectedVendorId((current) => {
       if (vendors.length === 0) {
         return null;
@@ -590,29 +564,6 @@ export function RfqWizard({
     }
   }
 
-  function updateComparisonSettingsDraft(mutator: (comparisonSettings: ComparisonSettings) => void) {
-    setComparisonSettingsDraft((current) => {
-      const next = cloneValue(current);
-      mutator(next);
-      return next;
-    });
-  }
-
-  async function handleSaveComparisonSettings() {
-    setIsSavingComparisonSettings(true);
-    setRequestError(null);
-
-    try {
-      const updated = await api.saveComparisonSettings(sessionId, comparisonSettingsDraft);
-      applySessionSnapshot(updated);
-      setAutosaveMessage("Comparison settings saved");
-    } catch (error) {
-      setRequestError(error instanceof Error ? error.message : "Failed to save comparison settings.");
-    } finally {
-      setIsSavingComparisonSettings(false);
-    }
-  }
-
   async function handleRunEvaluation() {
     setIsRunningEvaluation(true);
     setRequestError(null);
@@ -772,7 +723,7 @@ export function RfqWizard({
 
   const vendorPack: VendorPack | null = snapshot?.vendor_pack ?? null;
   const reviews = snapshot?.vendor_reviews ?? [];
-  const comparisonSettingsReady = Boolean(snapshot?.comparison_settings);
+  const normalizationReady = Boolean(snapshot?.comparison_settings);
   const currentEvaluationReport = evaluationReport ?? snapshot?.evaluation_report ?? null;
 
   return (
@@ -984,11 +935,8 @@ export function RfqWizard({
 
         {step === "review" ? (
           <ReviewStep
-            comparisonSettingsDraft={comparisonSettingsDraft}
-            isSavingComparison={isSavingComparisonSettings}
-            onChangeComparison={updateComparisonSettingsDraft}
+            comparisonSettings={snapshot?.comparison_settings ?? null}
             onGoToResults={() => onStepChange("results")}
-            onSaveComparison={handleSaveComparisonSettings}
             onSelectVendor={setSelectedVendorId}
             reviews={reviews}
             selectedVendorId={selectedVendorId}
@@ -998,7 +946,7 @@ export function RfqWizard({
 
         {step === "results" ? (
           <ResultsStep
-            comparisonSettingsReady={comparisonSettingsReady}
+            normalizationReady={normalizationReady}
             evaluationReport={currentEvaluationReport}
             isRunningEvaluation={isRunningEvaluation}
             onRunEvaluation={handleRunEvaluation}
@@ -1151,10 +1099,11 @@ function InputStep({
               }
             >
               <option value="">Select currency</option>
-              <option value="USD">USD</option>
-              <option value="EUR">EUR</option>
-              <option value="INR">INR</option>
-              <option value="GBP">GBP</option>
+              {SUPPORTED_RFQ_CURRENCIES.map((currencyCode) => (
+                <option key={currencyCode} value={currencyCode}>
+                  {currencyCode}
+                </option>
+              ))}
             </FormSelect>
           </label>
           <label className={styles.label}>
@@ -1416,7 +1365,9 @@ function InputStep({
         <div className={styles.cardHeader}>
           <div>
             <h2 className={styles.cardTitle}>RFQ Line Items</h2>
-            <p className={styles.cardSubtle}>Add the commercial line items you expect vendors to quote against. The sample button loads all eight example items.</p>
+            <p className={styles.cardSubtle}>
+              Add the commercial line items you expect vendors to quote against. Use controlled UOMs only: Lot for services, Count for count-based items, and weight or volume units only when mathematical conversion should be allowed.
+            </p>
           </div>
           <button
             className={styles.secondaryButton}
@@ -1490,15 +1441,22 @@ function InputStep({
                     />
                   </td>
                   <td>
-                    <FormInput
-                      className={styles.input}
+                    <FormSelect
+                      className={styles.select}
                       value={item.uom}
                       onChange={(event) =>
                         onChange((current) => {
                           current.line_items[index].uom = event.target.value;
                         })
                       }
-                    />
+                    >
+                      <option value="">Select UOM</option>
+                      {RFQ_UOM_OPTIONS.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label} ({option.family})
+                        </option>
+                      ))}
+                    </FormSelect>
                   </td>
                   <td>
                     <button

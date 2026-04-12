@@ -1,5 +1,4 @@
 import type {
-  ComparisonSettings,
   EvaluationReport,
   LLMSettings,
   LockedFrameworkArtifact,
@@ -60,7 +59,6 @@ export interface RfqApiClient {
   extractUploadedVendors(sessionId: string): Promise<SessionSnapshot>;
   extractVendor(sessionId: string, vendorId: string): Promise<SessionSnapshot>;
   getVendorReview(sessionId: string, vendorId: string): Promise<VendorReview>;
-  saveComparisonSettings(sessionId: string, comparisonSettings: ComparisonSettings): Promise<SessionSnapshot>;
   runEvaluation(sessionId: string): Promise<EvaluationReport>;
   getResults(sessionId: string): Promise<EvaluationReport>;
 }
@@ -237,12 +235,6 @@ export const apiClient: RfqApiClient = {
   getVendorReview(sessionId, vendorId) {
     return requestJson<VendorReview>(`/sessions/${sessionId}/vendors/${vendorId}/review`, {
       method: "GET",
-    });
-  },
-  saveComparisonSettings(sessionId, comparisonSettings) {
-    return requestJson<SessionSnapshot>(`/sessions/${sessionId}/comparison-settings`, {
-      method: "PUT",
-      body: JSON.stringify(comparisonSettings),
     });
   },
   runEvaluation(sessionId) {

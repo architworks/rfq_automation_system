@@ -11,7 +11,6 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from .config import Settings, get_settings
 from .models import (
-    ComparisonSettings,
     CreateSessionRequest,
     CreateVendorRequest,
     DownloadMetadata,
@@ -39,6 +38,7 @@ from .services.llm import (
     OpenAIResponsesClient,
     RubricGenerationError,
 )
+from .services.normalization_catalog import build_auto_comparison_settings
 from .services.review import build_vendor_review
 from .services.rubric_generation import RubricGenerationService
 from .services.rubric_normalization import normalize_rubric_proposal
@@ -197,7 +197,8 @@ def create_app() -> FastAPI:
             ),
         )
         vendor_pack = build_vendor_pack(artifact)
-        saved = store.lock_artifact(session_id, artifact, vendor_pack)
+        comparison_settings = build_auto_comparison_settings(record.rfq_draft.general_info.currency)
+        saved = store.lock_artifact(session_id, artifact, vendor_pack, comparison_settings)
         if saved is None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Session not found.")
         return artifact
@@ -387,32 +388,6 @@ def create_app() -> FastAPI:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Vendor review not found.")
         return review
 
-    @app.put("/sessions/{session_id}/comparison-settings", response_model=SessionSnapshot)
-    def save_comparison_settings(
-        session_id: str,
-        comparison_settings: ComparisonSettings,
-        store: SessionStore = Depends(get_session_store),
-    ) -> SessionSnapshot:
-        record = _get_locked_record_or_409(session_id, store)
-        saved = store.save_comparison_settings(session_id, comparison_settings)
-        if saved is None:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Session not found.")
-
-        current = _get_locked_record_or_409(session_id, store)
-        for review in list(current.vendor_reviews.values()):
-            refreshed_review = build_vendor_review(
-                vendor_id=review.vendor_id,
-                document=review.document,
-                raw_extraction=review.raw_extraction,
-                artifact=current.locked_artifact,
-                comparison_settings=comparison_settings,
-                created_at=review.created_at,
-            )
-            store.save_vendor_review(session_id, refreshed_review)
-
-        refreshed_record = _get_locked_record_or_409(session_id, store)
-        return refreshed_record.snapshot()
-
     @app.post("/sessions/{session_id}/evaluation/run", response_model=EvaluationReport)
     def run_session_evaluation(
         session_id: str,
@@ -423,7 +398,7 @@ def create_app() -> FastAPI:
         if record.comparison_settings is None:
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                detail="Comparison settings must be provided before running the official evaluation.",
+                detail="Automatic normalization basis is unavailable. Set a supported RFQ currency and lock the framework again.",
             )
 
         try:
@@ -518,10 +493,13 @@ def _extract_vendor_review(
 
 
 def _ensure_vendor_pack(session_id: str, record, store: SessionStore):
-    if record.locked_artifact is None or record.vendor_pack is not None:
+    if record.locked_artifact is None:
         return record
-    vendor_pack = build_vendor_pack(record.locked_artifact)
-    saved = store.lock_artifact(session_id, record.locked_artifact, vendor_pack)
+    vendor_pack = record.vendor_pack or build_vendor_pack(record.locked_artifact)
+    comparison_settings = record.comparison_settings or build_auto_comparison_settings(
+        record.locked_artifact.rfq_snapshot.general_info.currency
+    )
+    saved = store.lock_artifact(session_id, record.locked_artifact, vendor_pack, comparison_settings)
     return saved or record
 
 

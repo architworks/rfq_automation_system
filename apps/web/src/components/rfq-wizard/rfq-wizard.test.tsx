@@ -394,9 +394,24 @@ function createSessionSnapshot(options?: {
   return {
     session_id: sessionId,
     status: lockedArtifact ? "locked" : rubricProposal ? "proposal_ready" : "draft",
+    llm_settings: {
+      reasoning_effort: "high",
+    },
     rfq_draft: rfqDraft,
     rubric_proposal: rubricProposal,
     locked_artifact: lockedArtifact,
+    vendor_pack: null,
+    vendors: [],
+    comparison_settings: lockedArtifact
+      ? {
+          base_currency: rfqDraft.general_info.currency || "USD",
+          fx_effective_date: "2026-04-10",
+          fx_rates: [],
+          uom_overrides: [],
+        }
+      : null,
+    vendor_reviews: [],
+    evaluation_report: null,
     updated_at: "2026-04-08T17:00:00Z",
   };
 }
@@ -416,6 +431,13 @@ function createStatefulApi(
       cloneValue(templateName === "sample" ? createSampleDraft() : createBlankDraft()),
     ),
     getSession: vi.fn(async () => cloneValue(snapshot)),
+    saveLlmSettings: vi.fn(async (_sessionId, reasoningEffort) => {
+      snapshot = {
+        ...snapshot,
+        llm_settings: { reasoning_effort: reasoningEffort },
+      };
+      return cloneValue(snapshot);
+    }),
     saveRfq: vi.fn(async (_sessionId, draft) => {
       snapshot = {
         ...snapshot,
@@ -467,6 +489,27 @@ function createStatefulApi(
       }),
       fileName: snapshot.locked_artifact?.download_metadata.file_name ?? "locked-framework.json",
     })),
+    getVendorPack: vi.fn(async () => {
+      throw new Error("Not implemented in this test harness.");
+    }),
+    downloadVendorPack: vi.fn(async () => {
+      throw new Error("Not implemented in this test harness.");
+    }),
+    createVendor: vi.fn(async () => cloneValue(snapshot)),
+    updateVendor: vi.fn(async () => cloneValue(snapshot)),
+    deleteVendor: vi.fn(async () => cloneValue(snapshot)),
+    uploadVendorDocument: vi.fn(async () => cloneValue(snapshot)),
+    extractUploadedVendors: vi.fn(async () => cloneValue(snapshot)),
+    extractVendor: vi.fn(async () => cloneValue(snapshot)),
+    getVendorReview: vi.fn(async () => {
+      throw new Error("Not implemented in this test harness.");
+    }),
+    runEvaluation: vi.fn(async () => {
+      throw new Error("Not implemented in this test harness.");
+    }),
+    getResults: vi.fn(async () => {
+      throw new Error("Not implemented in this test harness.");
+    }),
   };
 
   return {

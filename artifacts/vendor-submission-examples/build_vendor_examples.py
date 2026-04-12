@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import html
 import json
+import shutil
 import subprocess
 import textwrap
 from pathlib import Path
@@ -11,6 +12,7 @@ ROOT = Path(__file__).resolve().parent
 RFQ_DIR = ROOT / "rfq-package"
 SUBMISSIONS_DIR = ROOT / "submissions"
 SOURCE_DIR = ROOT / "source"
+DEFAULT_CHROME_BINARY = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 
 
 def main() -> None:
@@ -44,14 +46,12 @@ def main() -> None:
                 check=True,
             )
         elif vendor["output_format"] == "pdf":
-            txt_path = SOURCE_DIR / f"{vendor['slug']}.txt"
-            txt_path.write_text(render_vendor_text(markdown=markdown))
-            with (SUBMISSIONS_DIR / f"{vendor['slug']}.pdf").open("wb") as output_file:
-                subprocess.run(
-                    ["cupsfilter", "-m", "application/pdf", str(txt_path)],
-                    check=True,
-                    stdout=output_file,
-                )
+            html_path = SOURCE_DIR / f"{vendor['slug']}.html"
+            html_path.write_text(render_vendor_html(markdown=markdown, vendor=vendor))
+            render_pdf_from_html(
+                html_path=html_path,
+                output_path=SUBMISSIONS_DIR / f"{vendor['slug']}.pdf",
+            )
         else:
             raise ValueError(f"Unsupported output format: {vendor['output_format']}")
 
@@ -387,6 +387,7 @@ def render_vendor_html(*, markdown: str, vendor: dict) -> str:
   <meta charset="utf-8">
   <title>{html.escape(vendor['vendor_name'])} Submission</title>
   <style>
+    @page {{ size: A4; margin: 0.45in; }}
     body {{ font-family: Helvetica, Arial, sans-serif; font-size: 11pt; line-height: 1.35; margin: 24px; }}
     h1 {{ font-size: 18pt; margin-bottom: 8px; }}
     h2 {{ font-size: 14pt; margin-top: 18px; margin-bottom: 8px; }}
@@ -395,6 +396,7 @@ def render_vendor_html(*, markdown: str, vendor: dict) -> str:
     table {{ width: 100%; border-collapse: collapse; font-size: 9.5pt; margin: 8px 0 14px; }}
     th, td {{ border: 1px solid #999; padding: 4px 6px; vertical-align: top; text-align: left; }}
     th {{ background: #efefef; }}
+    tr {{ page-break-inside: avoid; }}
   </style>
 </head>
 <body>
@@ -442,6 +444,34 @@ def render_vendor_text(*, markdown: str) -> str:
         wrapped = textwrap.wrap(line, width=94) or [""]
         output.extend(wrapped)
     return "\n".join(output) + "\n"
+
+
+def render_pdf_from_html(*, html_path: Path, output_path: Path) -> None:
+    chrome_binary = find_chrome_binary()
+    subprocess.run(
+        [
+            chrome_binary,
+            "--headless",
+            "--disable-gpu",
+            f"--print-to-pdf={output_path}",
+            f"file://{html_path}",
+        ],
+        check=True,
+    )
+
+
+def find_chrome_binary() -> str:
+    for candidate in (
+        shutil.which("google-chrome"),
+        shutil.which("chromium"),
+        shutil.which("chromium-browser"),
+        DEFAULT_CHROME_BINARY,
+    ):
+        if candidate and Path(candidate).exists():
+            return candidate
+    raise FileNotFoundError(
+        "A Chrome/Chromium binary is required to render the sample PDF submissions."
+    )
 
 
 def write_readme(vendors: list[dict]) -> None:

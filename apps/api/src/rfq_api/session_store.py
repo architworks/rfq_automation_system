@@ -143,6 +143,7 @@ class SessionStore:
         session_id: str,
         artifact: LockedFrameworkArtifact,
         vendor_pack: VendorPack,
+        comparison_settings: ComparisonSettings | None,
     ) -> SessionRecord | None:
         with self._lock:
             record = self._records.get(session_id)
@@ -150,6 +151,7 @@ class SessionStore:
                 return None
             record.locked_artifact = artifact
             record.vendor_pack = vendor_pack
+            record.comparison_settings = comparison_settings
             record.status = SessionStatus.LOCKED
             record.updated_at = datetime.now(UTC)
             return record

@@ -15,6 +15,7 @@ from ..models import (
     VendorDocument,
     VendorReview,
 )
+from .normalization_catalog import lookup_deterministic_uom_factor, normalize_uom_token
 
 
 def build_vendor_review(
@@ -65,17 +66,17 @@ def _normalize_fields(
         base_currency_value = None
 
         if field.currency and comparison_settings is None:
-            status = ComparabilityStatus.NEEDS_BUYER_INPUT
-            blockers.append("Comparison settings are required to normalize multi-currency values.")
+            status = ComparabilityStatus.NON_COMPARABLE
+            blockers.append("Automatic currency normalization is unavailable for the locked RFQ base currency.")
         elif field.currency and comparison_settings is not None and field.numeric_value is not None:
             fx_rate = _lookup_fx_rate(comparison_settings, field.currency)
             if fx_rate is None:
-                status = ComparabilityStatus.NEEDS_BUYER_INPUT
-                blockers.append(f"Missing FX rate for {field.currency}.")
+                status = ComparabilityStatus.NON_COMPARABLE
+                blockers.append(f"Missing FX rate for {field.currency} in the stored FX snapshot.")
             else:
                 base_currency_value = field.numeric_value * fx_rate
                 conversion_notes.append(
-                    f"Converted {field.currency} to {comparison_settings.base_currency} using buyer-provided rate {fx_rate:g}."
+                    f"Converted {field.currency} to {comparison_settings.base_currency} using the stored FX snapshot dated {comparison_settings.fx_effective_date}."
                 )
 
         normalized_fields.append(
@@ -91,8 +92,8 @@ def _normalize_fields(
                 numeric_value=field.numeric_value,
                 currency=field.currency,
                 base_currency_value=base_currency_value,
-                uom=_normalize_uom(field.uom),
-                target_uom=_normalize_uom(field.uom),
+                uom=normalize_uom_token(field.uom),
+                target_uom=normalize_uom_token(field.uom),
                 comparability_status=status,
                 conversion_notes=conversion_notes,
                 blockers=blockers,
@@ -130,8 +131,8 @@ def _normalize_pricing(
             continue
 
         primary = matched_claims[0]
-        uom = _normalize_uom(primary.uom)
-        target_uom = _normalize_uom(line_item.uom)
+        uom = normalize_uom_token(primary.uom)
+        target_uom = normalize_uom_token(line_item.uom)
         blockers: list[str] = []
         notes: list[str] = []
         status = _base_comparability_for_state(primary.state)
@@ -148,40 +149,30 @@ def _normalize_pricing(
             status = ComparabilityStatus.NON_COMPARABLE
             blockers.append("No currency could be extracted for this RFQ line item.")
         elif comparison_settings is None:
-            status = ComparabilityStatus.NEEDS_BUYER_INPUT
-            blockers.append("Comparison settings are required before currency normalization.")
+            status = ComparabilityStatus.NON_COMPARABLE
+            blockers.append("Automatic currency normalization is unavailable for the locked RFQ base currency.")
         elif primary.numeric_value is not None:
             fx_rate = _lookup_fx_rate(comparison_settings, primary.currency)
             if fx_rate is None:
-                status = ComparabilityStatus.NEEDS_BUYER_INPUT
-                blockers.append(f"Missing FX rate for {primary.currency}.")
+                status = ComparabilityStatus.NON_COMPARABLE
+                blockers.append(f"Missing FX rate for {primary.currency} in the stored FX snapshot.")
             else:
                 base_total = primary.numeric_value * fx_rate
                 notes.append(
-                    f"Converted {primary.currency} to {comparison_settings.base_currency} using buyer-provided rate {fx_rate:g}."
+                    f"Converted {primary.currency} to {comparison_settings.base_currency} using the stored FX snapshot dated {comparison_settings.fx_effective_date}."
                 )
 
         if uom and target_uom and uom != target_uom:
-            conversion_factor = _lookup_known_uom_factor(from_uom=uom, to_uom=target_uom) or _lookup_uom_override(
-                comparison_settings,
-                from_uom=uom,
-                to_uom=target_uom,
-                line_item_id=line_item.id,
-            )
+            conversion_factor = lookup_deterministic_uom_factor(from_uom=uom, to_uom=target_uom)
             if conversion_factor is None:
                 status = ComparabilityStatus.NON_COMPARABLE
                 blockers.append(
-                    f"Quoted UOM {uom} does not match RFQ UOM {target_uom}, and no deterministic conversion or buyer override factor is configured."
+                    f"Quoted UOM {uom} does not match RFQ UOM {target_uom}, and only deterministic weight/volume conversion is allowed in this prototype."
                 )
             elif base_total is not None:
                 base_total *= conversion_factor
                 notes.append(
-                    (
-                        f"Applied deterministic conversion factor {conversion_factor:g} to align quoted UOM {uom} "
-                        f"with requested UOM {target_uom}."
-                        if _lookup_known_uom_factor(from_uom=uom, to_uom=target_uom) is not None
-                        else f"Applied buyer override factor {conversion_factor:g} to align quoted UOM {uom} with requested UOM {target_uom}."
-                    )
+                    f"Applied deterministic {uom}-to-{target_uom} conversion to align the quoted quantity with the RFQ unit."
                 )
 
         pricing_lines.append(
@@ -255,85 +246,3 @@ def _lookup_fx_rate(comparison_settings: ComparisonSettings, currency: str) -> f
         if rate.currency.upper() == currency.upper():
             return rate.rate_to_base
     return None
-
-
-def _lookup_uom_override(
-    comparison_settings: ComparisonSettings | None,
-    *,
-    from_uom: str,
-    to_uom: str,
-    line_item_id: str,
-) -> float | None:
-    if comparison_settings is None:
-        return 1.0 if from_uom == to_uom else None
-    if from_uom == to_uom:
-        return 1.0
-    for override in comparison_settings.uom_overrides:
-        if (
-            override.from_uom.lower() == from_uom.lower()
-            and override.to_uom.lower() == to_uom.lower()
-            and (override.line_item_id is None or override.line_item_id == line_item_id)
-        ):
-            return override.factor
-    return None
-
-
-def _lookup_known_uom_factor(*, from_uom: str, to_uom: str) -> float | None:
-    canonical_factors = {
-        "g": 0.001,
-        "kg": 1.0,
-        "mg": 0.000001,
-        "ml": 0.001,
-        "l": 1.0,
-        "litre": 1.0,
-        "liter": 1.0,
-        "unit": 1.0,
-        "lot": 1.0,
-    }
-    if from_uom not in canonical_factors or to_uom not in canonical_factors:
-        return None
-    family_pairs = {
-        ("g", "kg"),
-        ("kg", "g"),
-        ("mg", "g"),
-        ("g", "mg"),
-        ("ml", "l"),
-        ("l", "ml"),
-        ("ml", "litre"),
-        ("litre", "ml"),
-        ("ml", "liter"),
-        ("liter", "ml"),
-    }
-    if (from_uom, to_uom) not in family_pairs:
-        return None
-    return canonical_factors[from_uom] / canonical_factors[to_uom]
-
-
-def _normalize_uom(value: str | None) -> str | None:
-    if value is None:
-        return None
-
-    normalized = value.strip().lower()
-    synonyms = {
-        "lot": "lot",
-        "lots": "lot",
-        "ls": "lot",
-        "lump sum": "lot",
-        "each": "unit",
-        "ea": "unit",
-        "unit": "unit",
-        "units": "unit",
-        "gram": "g",
-        "grams": "g",
-        "kilogram": "kg",
-        "kilograms": "kg",
-        "milligram": "mg",
-        "milligrams": "mg",
-        "millilitre": "ml",
-        "millilitres": "ml",
-        "milliliter": "ml",
-        "milliliters": "ml",
-        "litres": "litre",
-        "liters": "liter",
-    }
-    return synonyms.get(normalized, normalized)
