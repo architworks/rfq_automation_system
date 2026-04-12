@@ -935,7 +935,9 @@ export function RfqWizard({
 
         {step === "review" ? (
           <ReviewStep
+            artifact={lockedArtifact}
             comparisonSettings={snapshot?.comparison_settings ?? null}
+            evaluationReport={currentEvaluationReport}
             onGoToResults={() => onStepChange("results")}
             onSelectVendor={setSelectedVendorId}
             reviews={reviews}

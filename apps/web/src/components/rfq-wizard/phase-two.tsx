@@ -43,6 +43,8 @@ type VendorsStepProps = {
 };
 
 type ReviewStepProps = {
+  artifact: LockedFrameworkArtifact | null;
+  evaluationReport: EvaluationReport | null;
   vendors: VendorRecord[];
   reviews: VendorReview[];
   selectedVendorId: string | null;
@@ -480,6 +482,8 @@ export function VendorsStep({
 }
 
 export function ReviewStep({
+  artifact,
+  evaluationReport,
   vendors,
   reviews,
   selectedVendorId,
@@ -492,6 +496,41 @@ export function ReviewStep({
     [reviews],
   );
   const selectedReview = selectedVendorId ? reviewsByVendor.get(selectedVendorId) ?? null : null;
+  const questionsById = useMemo(
+    () => new Map((artifact?.rubric_snapshot.questions ?? []).map((question) => [question.id, question])),
+    [artifact],
+  );
+  const criteriaByQuestionId = useMemo(() => {
+    const lookup = new Map<string, Criterion>();
+    for (const criterion of artifact?.rubric_snapshot.criteria ?? []) {
+      for (const questionId of criterion.linked_question_ids ?? []) {
+        if (questionId) {
+          lookup.set(questionId, criterion);
+        }
+      }
+    }
+    return lookup;
+  }, [artifact]);
+  const selectedTechnicalResult = useMemo(
+    () => (selectedVendorId ? (evaluationReport?.technical_results ?? []).find((item) => item.vendor_id === selectedVendorId) ?? null : null),
+    [evaluationReport, selectedVendorId],
+  );
+  const criterionResultsById = useMemo(
+    () => new Map((selectedTechnicalResult?.criterion_results ?? []).map((criterion) => [criterion.criterion_id, criterion])),
+    [selectedTechnicalResult],
+  );
+  const reviewSections = useMemo(
+    () => [
+      { id: "review-document-summary", label: "Summary" },
+      { id: "review-question-answers", label: "Question Answers" },
+      { id: "review-schedule-answers", label: "Schedule Answers" },
+      { id: "review-technical-claims", label: "Technical Claims" },
+      { id: "review-commercial-notes", label: "Commercial Notes" },
+      { id: "review-normalized-fields", label: "Normalized Fields" },
+      { id: "review-normalized-pricing", label: "Normalized Pricing" },
+    ],
+    [],
+  );
 
   return (
     <div className={styles.grid}>
@@ -587,37 +626,79 @@ export function ReviewStep({
                   </div>
                 ) : null}
 
-                <section className={styles.previewPanel}>
-                  <div className={styles.previewHeader}>
-                    <div>
-                      <div className={styles.previewEyebrow}>Raw Extraction</div>
-                      <div className={styles.previewTitle}>{selectedReview.document.file_name}</div>
+                <div className={styles.reviewDetailLayout}>
+                  <aside className={styles.reviewSectionNav}>
+                    <div className={styles.previewSectionTitle}>Review Navigation</div>
+                    <div className={styles.reviewSectionNavList}>
+                      {reviewSections.map((section) => (
+                        <button
+                          className={styles.reviewSectionNavButton}
+                          key={section.id}
+                          onClick={() => scrollToReviewSection(section.id)}
+                          type="button"
+                        >
+                          {section.label}
+                        </button>
+                      ))}
                     </div>
-                    <div className={styles.previewBadge}>{formatTimestamp(selectedReview.created_at)}</div>
-                  </div>
-                  <div className={styles.previewSummary}>{selectedReview.raw_extraction.document_summary}</div>
-                  <FieldGroupList title="Question Answers" fields={selectedReview.raw_extraction.question_answers ?? []} />
-                  <FieldGroupList title="Schedule Answers" fields={selectedReview.raw_extraction.schedule_answers ?? []} />
-                  <FieldGroupList title="Technical Claims" fields={selectedReview.raw_extraction.technical_claims ?? []} />
-                  <FieldGroupList title="Commercial Notes / Anomalies" fields={selectedReview.raw_extraction.commercial_claims ?? []} />
-                </section>
+                  </aside>
 
-                <section className={styles.previewPanel}>
-                  <div className={styles.previewHeader}>
-                    <div>
-                      <div className={styles.previewEyebrow}>Normalized View</div>
-                      <div className={styles.previewTitle}>Canonical values, comparability, and blockers</div>
-                    </div>
+                  <div className={styles.reviewSectionContent}>
+                    <section className={styles.previewPanel}>
+                      <div className={styles.previewHeader}>
+                        <div>
+                          <div className={styles.previewEyebrow}>Raw Extraction</div>
+                          <div className={styles.previewTitle}>{selectedReview.document.file_name}</div>
+                        </div>
+                        <div className={styles.previewBadge}>{formatTimestamp(selectedReview.created_at)}</div>
+                      </div>
+                      <div className={styles.summaryNarrative} id="review-document-summary">
+                        <span className={styles.summaryLabel}>Document Summary</span>
+                        <span className={styles.summaryValue}>{selectedReview.raw_extraction.document_summary}</span>
+                      </div>
+                      <QuestionAnswerList
+                        criterionResultsById={criterionResultsById}
+                        criteriaByQuestionId={criteriaByQuestionId}
+                        fields={selectedReview.raw_extraction.question_answers ?? []}
+                        questionLookup={questionsById}
+                      />
+                      <FieldGroupList
+                        sectionId="review-schedule-answers"
+                        title="Schedule Answers"
+                        fields={selectedReview.raw_extraction.schedule_answers ?? []}
+                      />
+                      <FieldGroupList
+                        sectionId="review-technical-claims"
+                        title="Technical Claims"
+                        fields={selectedReview.raw_extraction.technical_claims ?? []}
+                      />
+                      <FieldGroupList
+                        sectionId="review-commercial-notes"
+                        title="Commercial Notes / Anomalies"
+                        fields={selectedReview.raw_extraction.commercial_claims ?? []}
+                      />
+                    </section>
+
+                    <section className={styles.previewPanel}>
+                      <div className={styles.previewHeader}>
+                        <div>
+                          <div className={styles.previewEyebrow}>Normalized View</div>
+                          <div className={styles.previewTitle}>Canonical values, comparability, and blockers</div>
+                        </div>
+                      </div>
+                      <NormalizedFieldList
+                        fields={selectedReview.normalized_fields ?? []}
+                        rfqCurrency={comparisonSettings?.base_currency ?? null}
+                        sectionId="review-normalized-fields"
+                      />
+                      <NormalizedPricingTable
+                        pricingLines={selectedReview.normalized_pricing ?? []}
+                        rfqCurrency={comparisonSettings?.base_currency ?? null}
+                        sectionId="review-normalized-pricing"
+                      />
+                    </section>
                   </div>
-                  <NormalizedFieldList
-                    fields={selectedReview.normalized_fields ?? []}
-                    rfqCurrency={comparisonSettings?.base_currency ?? null}
-                  />
-                  <NormalizedPricingTable
-                    pricingLines={selectedReview.normalized_pricing ?? []}
-                    rfqCurrency={comparisonSettings?.base_currency ?? null}
-                  />
-                </section>
+                </div>
               </>
             )}
           </div>
@@ -967,9 +1048,186 @@ export function ResultsStep({
   );
 }
 
-function FieldGroupList({ title, fields }: { title: string; fields: ExtractedField[] }) {
+function QuestionAnswerList({
+  fields,
+  questionLookup,
+  criteriaByQuestionId,
+  criterionResultsById,
+}: {
+  fields: ExtractedField[];
+  questionLookup: Map<string, Question>;
+  criteriaByQuestionId: Map<string, Criterion>;
+  criterionResultsById: Map<string, TechnicalCriterionResult>;
+}) {
   return (
-    <div className={styles.previewSection}>
+    <div className={styles.previewSection} id="review-question-answers">
+      <div className={styles.previewSectionTitle}>Question Answers</div>
+      <div className={styles.previewItemMeta}>
+        Collapsed view shows the vendor question, the criterion being judged, and the extracted answer. Expand a card
+        to inspect evidence, confidence, risks, and internal traceability.
+      </div>
+      {fields.length === 0 ? (
+        <div className={styles.previewEmpty}>No question answers were captured.</div>
+      ) : (
+        <div className={styles.previewList}>
+          {fields.map((field) => {
+            const question = field.question_id ? questionLookup.get(field.question_id) ?? null : null;
+            const criterion = field.question_id ? criteriaByQuestionId.get(field.question_id) ?? null : null;
+            const criterionResult = criterion ? criterionResultsById.get(criterion.id) ?? null : null;
+            const { summaryText, reasoningText } = criterionResult
+              ? splitReasoningSummary(criterionResult.explanation)
+              : { summaryText: null, reasoningText: null };
+
+            return (
+              <details className={styles.reviewAnswerCard} key={field.id}>
+                <summary className={styles.reviewAnswerSummary}>
+                  <div className={styles.reviewAnswerSummaryHeader}>
+                    <div className={styles.reviewAnswerSummaryBody}>
+                      <div className={styles.reviewAnswerQuestion}>{question?.text ?? field.label}</div>
+                      <div className={styles.reviewAnswerExcerpt}>
+                        {field.raw_value ?? "No extracted answer was found."}
+                      </div>
+                    </div>
+                  </div>
+                </summary>
+
+                <div className={styles.reviewAnswerDetail}>
+                  <div className={styles.reviewDetailGrid}>
+                    <div className={styles.summaryItem}>
+                      <span className={styles.summaryLabel}>Criterion Being Judged</span>
+                      <span className={styles.summaryValue}>
+                        {criterion?.title ?? "No linked criterion found."}
+                      </span>
+                    </div>
+                    <div className={styles.summaryItem}>
+                      <span className={styles.summaryLabel}>Criterion Type</span>
+                      <span className={styles.summaryValue}>
+                        {criterion
+                          ? formatCriterionTypeForBuyer(criterion.criterion_type)
+                          : "Not available"}
+                      </span>
+                    </div>
+                    <div className={styles.summaryItem}>
+                      <span className={styles.summaryLabel}>Extracted Answer Status</span>
+                      <span className={styles.summaryValue}>{field.state}</span>
+                    </div>
+                    <div className={styles.summaryItem}>
+                      <span className={styles.summaryLabel}>Current Technical Outcome</span>
+                      <span className={styles.summaryValue}>
+                        {criterionResult
+                          ? formatCriterionOutcomeLabel(criterionResult, criterion)
+                          : "Available after technical evaluation is run."}
+                      </span>
+                    </div>
+                  </div>
+                  {criterion?.description ? (
+                    <div className={styles.summaryNarrative}>
+                      <span className={styles.summaryLabel}>What This Criterion Checks</span>
+                      <span className={styles.summaryValue}>{criterion.description}</span>
+                    </div>
+                  ) : null}
+                  {question?.purpose ? (
+                    <div className={styles.summaryNarrative}>
+                      <span className={styles.summaryLabel}>Why This Question Was Asked</span>
+                      <span className={styles.summaryValue}>{question.purpose}</span>
+                    </div>
+                  ) : null}
+                  <div className={styles.reviewInsightBox}>
+                    <span className={styles.summaryLabel}>Supporting Evidence</span>
+                    {(field.evidence ?? []).length > 0 ? (
+                      <div className={styles.reviewEvidenceList}>
+                        {(field.evidence ?? []).map((anchor) => (
+                          <div className={styles.reviewEvidenceItem} key={anchor.id}>
+                            <div className={styles.reviewEvidenceLocator}>{anchor.locator}</div>
+                            <div className={styles.summaryValue}>{anchor.snippet}</div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <span className={styles.summaryValue}>No evidence snippet is available.</span>
+                    )}
+                  </div>
+                  <div className={styles.reviewDetailGrid}>
+                    <div className={styles.summaryItem}>
+                      <span className={styles.summaryLabel}>Confidence</span>
+                      <span className={styles.summaryValue}>
+                        {criterionResult ? formatOptionalNumber(criterionResult.confidence) : "Available after evaluation"}
+                      </span>
+                    </div>
+                    <div className={styles.summaryItem}>
+                      <span className={styles.summaryLabel}>Minimum Qualifying Score</span>
+                      <span className={styles.summaryValue}>{formatCriterionCutoffForBuyer(criterion)}</span>
+                    </div>
+                  </div>
+                  <div className={styles.reviewInsightBox}>
+                    <span className={styles.summaryLabel}>Evaluation Risk</span>
+                    <span className={styles.summaryValue}>
+                      {criterionResult
+                        ? (criterionResult.risks ?? []).join(" ") || "No explicit risk was flagged for this criterion."
+                        : "Available after technical evaluation is run."}
+                    </span>
+                  </div>
+                  {criterionResult ? (
+                    <div className={styles.reviewInsightBox}>
+                      <span className={styles.summaryLabel}>Evaluation Summary</span>
+                      <span className={styles.summaryValue}>{summaryText || "No evaluation summary available."}</span>
+                    </div>
+                  ) : null}
+                  {reasoningText ? (
+                    <div className={styles.summaryNarrative}>
+                      <span className={styles.summaryLabel}>AI Reasoning Note</span>
+                      <span className={styles.summaryValue}>{reasoningText}</span>
+                    </div>
+                  ) : null}
+                  <details className={styles.advancedPanel}>
+                    <summary className={styles.advancedSummary}>
+                      <span>View Traceability Detail</span>
+                      <span className={styles.advancedMeta}>{field.id}</span>
+                    </summary>
+                    <div className={styles.advancedBody}>
+                      <div className={styles.summaryNarrative}>
+                        <span className={styles.summaryLabel}>Question ID</span>
+                        <span className={styles.summaryValue}>{field.question_id ?? "None"}</span>
+                      </div>
+                      <div className={styles.summaryNarrative}>
+                        <span className={styles.summaryLabel}>Criterion ID</span>
+                        <span className={styles.summaryValue}>{criterion?.id ?? "None"}</span>
+                      </div>
+                      <div className={styles.summaryNarrative}>
+                        <span className={styles.summaryLabel}>Extracted Field ID</span>
+                        <span className={styles.summaryValue}>{field.id}</span>
+                      </div>
+                      {(criterionResult?.evidence_refs ?? []).length > 0 ? (
+                        <div className={styles.summaryNarrative}>
+                          <span className={styles.summaryLabel}>Evaluation Evidence IDs</span>
+                          <span className={styles.summaryValue}>
+                            {(criterionResult?.evidence_refs ?? []).join(", ")}
+                          </span>
+                        </div>
+                      ) : null}
+                    </div>
+                  </details>
+                </div>
+              </details>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function FieldGroupList({
+  title,
+  fields,
+  sectionId,
+}: {
+  title: string;
+  fields: ExtractedField[];
+  sectionId?: string;
+}) {
+  return (
+    <div className={styles.previewSection} id={sectionId}>
       <div className={styles.previewSectionTitle}>{title}</div>
       {fields.length === 0 ? (
         <div className={styles.previewEmpty}>No fields captured.</div>
@@ -1105,12 +1363,14 @@ function TechnicalCriterionCard({
 function NormalizedFieldList({
   fields,
   rfqCurrency,
+  sectionId,
 }: {
   fields: NormalizedField[];
   rfqCurrency: string | null;
+  sectionId?: string;
 }) {
   return (
-    <div className={styles.previewSection}>
+    <div className={styles.previewSection} id={sectionId}>
       <div className={styles.previewSectionTitle}>Normalized Fields</div>
       {fields.length === 0 ? (
         <div className={styles.previewEmpty}>No normalized fields are available.</div>
@@ -1147,12 +1407,14 @@ function NormalizedFieldList({
 function NormalizedPricingTable({
   pricingLines,
   rfqCurrency,
+  sectionId,
 }: {
   pricingLines: NormalizedPricingLine[];
   rfqCurrency: string | null;
+  sectionId?: string;
 }) {
   return (
-    <div className={styles.previewSection}>
+    <div className={styles.previewSection} id={sectionId}>
       <div className={styles.previewSectionTitle}>Normalized Pricing</div>
       <div className={styles.tableWrap}>
         <table className={styles.scoreTable}>
@@ -1300,6 +1562,14 @@ function formatCriterionOutcomeLabel(result: TechnicalCriterionResult, criterion
     return `Scored · ${formatOptionalNumber(result.score)}`;
   }
   return result.status;
+}
+
+function scrollToReviewSection(sectionId: string) {
+  const element = document.getElementById(sectionId);
+  if (!element) {
+    return;
+  }
+  element.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 function formatOptionalNumber(value: number | null | undefined): string {
