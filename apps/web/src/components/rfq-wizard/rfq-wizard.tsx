@@ -276,7 +276,7 @@ export function RfqWizard({
   const [isSavingLlmSettings, setIsSavingLlmSettings] = useState(false);
   const [isRunningEvaluation, setIsRunningEvaluation] = useState(false);
   const [uploadingVendorId, setUploadingVendorId] = useState<string | null>(null);
-  const [extractingVendorId, setExtractingVendorId] = useState<string | null>(null);
+  const [isExtractingVendors, setIsExtractingVendors] = useState(false);
   const [requestError, setRequestError] = useState<string | null>(null);
   const [validationIssues, setValidationIssues] = useState<ValidationIssue[]>([]);
   const [autosaveMessage, setAutosaveMessage] = useState("Waiting for changes");
@@ -581,18 +581,18 @@ export function RfqWizard({
     }
   }
 
-  async function handleExtractVendor(vendorId: string) {
-    setExtractingVendorId(vendorId);
+  async function handleExtractUploadedVendors() {
+    setIsExtractingVendors(true);
     setRequestError(null);
 
     try {
-      const updated = await api.extractVendor(sessionId, vendorId);
+      const updated = await api.extractUploadedVendors(sessionId);
       applySessionSnapshot(updated);
-      setAutosaveMessage("Vendor extraction completed");
+      setAutosaveMessage("Uploaded vendor extractions completed");
     } catch (error) {
-      setRequestError(error instanceof Error ? error.message : "Failed to extract vendor document.");
+      setRequestError(error instanceof Error ? error.message : "Failed to extract uploaded vendor documents.");
     } finally {
-      setExtractingVendorId(null);
+      setIsExtractingVendors(false);
     }
   }
 
@@ -976,10 +976,10 @@ export function RfqWizard({
 
         {step === "vendors" ? (
           <VendorsStep
-            extractingVendorId={extractingVendorId}
+            isExtractingVendors={isExtractingVendors}
             onCreateVendor={handleCreateVendor}
             onDeleteVendor={handleDeleteVendor}
-            onExtractVendor={handleExtractVendor}
+            onExtractUploadedVendors={handleExtractUploadedVendors}
             onGoToReview={() => onStepChange("review")}
             onRenameVendor={handleRenameVendor}
             onUploadVendorDocument={handleUploadVendorDocument}

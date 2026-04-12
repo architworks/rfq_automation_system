@@ -28,6 +28,7 @@ from .models import (
     VendorDocument,
     VendorPack,
     VendorReview,
+    VendorStatus,
 )
 from .services.documents import build_visual_fidelity_warnings, validate_document_name
 from .services.evaluation import EvaluationContext, run_evaluation
@@ -319,32 +320,12 @@ def create_app() -> FastAPI:
         store: SessionStore = Depends(get_session_store),
         llm_client: LLMClient = Depends(get_llm_client),
     ) -> SessionSnapshot:
-        record = _require_vendor(session_id, vendor_id, store)
-        vendor = next(vendor for vendor in record.vendors if vendor.id == vendor_id)
-        if vendor.document is None:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Vendor document has not been uploaded yet.")
-        if record.locked_artifact is None:
-            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Lock the framework before extracting vendor responses.")
-
-        document_path = store.get_vendor_document_path(session_id, vendor_id)
-        if document_path is None or not document_path.exists():
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Stored vendor document could not be found.")
-        document_bytes = document_path.read_bytes()
-
         try:
-            raw_extraction = llm_client.extract_vendor_response(
-                artifact=record.locked_artifact,
-                vendor=vendor,
-                document=vendor.document,
-                document_bytes=document_bytes,
-                llm_settings=record.llm_settings,
-            )
-            review = build_vendor_review(
+            review = _extract_vendor_review(
+                session_id=session_id,
                 vendor_id=vendor_id,
-                document=vendor.document,
-                raw_extraction=raw_extraction,
-                artifact=record.locked_artifact,
-                comparison_settings=record.comparison_settings,
+                store=store,
+                llm_client=llm_client,
             )
         except LLMConfigurationError as exc:
             raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc)) from exc
@@ -356,6 +337,45 @@ def create_app() -> FastAPI:
         if saved is None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Vendor not found.")
         return saved.snapshot()
+
+    @app.post("/sessions/{session_id}/vendors/extract", response_model=SessionSnapshot)
+    def extract_uploaded_vendor_documents(
+        session_id: str,
+        store: SessionStore = Depends(get_session_store),
+        llm_client: LLMClient = Depends(get_llm_client),
+    ) -> SessionSnapshot:
+        record = _get_locked_record_or_409(session_id, store)
+        vendor_ids = [
+            vendor.id
+            for vendor in record.vendors
+            if vendor.document is not None and vendor.status == VendorStatus.UPLOADED
+        ]
+        if not vendor_ids:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="No uploaded vendor documents are waiting for extraction.",
+            )
+
+        for vendor_id in vendor_ids:
+            try:
+                review = _extract_vendor_review(
+                    session_id=session_id,
+                    vendor_id=vendor_id,
+                    store=store,
+                    llm_client=llm_client,
+                )
+            except LLMConfigurationError as exc:
+                raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc)) from exc
+            except LLMTaskError as exc:
+                store.set_vendor_extraction_error(session_id, vendor_id, str(exc))
+                continue
+
+            saved = store.save_vendor_review(session_id, review)
+            if saved is None:
+                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Vendor not found.")
+
+        refreshed = _get_record_or_404(session_id, store)
+        return refreshed.snapshot()
 
     @app.get("/sessions/{session_id}/vendors/{vendor_id}/review", response_model=VendorReview)
     def get_vendor_review(
@@ -462,6 +482,41 @@ def _require_vendor(session_id: str, vendor_id: str, store: SessionStore):
     if vendor is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Vendor not found.")
     return record
+
+
+def _extract_vendor_review(
+    *,
+    session_id: str,
+    vendor_id: str,
+    store: SessionStore,
+    llm_client: LLMClient,
+) -> VendorReview:
+    record = _require_vendor(session_id, vendor_id, store)
+    vendor = next(vendor for vendor in record.vendors if vendor.id == vendor_id)
+    if vendor.document is None:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Vendor document has not been uploaded yet.")
+    if record.locked_artifact is None:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Lock the framework before extracting vendor responses.")
+
+    document_path = store.get_vendor_document_path(session_id, vendor_id)
+    if document_path is None or not document_path.exists():
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Stored vendor document could not be found.")
+    document_bytes = document_path.read_bytes()
+
+    raw_extraction = llm_client.extract_vendor_response(
+        artifact=record.locked_artifact,
+        vendor=vendor,
+        document=vendor.document,
+        document_bytes=document_bytes,
+        llm_settings=record.llm_settings,
+    )
+    return build_vendor_review(
+        vendor_id=vendor_id,
+        document=vendor.document,
+        raw_extraction=raw_extraction,
+        artifact=record.locked_artifact,
+        comparison_settings=record.comparison_settings,
+    )
 
 
 def _ensure_vendor_pack(session_id: str, record, store: SessionStore):

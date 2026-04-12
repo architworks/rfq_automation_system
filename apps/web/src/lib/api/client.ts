@@ -57,6 +57,7 @@ export interface RfqApiClient {
   updateVendor(sessionId: string, vendorId: string, name: string): Promise<SessionSnapshot>;
   deleteVendor(sessionId: string, vendorId: string): Promise<SessionSnapshot>;
   uploadVendorDocument(sessionId: string, vendorId: string, file: File): Promise<SessionSnapshot>;
+  extractUploadedVendors(sessionId: string): Promise<SessionSnapshot>;
   extractVendor(sessionId: string, vendorId: string): Promise<SessionSnapshot>;
   getVendorReview(sessionId: string, vendorId: string): Promise<VendorReview>;
   saveComparisonSettings(sessionId: string, comparisonSettings: ComparisonSettings): Promise<SessionSnapshot>;
@@ -221,6 +222,11 @@ export const apiClient: RfqApiClient = {
     return requestJson<SessionSnapshot>(`/sessions/${sessionId}/vendors/${vendorId}/document`, {
       method: "PUT",
       body: formData,
+    });
+  },
+  extractUploadedVendors(sessionId) {
+    return requestJson<SessionSnapshot>(`/sessions/${sessionId}/vendors/extract`, {
+      method: "POST",
     });
   },
   extractVendor(sessionId, vendorId) {

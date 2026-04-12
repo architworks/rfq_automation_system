@@ -50,6 +50,40 @@ def test_upload_replace_and_review_flow(client) -> None:
     assert payload["normalized_pricing"][0]["comparability_status"] == "needs_buyer_input"
 
 
+def test_bulk_extract_runs_for_all_uploaded_vendors(client) -> None:
+    session_id = _lock_session(client)
+    alpha = client.post(f"/sessions/{session_id}/vendors", json={"name": "Alpha"})
+    beta = client.post(f"/sessions/{session_id}/vendors", json={"name": "Beta"})
+    gamma = client.post(f"/sessions/{session_id}/vendors", json={"name": "Gamma"})
+    alpha_id = alpha.json()["vendors"][0]["id"]
+    beta_id = beta.json()["vendors"][-1]["id"]
+    gamma_id = gamma.json()["vendors"][-1]["id"]
+
+    uploaded_alpha = client.put(
+        f"/sessions/{session_id}/vendors/{alpha_id}/document",
+        files={"file": ("alpha.pdf", b"%PDF-1.4 alpha", "application/pdf")},
+    )
+    assert uploaded_alpha.status_code == 200
+    uploaded_beta = client.put(
+        f"/sessions/{session_id}/vendors/{beta_id}/document",
+        files={"file": ("beta.docx", b"beta document", "application/vnd.openxmlformats-officedocument.wordprocessingml.document")},
+    )
+    assert uploaded_beta.status_code == 200
+
+    extracted = client.post(f"/sessions/{session_id}/vendors/extract")
+    assert extracted.status_code == 200
+    payload = extracted.json()
+    vendors_by_id = {vendor["id"]: vendor for vendor in payload["vendors"]}
+    assert vendors_by_id[alpha_id]["status"] == "extracted"
+    assert vendors_by_id[beta_id]["status"] == "extracted"
+    assert vendors_by_id[gamma_id]["status"] == "no_document"
+
+    alpha_review = client.get(f"/sessions/{session_id}/vendors/{alpha_id}/review")
+    beta_review = client.get(f"/sessions/{session_id}/vendors/{beta_id}/review")
+    assert alpha_review.status_code == 200
+    assert beta_review.status_code == 200
+
+
 def test_comparison_settings_re_normalize_review_and_mark_vendor_ready(client) -> None:
     session_id = _lock_session(client)
     vendor_id = _add_and_extract_vendor(client, session_id, "Delta", "delta.pdf")

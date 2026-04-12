@@ -33,12 +33,12 @@ type PackStepProps = {
 type VendorsStepProps = {
   vendors: VendorRecord[];
   uploadingVendorId: string | null;
-  extractingVendorId: string | null;
+  isExtractingVendors: boolean;
   onCreateVendor: (name: string) => void;
   onRenameVendor: (vendorId: string, name: string) => void;
   onDeleteVendor: (vendorId: string) => void;
   onUploadVendorDocument: (vendorId: string, file: File) => void;
-  onExtractVendor: (vendorId: string) => void;
+  onExtractUploadedVendors: () => void;
   onGoToReview: () => void;
 };
 
@@ -305,16 +305,19 @@ export function PackStep({
 export function VendorsStep({
   vendors,
   uploadingVendorId,
-  extractingVendorId,
+  isExtractingVendors,
   onCreateVendor,
   onRenameVendor,
   onDeleteVendor,
   onUploadVendorDocument,
-  onExtractVendor,
+  onExtractUploadedVendors,
   onGoToReview,
 }: VendorsStepProps) {
   const [newVendorName, setNewVendorName] = useState("");
   const [renameDrafts, setRenameDrafts] = useState<Record<string, string>>({});
+  const pendingExtractionCount = vendors.filter(
+    (vendor) => vendor.document && vendor.status === "uploaded",
+  ).length;
 
   useEffect(() => {
     setRenameDrafts((current) => {
@@ -333,7 +336,7 @@ export function VendorsStep({
           <div>
             <h2 className={styles.cardTitle}>Vendor Registry</h2>
             <p className={styles.cardSubtle}>
-              Register vendors here. Each vendor gets exactly one replaceable source document in this phase.
+              Register vendors here. Upload all source documents first, then run one extraction job for every uploaded vendor.
             </p>
           </div>
         </div>
@@ -361,6 +364,18 @@ export function VendorsStep({
           </button>
           <button className={styles.secondaryButton} onClick={onGoToReview} type="button">
             Go to review
+          </button>
+          <button
+            className={styles.primaryButton}
+            disabled={pendingExtractionCount === 0 || Boolean(uploadingVendorId) || isExtractingVendors}
+            onClick={onExtractUploadedVendors}
+            type="button"
+          >
+            {isExtractingVendors
+              ? "Extracting uploaded vendors..."
+              : pendingExtractionCount > 0
+                ? `Extract all uploaded vendors (${pendingExtractionCount})`
+                : "Extract all uploaded vendors"}
           </button>
         </div>
       </section>
@@ -442,7 +457,7 @@ export function VendorsStep({
                   <FormInput
                     accept={ACCEPTED_VENDOR_FILES}
                     className={styles.uploadInput}
-                    disabled={Boolean(uploadingVendorId)}
+                    disabled={Boolean(uploadingVendorId) || isExtractingVendors}
                     name={`vendor_document_${vendor.id}`}
                     onChange={(event) => {
                       const file = event.target.files?.[0];
@@ -455,14 +470,6 @@ export function VendorsStep({
                     type="file"
                   />
                 </label>
-                <button
-                  className={styles.primaryButton}
-                  disabled={!vendor.document || Boolean(extractingVendorId)}
-                  onClick={() => onExtractVendor(vendor.id)}
-                  type="button"
-                >
-                  {extractingVendorId === vendor.id ? "Extracting..." : "Run extraction"}
-                </button>
               </div>
             </div>
           </div>
