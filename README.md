@@ -4,9 +4,9 @@ Documentation and assignment/reference material live under `docs/`. Start with `
 
 For deployment planning and the current Vercel setup, see `docs/VERCEL_DEPLOYMENT.md`.
 
-Phase 1 implements the seeded RFQ to locked-rubric flow:
+Phase 1 implements the RFQ to locked-rubric flow:
 
-- buyer starts from the sample 8-item RFQ
+- buyer starts from a blank RFQ or explicitly loads the sample 8-item RFQ
 - buyer edits the RFQ draft
 - backend generates an AI rubric proposal
 - buyer edits the proposal

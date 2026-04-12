@@ -23,19 +23,19 @@ export function cloneValue<T>(value: T): T {
 
 export function createTimelineSet(): RFQTimelineSet {
   return {
-    clarifications_deadline: "2026-05-12",
-    technical_bid_deadline: "2026-05-19",
-    commercial_bid_deadline: "2026-05-21",
-    evaluation_start_date: "2026-05-22",
-    negotiation_start_date: "2026-05-27",
-    final_award_date: "2026-06-02",
+    clarifications_deadline: "",
+    technical_bid_deadline: "",
+    commercial_bid_deadline: "",
+    evaluation_start_date: "",
+    negotiation_start_date: "",
+    final_award_date: "",
   };
 }
 
 export function createBuyerPriority(): BuyerPriority {
   return {
     id: createId("priority"),
-    title: "New buyer priority",
+    title: "",
     description: "",
   };
 }
@@ -43,11 +43,11 @@ export function createBuyerPriority(): BuyerPriority {
 export function createLineItem(): LineItem {
   return {
     id: createId("line_item"),
-    product_name: "New line item",
-    category: "Services",
+    product_name: "",
+    category: "",
     description: "",
-    hsn_sac: "8471XX",
-    uom: "Lot",
+    hsn_sac: "",
+    uom: "",
   };
 }
 

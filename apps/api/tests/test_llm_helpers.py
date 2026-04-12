@@ -1,4 +1,4 @@
-from rfq_api.seeds import build_seed_rfq
+from rfq_api.seeds import build_blank_rfq, build_seed_rfq
 from rfq_api.services.llm import (
     AIScenarioDraft,
     AIScenarioRankingDraft,
@@ -31,6 +31,15 @@ def test_build_rfq_brief_is_readable_text() -> None:
     assert "Mandatory conditions" in brief
     assert "Requested line items" in brief
     assert "Strategy & Creative Development" in brief
+
+
+def test_build_rfq_brief_marks_missing_priorities_and_conditions_for_inference() -> None:
+    brief = OpenAIResponsesClient._build_rfq_brief(build_blank_rfq())
+
+    assert "Buyer priorities" in brief
+    assert "[NOT PROVIDED]. ACTION: Infer 3 strategic technical priorities based on the RFQ details provided." in brief
+    assert "Mandatory conditions" in brief
+    assert "[NOT PROVIDED]. ACTION: Infer 3-5 pass/fail mandatory gates based on the RFQ details provided." in brief
 
 
 def test_compose_rubric_backfills_question_and_schedule_links() -> None:

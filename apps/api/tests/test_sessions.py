@@ -10,7 +10,21 @@ def test_create_and_fetch_session(client) -> None:
 
     fetched = client.get(f"/sessions/{session_id}")
     assert fetched.status_code == 200
-    assert fetched.json()["rfq_draft"]["general_info"]["subject"] == "RFQ for global launch marketing services for new kids health drink"
+    assert fetched.json()["rfq_draft"]["general_info"]["subject"] == ""
+    assert fetched.json()["rfq_draft"]["buyer_priorities"] == []
+    assert fetched.json()["rfq_draft"]["mandatory_conditions"] == []
+
+
+def test_get_rfq_templates_returns_blank_and_sample_variants(client) -> None:
+    blank = client.get("/rfq-templates/blank")
+    assert blank.status_code == 200
+    assert blank.json()["general_info"]["subject"] == ""
+    assert blank.json()["line_items"] == []
+
+    sample = client.get("/rfq-templates/sample")
+    assert sample.status_code == 200
+    assert sample.json()["general_info"]["subject"] == "RFQ for global launch marketing services for new kids health drink"
+    assert len(sample.json()["line_items"]) == 8
 
 
 def test_generate_rubric_returns_schema_valid_proposal(client) -> None:

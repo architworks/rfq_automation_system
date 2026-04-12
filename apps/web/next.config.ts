@@ -15,6 +15,10 @@ const nextConfig: NextConfig = {
           destination: `${localApiOrigin}/sessions/:path*`,
         },
         {
+          source: "/rfq-templates/:path*",
+          destination: `${localApiOrigin}/rfq-templates/:path*`,
+        },
+        {
           source: "/healthz",
           destination: `${localApiOrigin}/healthz`,
         },
@@ -29,6 +33,10 @@ const nextConfig: NextConfig = {
       {
         source: "/sessions/:path*",
         destination: "/api/sessions/:path*",
+      },
+      {
+        source: "/rfq-templates/:path*",
+        destination: "/api/rfq-templates/:path*",
       },
       {
         source: "/healthz",

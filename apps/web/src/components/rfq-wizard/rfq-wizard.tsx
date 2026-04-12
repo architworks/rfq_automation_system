@@ -244,6 +244,7 @@ export function RfqWizard({
   const [isGenerating, setIsGenerating] = useState(false);
   const [isLocking, setIsLocking] = useState(false);
   const [isResettingSession, setIsResettingSession] = useState(false);
+  const [isApplyingTemplate, setIsApplyingTemplate] = useState(false);
   const [isSavingComparisonSettings, setIsSavingComparisonSettings] = useState(false);
   const [isRunningEvaluation, setIsRunningEvaluation] = useState(false);
   const [uploadingVendorId, setUploadingVendorId] = useState<string | null>(null);
@@ -606,10 +607,33 @@ export function RfqWizard({
     }
   }
 
+  async function handleApplyRfqTemplate(templateName: "blank" | "sample") {
+    setIsApplyingTemplate(true);
+    setRequestError(null);
+    setValidationIssues([]);
+
+    try {
+      const templateDraft = await api.getRfqTemplate(templateName);
+      const updated = await api.saveRfq(sessionId, templateDraft);
+      applySessionSnapshot(updated);
+      setRfqDraft(updated.rfq_draft);
+      setRubricProposal(updated.rubric_proposal ?? null);
+      setLockedArtifact(updated.locked_artifact ?? null);
+      setEvaluationReport(updated.evaluation_report ?? null);
+      savedRfqRef.current = snapshotToJson(updated.rfq_draft);
+      savedRubricRef.current = snapshotToJson(updated.rubric_proposal);
+      setAutosaveMessage(templateName === "sample" ? "Sample RFQ loaded" : "RFQ cleared");
+    } catch (error) {
+      setRequestError(error instanceof Error ? error.message : "Failed to apply the RFQ template.");
+    } finally {
+      setIsApplyingTemplate(false);
+    }
+  }
+
   async function handleResetSession() {
     if (
       !window.confirm(
-        "Start a fresh seeded session? Your current work will remain only in the old session link.",
+        "Start a fresh blank session? Your current work will remain only in the old session link.",
       )
     ) {
       return;
@@ -725,7 +749,7 @@ export function RfqWizard({
           <p className={styles.subtitle}>
             {lockedArtifact
               ? "Preview the locked vendor pack, manage vendor uploads, review raw versus normalized evidence, and produce an explainable official QCBS 70/30 recommendation plus advisory scenarios."
-              : "Start from the seeded 8-item RFQ, generate an AI proposal, edit the framework, and lock the final rubric artifact for downstream evaluation phases."}
+              : "Start from a blank RFQ, optionally load the sample, generate an AI proposal, edit the framework, and lock the final rubric artifact for downstream evaluation phases."}
           </p>
           <div className={styles.meta}>
             <span>
@@ -820,12 +844,15 @@ export function RfqWizard({
         {validationSummary}
 
         {step === "input" ? (
-          <InputStep
-            draft={rfqDraft}
-            onChange={updateDraft}
-            onGenerate={handleGenerateRubric}
-            isGenerating={isGenerating}
-          />
+            <InputStep
+              draft={rfqDraft}
+              onChange={updateDraft}
+              onClear={() => void handleApplyRfqTemplate("blank")}
+              onGenerate={handleGenerateRubric}
+              onUseSample={() => void handleApplyRfqTemplate("sample")}
+              isApplyingTemplate={isApplyingTemplate}
+              isGenerating={isGenerating}
+            />
         ) : null}
 
         {step === "proposal" ? (
@@ -923,22 +950,42 @@ export function RfqWizard({
 function InputStep({
   draft,
   onChange,
+  onClear,
   onGenerate,
+  onUseSample,
+  isApplyingTemplate,
   isGenerating,
 }: {
   draft: RFQDraft;
   onChange: (mutator: (draft: RFQDraft) => void) => void;
+  onClear: () => void;
   onGenerate: () => void;
+  onUseSample: () => void;
+  isApplyingTemplate: boolean;
   isGenerating: boolean;
 }) {
   return (
     <div className={styles.grid}>
+      <div className={styles.buttonRow}>
+        <div className={styles.meta}>
+          <span>Build the RFQ manually, or load the full sample draft to start from the assignment example.</span>
+        </div>
+        <div className={styles.buttonGroup}>
+          <button className={styles.secondaryButton} disabled={isApplyingTemplate} onClick={onUseSample} type="button">
+            {isApplyingTemplate ? "Applying template..." : "Use RFQ Sample"}
+          </button>
+          <button className={styles.ghostButton} disabled={isApplyingTemplate} onClick={onClear} type="button">
+            Clear RFQ
+          </button>
+        </div>
+      </div>
+
       <section className={styles.card}>
         <div className={styles.cardHeader}>
           <div>
             <h2 className={styles.cardTitle}>General Information</h2>
             <p className={styles.cardSubtle}>
-              The seeded sample is editable. Any change here feeds the AI rubric proposal.
+              Every field here is buyer-controlled. When priorities or mandatory conditions remain blank, the AI will infer them from the rest of the RFQ.
             </p>
           </div>
         </div>
@@ -978,6 +1025,7 @@ function InputStep({
                 })
               }
             >
+              <option value="">Select sourcing type</option>
               <option value="RFQ">RFQ</option>
               <option value="RFP">RFP</option>
               <option value="RFI">RFI</option>
@@ -994,6 +1042,7 @@ function InputStep({
                 })
               }
             >
+              <option value="">Select round</option>
               <option value="Round 1">Round 1</option>
               <option value="Round 2">Round 2</option>
               <option value="Round 3">Round 3</option>
@@ -1010,6 +1059,7 @@ function InputStep({
                 })
               }
             >
+              <option value="">Select status</option>
               <option value="Draft">Draft</option>
               <option value="Issued">Issued</option>
               <option value="Closed">Closed</option>
@@ -1038,6 +1088,7 @@ function InputStep({
                 })
               }
             >
+              <option value="">Select currency</option>
               <option value="USD">USD</option>
               <option value="EUR">EUR</option>
               <option value="INR">INR</option>
@@ -1099,7 +1150,7 @@ function InputStep({
         <div className={styles.cardHeader}>
           <div>
             <h2 className={styles.cardTitle}>Timelines</h2>
-            <p className={styles.cardSubtle}>Use the sample RFQ milestone fields from the assignment brief.</p>
+            <p className={styles.cardSubtle}>Fill the milestone dates that matter for this RFQ. Leave blank if they are not yet known.</p>
           </div>
         </div>
         <div className={`${styles.fieldGrid} ${styles.twoCol}`}>
@@ -1188,7 +1239,7 @@ function InputStep({
         <div className={styles.cardHeader}>
           <div>
             <h2 className={styles.cardTitle}>Buyer Priorities</h2>
-            <p className={styles.cardSubtle}>These priorities guide weighting and AI-generated questions.</p>
+            <p className={styles.cardSubtle}>These priorities guide weighting and AI-generated questions. Leave blank to let the AI infer them.</p>
           </div>
           <button
             className={styles.secondaryButton}
@@ -1254,7 +1305,7 @@ function InputStep({
         <div className={styles.cardHeader}>
           <div>
             <h2 className={styles.cardTitle}>Mandatory Conditions</h2>
-            <p className={styles.cardSubtle}>These become likely MAC or cutoff-related evidence checks.</p>
+            <p className={styles.cardSubtle}>These become likely MAC or cutoff-related evidence checks. Leave blank to let the AI infer them.</p>
           </div>
           <button
             className={styles.secondaryButton}
@@ -1303,7 +1354,7 @@ function InputStep({
         <div className={styles.cardHeader}>
           <div>
             <h2 className={styles.cardTitle}>RFQ Line Items</h2>
-            <p className={styles.cardSubtle}>All eight seeded items are editable and additional items can be added.</p>
+            <p className={styles.cardSubtle}>Add the commercial line items you expect vendors to quote against. The sample button loads all eight example items.</p>
           </div>
           <button
             className={styles.secondaryButton}
@@ -1412,7 +1463,7 @@ function InputStep({
           <span>The buyer can keep editing this draft until the framework is locked.</span>
         </div>
         <div className={styles.buttonGroup}>
-          <button className={styles.primaryButton} disabled={isGenerating} onClick={onGenerate} type="button">
+          <button className={styles.primaryButton} disabled={isGenerating || isApplyingTemplate} onClick={onGenerate} type="button">
             {isGenerating ? "Generating rubric..." : "Generate AI rubric"}
           </button>
         </div>

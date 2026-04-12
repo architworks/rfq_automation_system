@@ -22,7 +22,7 @@ from .models import (
     VendorReview,
     VendorStatus,
 )
-from .seeds import build_seed_rfq
+from .seeds import build_blank_rfq
 
 
 @dataclass
@@ -82,7 +82,7 @@ class SessionStore:
             record = SessionRecord(
                 session_id=new_id,
                 status=SessionStatus.DRAFT,
-                rfq_draft=build_seed_rfq(),
+                rfq_draft=build_blank_rfq(),
                 rubric_proposal=None,
                 locked_artifact=None,
                 vendor_pack=None,

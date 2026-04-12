@@ -5,7 +5,7 @@ Next.js frontend for phase 1 of the RFQ prototype.
 ## Responsibilities
 
 - bootstrap or rehydrate the browser session
-- render the seeded RFQ input form
+- render the blank-first RFQ input form with optional sample loading
 - call FastAPI to generate the AI rubric proposal
 - allow buyer-side edits to the proposal
 - surface validation issues on lock
@@ -67,7 +67,7 @@ See `docs/VERCEL_DEPLOYMENT.md` for the deployment shape and project settings.
 
 Current component tests cover:
 
-- seeded RFQ load
+- blank RFQ load and explicit sample application
 - RFQ edit persistence across navigation and refresh in the same session
 - generation error retry behavior without losing RFQ input
 - field-level lock validation error rendering

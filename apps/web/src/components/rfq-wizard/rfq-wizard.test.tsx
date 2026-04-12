@@ -8,7 +8,41 @@ function cloneValue<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T;
 }
 
-function createSeededDraft(overrides?: Partial<RFQDraft>): RFQDraft {
+function createBlankDraft(overrides?: Partial<RFQDraft>): RFQDraft {
+  const draft: RFQDraft = {
+    general_info: {
+      subject: "",
+      rfq_code: "",
+      sourcing_type: "",
+      round: "",
+      status: "",
+      owner: "",
+      currency: "",
+      requestor: "",
+      department: "",
+      category: "",
+    },
+    scope_overview: "",
+    timelines: {
+      clarifications_deadline: "",
+      technical_bid_deadline: "",
+      commercial_bid_deadline: "",
+      evaluation_start_date: "",
+      negotiation_start_date: "",
+      final_award_date: "",
+    },
+    buyer_priorities: [],
+    mandatory_conditions: [],
+    line_items: [],
+  };
+
+  return {
+    ...draft,
+    ...overrides,
+  };
+}
+
+function createSampleDraft(overrides?: Partial<RFQDraft>): RFQDraft {
   const draft: RFQDraft = {
     general_info: {
       subject: "RFQ for global launch marketing services for new kids health drink",
@@ -320,22 +354,41 @@ function createSessionSnapshot(options?: {
   subject?: string;
   withRubric?: boolean;
   withArtifact?: boolean;
+  template?: "blank" | "sample";
 }): SessionSnapshot {
   const sessionId = options?.sessionId ?? "session_123";
-  const rfqDraft = createSeededDraft({
-    general_info: {
-      subject: options?.subject ?? "RFQ for global launch marketing services for new kids health drink",
-      rfq_code: "RFQ-MKT-KIDS-GL-2026-001",
-      sourcing_type: "RFQ",
-      round: "Round 1",
-      status: "Draft",
-      owner: "Ava Thompson",
-      currency: "USD",
-      requestor: "Global Brand Marketing Team",
-      department: "Marketing Procurement",
-      category: "Marketing Services",
-    },
-  });
+  const template = options?.template ?? "blank";
+  const baseDraft =
+    template === "sample"
+      ? createSampleDraft({
+          general_info: {
+            subject: options?.subject ?? "RFQ for global launch marketing services for new kids health drink",
+            rfq_code: "RFQ-MKT-KIDS-GL-2026-001",
+            sourcing_type: "RFQ",
+            round: "Round 1",
+            status: "Draft",
+            owner: "Ava Thompson",
+            currency: "USD",
+            requestor: "Global Brand Marketing Team",
+            department: "Marketing Procurement",
+            category: "Marketing Services",
+          },
+        })
+      : createBlankDraft({
+          general_info: {
+            subject: options?.subject ?? "",
+            rfq_code: "",
+            sourcing_type: "",
+            round: "",
+            status: "",
+            owner: "",
+            currency: "",
+            requestor: "",
+            department: "",
+            category: "",
+          },
+        });
+  const rfqDraft = baseDraft;
   const rubricProposal = options?.withRubric === false ? null : createRubricProposal();
   const lockedArtifact =
     options?.withArtifact && rubricProposal
@@ -363,6 +416,9 @@ function createStatefulApi(
 
   const api: RfqApiClient = {
     createOrHydrateSession: vi.fn(async () => cloneValue(snapshot)),
+    getRfqTemplate: vi.fn(async (templateName: "blank" | "sample") =>
+      cloneValue(templateName === "sample" ? createSampleDraft() : createBlankDraft()),
+    ),
     getSession: vi.fn(async () => cloneValue(snapshot)),
     saveRfq: vi.fn(async (_sessionId, draft) => {
       snapshot = {
@@ -430,8 +486,8 @@ describe("RfqWizard", () => {
     window.sessionStorage.clear();
   });
 
-  it("loads the seeded RFQ on first session render", async () => {
-    const { api } = createStatefulApi(createSessionSnapshot({ withRubric: false }));
+  it("loads a blank RFQ on first session render", async () => {
+    const { api } = createStatefulApi(createSessionSnapshot({ withRubric: false, template: "blank" }));
 
     render(
       <RfqWizard
@@ -443,13 +499,13 @@ describe("RfqWizard", () => {
       />,
     );
 
-    expect(await screen.findByDisplayValue("RFQ for global launch marketing services for new kids health drink")).toBeInTheDocument();
-    expect(screen.getByDisplayValue("Strategy & Creative Development")).toBeInTheDocument();
-    expect(screen.getByDisplayValue("Launch Program Management")).toBeInTheDocument();
+    expect(await screen.findByText("Use RFQ Sample")).toBeInTheDocument();
+    expect(screen.getByLabelText("Subject")).toHaveValue("");
+    expect(screen.queryByDisplayValue("Strategy & Creative Development")).not.toBeInTheDocument();
   });
 
   it("rehydrates a stale session URL instead of hanging on the loading state", async () => {
-    const snapshot = createSessionSnapshot({ withRubric: false });
+    const snapshot = createSessionSnapshot({ withRubric: false, template: "blank" });
     const api: RfqApiClient = {
       ...createStatefulApi(snapshot).api,
       getSession: vi.fn(async () => {
@@ -468,9 +524,8 @@ describe("RfqWizard", () => {
       />,
     );
 
-    expect(
-      await screen.findByDisplayValue("RFQ for global launch marketing services for new kids health drink"),
-    ).toBeInTheDocument();
+    expect(await screen.findByText("Use RFQ Sample")).toBeInTheDocument();
+    expect(screen.getByLabelText("Subject")).toHaveValue("");
     expect(api.getSession).toHaveBeenCalledWith("session_123");
     expect(api.createOrHydrateSession).toHaveBeenCalledWith("session_123");
   });
@@ -506,7 +561,7 @@ describe("RfqWizard", () => {
   });
 
   it("keeps buyer RFQ edits across step changes and refresh within the same session", async () => {
-    const { api, readSnapshot } = createStatefulApi(createSessionSnapshot());
+    const { api, readSnapshot } = createStatefulApi(createSessionSnapshot({ template: "blank" }));
     const onStepChange = vi.fn();
 
     const firstRender = render(
@@ -536,15 +591,52 @@ describe("RfqWizard", () => {
     expect(readSnapshot().rfq_draft.general_info.subject).toBe("Edited RFQ Subject");
   });
 
-  it("resets to a fresh seeded session without mutating the current session", async () => {
+  it("loads the full sample RFQ into the session when requested", async () => {
+    const { api, readSnapshot } = createStatefulApi(createSessionSnapshot({ withRubric: false, template: "blank" }));
+
+    render(
+      <RfqWizard api={api} autosaveMs={25} onStepChange={vi.fn()} sessionId="session_123" step="input" />,
+    );
+
+    expect(await screen.findByRole("button", { name: "Use RFQ Sample" })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Use RFQ Sample" }));
+
+    expect(await screen.findByDisplayValue("RFQ for global launch marketing services for new kids health drink")).toBeInTheDocument();
+    expect(screen.getByDisplayValue("Strategy & Creative Development")).toBeInTheDocument();
+    expect(readSnapshot().rfq_draft.buyer_priorities).toHaveLength(2);
+    expect(api.getRfqTemplate).toHaveBeenCalledWith("sample");
+    expect(api.saveRfq).toHaveBeenCalled();
+  });
+
+  it("clears the full RFQ draft back to blank inputs", async () => {
+    const { api, readSnapshot } = createStatefulApi(createSessionSnapshot({ withRubric: false, template: "sample" }));
+
+    render(
+      <RfqWizard api={api} autosaveMs={25} onStepChange={vi.fn()} sessionId="session_123" step="input" />,
+    );
+
+    expect(await screen.findByDisplayValue("RFQ for global launch marketing services for new kids health drink")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Clear RFQ" }));
+
+    expect(await screen.findByLabelText("Subject")).toHaveValue("");
+    expect(screen.queryByDisplayValue("Strategy & Creative Development")).not.toBeInTheDocument();
+    expect(readSnapshot().rfq_draft.mandatory_conditions).toHaveLength(0);
+    expect(api.getRfqTemplate).toHaveBeenCalledWith("blank");
+  });
+
+  it("resets to a fresh blank session without mutating the current session", async () => {
     const currentSnapshot = createSessionSnapshot({
       sessionId: "session_current",
       subject: "Changed in current session",
       withArtifact: true,
+      template: "sample",
     });
     const freshSnapshot = createSessionSnapshot({
       sessionId: "session_fresh",
       withRubric: false,
+      template: "blank",
     });
     const { api } = createStatefulApi(currentSnapshot);
     const onSessionReplace = vi.fn();

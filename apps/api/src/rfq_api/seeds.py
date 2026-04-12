@@ -1,7 +1,36 @@
 from .models import BuyerPriority, GeneralInfo, LineItem, RFQDraft, RFQTimelineSet
 
 
-def build_seed_rfq() -> RFQDraft:
+def build_blank_rfq() -> RFQDraft:
+    return RFQDraft(
+        general_info=GeneralInfo(
+            subject="",
+            rfq_code="",
+            sourcing_type="",
+            round="",
+            status="",
+            owner="",
+            currency="",
+            requestor="",
+            department="",
+            category="",
+        ),
+        scope_overview="",
+        timelines=RFQTimelineSet(
+            clarifications_deadline="",
+            technical_bid_deadline="",
+            commercial_bid_deadline="",
+            evaluation_start_date="",
+            negotiation_start_date="",
+            final_award_date="",
+        ),
+        buyer_priorities=[],
+        mandatory_conditions=[],
+        line_items=[],
+    )
+
+
+def build_sample_rfq() -> RFQDraft:
     return RFQDraft(
         general_info=GeneralInfo(
             subject="RFQ for global launch marketing services for new kids health drink",
@@ -142,3 +171,7 @@ def build_seed_rfq() -> RFQDraft:
             ),
         ],
     )
+
+
+def build_seed_rfq() -> RFQDraft:
+    return build_sample_rfq()

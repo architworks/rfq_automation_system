@@ -12,6 +12,7 @@ from ..config import Settings
 from .documents import build_file_data_url
 from ..models import (
     AwardType,
+    BuyerPriority,
     CommercialEvaluationResult,
     OFFICIAL_AWARD_BASIS,
     Criterion,
@@ -22,6 +23,7 @@ from ..models import (
     EvidenceCheck,
     EvidenceAnchor,
     ExtractedField,
+    LineItem,
     LockedFrameworkArtifact,
     Question,
     RawExtraction,
@@ -276,6 +278,10 @@ class OpenAIResponsesClient(LLMClient):
         instructions = (
             "Design one complete RFQ evaluation framework from the supplied RFQ brief. "
             "Stay generic to procurement logic and use only details present in the RFQ brief. "
+            "When the RFQ brief marks buyer priorities or mandatory conditions as not provided, "
+            "infer them from the rest of the RFQ details instead of importing sample-specific assumptions. "
+            "When buyer priorities or mandatory conditions are provided in the RFQ brief, treat them as authoritative "
+            "and do not replace them with inferred alternatives. "
             f"The official award basis must remain fixed to {OFFICIAL_AWARD_BASIS}. "
             "Use only the criterion types mac, technical_cutoff_backed, technical_scored_only, or commercial. "
             "Use MAC only for pass/fail mandatory gates. "
@@ -592,46 +598,65 @@ class OpenAIResponsesClient(LLMClient):
 
     @staticmethod
     def _build_rfq_brief(rfq_draft: RFQDraft) -> str:
+        priorities = OpenAIResponsesClient._meaningful_buyer_priorities(rfq_draft)
+        mandatory_conditions = OpenAIResponsesClient._meaningful_mandatory_conditions(rfq_draft)
+        line_items = OpenAIResponsesClient._meaningful_line_items(rfq_draft)
         timeline_lines = OpenAIResponsesClient._numbered_lines(
             [
-                f"Clarifications deadline: {rfq_draft.timelines.clarifications_deadline}",
-                f"Technical bid deadline: {rfq_draft.timelines.technical_bid_deadline}",
-                f"Commercial bid deadline: {rfq_draft.timelines.commercial_bid_deadline}",
-                f"Evaluation start date: {rfq_draft.timelines.evaluation_start_date}",
-                f"Negotiation start date: {rfq_draft.timelines.negotiation_start_date}",
-                f"Final award date: {rfq_draft.timelines.final_award_date}",
+                f"Clarifications deadline: {OpenAIResponsesClient._value_or_not_provided(rfq_draft.timelines.clarifications_deadline)}",
+                f"Technical bid deadline: {OpenAIResponsesClient._value_or_not_provided(rfq_draft.timelines.technical_bid_deadline)}",
+                f"Commercial bid deadline: {OpenAIResponsesClient._value_or_not_provided(rfq_draft.timelines.commercial_bid_deadline)}",
+                f"Evaluation start date: {OpenAIResponsesClient._value_or_not_provided(rfq_draft.timelines.evaluation_start_date)}",
+                f"Negotiation start date: {OpenAIResponsesClient._value_or_not_provided(rfq_draft.timelines.negotiation_start_date)}",
+                f"Final award date: {OpenAIResponsesClient._value_or_not_provided(rfq_draft.timelines.final_award_date)}",
             ]
         )
-        priority_lines = OpenAIResponsesClient._numbered_lines(
-            f"{item.title}: {OpenAIResponsesClient._shorten(item.description, 90)}"
-            for item in rfq_draft.buyer_priorities
-        )
-        mandatory_lines = OpenAIResponsesClient._numbered_lines(
-            OpenAIResponsesClient._shorten(item, 100)
-            for item in rfq_draft.mandatory_conditions
-        )
-        line_item_lines = OpenAIResponsesClient._numbered_lines(
-            (
-                f"{item.product_name} [{item.category}, {item.uom}]: "
-                f"{OpenAIResponsesClient._shorten(item.description, 110)}"
+        priority_lines = (
+            OpenAIResponsesClient._numbered_lines(
+                f"{OpenAIResponsesClient._value_or_placeholder(item.title, '[UNNAMED PRIORITY]')}: "
+                f"{OpenAIResponsesClient._shorten(OpenAIResponsesClient._value_or_placeholder(item.description, '[NO DESCRIPTION PROVIDED]'), 90)}"
+                for item in priorities
             )
-            for item in rfq_draft.line_items
+            if priorities
+            else "[NOT PROVIDED]. ACTION: Infer 3 strategic technical priorities based on the RFQ details provided."
+        )
+        mandatory_lines = (
+            OpenAIResponsesClient._numbered_lines(
+                OpenAIResponsesClient._shorten(item, 100)
+                for item in mandatory_conditions
+            )
+            if mandatory_conditions
+            else "[NOT PROVIDED]. ACTION: Infer 3-5 pass/fail mandatory gates based on the RFQ details provided."
+        )
+        line_item_lines = (
+            OpenAIResponsesClient._numbered_lines(
+                (
+                    f"{OpenAIResponsesClient._value_or_placeholder(item.product_name, '[UNNAMED LINE ITEM]')} "
+                    f"[{OpenAIResponsesClient._value_or_placeholder(item.category, 'category not provided')}, "
+                    f"{OpenAIResponsesClient._value_or_placeholder(item.uom, 'uom not provided')}]: "
+                    f"{OpenAIResponsesClient._shorten(OpenAIResponsesClient._value_or_placeholder(item.description, '[NO DESCRIPTION PROVIDED]'), 110)} "
+                    f"(HSN/SAC: {OpenAIResponsesClient._value_or_placeholder(item.hsn_sac, 'not provided')})"
+                )
+                for item in line_items
+            )
+            if line_items
+            else "[NOT PROVIDED]."
         )
 
         return (
             "RFQ summary\n"
-            f"Subject: {rfq_draft.general_info.subject}\n"
-            f"Code: {rfq_draft.general_info.rfq_code}\n"
-            f"Sourcing type: {rfq_draft.general_info.sourcing_type}\n"
-            f"Round: {rfq_draft.general_info.round}\n"
-            f"Status: {rfq_draft.general_info.status}\n"
-            f"Owner: {rfq_draft.general_info.owner}\n"
-            f"Currency: {rfq_draft.general_info.currency}\n"
-            f"Requestor: {rfq_draft.general_info.requestor}\n"
-            f"Department: {rfq_draft.general_info.department}\n"
-            f"Category: {rfq_draft.general_info.category}\n\n"
+            f"Subject: {OpenAIResponsesClient._value_or_not_provided(rfq_draft.general_info.subject)}\n"
+            f"Code: {OpenAIResponsesClient._value_or_not_provided(rfq_draft.general_info.rfq_code)}\n"
+            f"Sourcing type: {OpenAIResponsesClient._value_or_not_provided(rfq_draft.general_info.sourcing_type)}\n"
+            f"Round: {OpenAIResponsesClient._value_or_not_provided(rfq_draft.general_info.round)}\n"
+            f"Status: {OpenAIResponsesClient._value_or_not_provided(rfq_draft.general_info.status)}\n"
+            f"Owner: {OpenAIResponsesClient._value_or_not_provided(rfq_draft.general_info.owner)}\n"
+            f"Currency: {OpenAIResponsesClient._value_or_not_provided(rfq_draft.general_info.currency)}\n"
+            f"Requestor: {OpenAIResponsesClient._value_or_not_provided(rfq_draft.general_info.requestor)}\n"
+            f"Department: {OpenAIResponsesClient._value_or_not_provided(rfq_draft.general_info.department)}\n"
+            f"Category: {OpenAIResponsesClient._value_or_not_provided(rfq_draft.general_info.category)}\n\n"
             "Scope\n"
-            f"{OpenAIResponsesClient._shorten(rfq_draft.scope_overview, 320)}\n\n"
+            f"{OpenAIResponsesClient._shorten(OpenAIResponsesClient._value_or_not_provided(rfq_draft.scope_overview), 320)}\n\n"
             "Timelines\n"
             f"{timeline_lines}\n\n"
             "Buyer priorities\n"
@@ -1109,3 +1134,36 @@ class OpenAIResponsesClient(LLMClient):
     @staticmethod
     def _numbered_lines(values: Iterable[str]) -> str:
         return "\n".join(f"{index}. {value}" for index, value in enumerate(values, start=1))
+
+    @staticmethod
+    def _value_or_not_provided(value: str) -> str:
+        compact = " ".join(value.split())
+        return compact or "[NOT PROVIDED]"
+
+    @staticmethod
+    def _value_or_placeholder(value: str, placeholder: str) -> str:
+        compact = " ".join(value.split())
+        return compact or placeholder
+
+    @staticmethod
+    def _meaningful_buyer_priorities(rfq_draft: RFQDraft) -> list[BuyerPriority]:
+        return [
+            item
+            for item in rfq_draft.buyer_priorities
+            if item.title.strip() or item.description.strip()
+        ]
+
+    @staticmethod
+    def _meaningful_mandatory_conditions(rfq_draft: RFQDraft) -> list[str]:
+        return [item.strip() for item in rfq_draft.mandatory_conditions if item.strip()]
+
+    @staticmethod
+    def _meaningful_line_items(rfq_draft: RFQDraft) -> list[LineItem]:
+        return [
+            item
+            for item in rfq_draft.line_items
+            if any(
+                field.strip()
+                for field in (item.product_name, item.category, item.description, item.hsn_sac, item.uom)
+            )
+        ]

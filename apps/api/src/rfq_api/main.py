@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 from datetime import UTC, datetime
 from functools import lru_cache
+from typing import Literal
 
 import uvicorn
 from fastapi import Depends, FastAPI, File, HTTPException, Response, UploadFile, status
@@ -40,6 +41,7 @@ from .services.review import build_vendor_review
 from .services.rubric_generation import RubricGenerationService
 from .services.validation import validate_rubric_proposal
 from .services.vendor_pack import build_vendor_pack
+from .seeds import build_blank_rfq, build_sample_rfq
 from .session_store import SessionStore
 
 
@@ -71,6 +73,12 @@ def create_app() -> FastAPI:
         return {
             "status": "ok",
         }
+
+    @app.get("/rfq-templates/{template_name}", response_model=RFQDraft)
+    def get_rfq_template(template_name: Literal["blank", "sample"]) -> RFQDraft:
+        if template_name == "blank":
+            return build_blank_rfq()
+        return build_sample_rfq()
 
     @app.post("/sessions", response_model=SessionSnapshot)
     def create_session(
