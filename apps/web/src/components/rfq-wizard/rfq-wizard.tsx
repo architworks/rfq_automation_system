@@ -42,6 +42,7 @@ import {
 } from "@/lib/rubric-factories";
 import { setStoredSessionId } from "@/lib/session";
 import { buildVendorPackDocument } from "@/lib/vendor-pack-docx";
+import { FormInput, FormSelect, FormTextarea } from "./form-fields";
 import { PackStep, ResultsStep, ReviewStep, VendorsStep } from "./phase-two";
 
 import styles from "./rfq-wizard.module.css";
@@ -944,7 +945,7 @@ function InputStep({
         <div className={`${styles.fieldGrid} ${styles.twoCol}`}>
           <label className={styles.label}>
             Subject
-            <input
+            <FormInput
               className={styles.input}
               value={draft.general_info.subject}
               onChange={(event) =>
@@ -956,7 +957,7 @@ function InputStep({
           </label>
           <label className={styles.label}>
             RFQ Code
-            <input
+            <FormInput
               className={styles.input}
               value={draft.general_info.rfq_code}
               onChange={(event) =>
@@ -968,7 +969,7 @@ function InputStep({
           </label>
           <label className={styles.label}>
             Sourcing Type
-            <select
+            <FormSelect
               className={styles.select}
               value={draft.general_info.sourcing_type}
               onChange={(event) =>
@@ -980,11 +981,11 @@ function InputStep({
               <option value="RFQ">RFQ</option>
               <option value="RFP">RFP</option>
               <option value="RFI">RFI</option>
-            </select>
+            </FormSelect>
           </label>
           <label className={styles.label}>
             Round
-            <select
+            <FormSelect
               className={styles.select}
               value={draft.general_info.round}
               onChange={(event) =>
@@ -996,11 +997,11 @@ function InputStep({
               <option value="Round 1">Round 1</option>
               <option value="Round 2">Round 2</option>
               <option value="Round 3">Round 3</option>
-            </select>
+            </FormSelect>
           </label>
           <label className={styles.label}>
             Status
-            <select
+            <FormSelect
               className={styles.select}
               value={draft.general_info.status}
               onChange={(event) =>
@@ -1012,11 +1013,11 @@ function InputStep({
               <option value="Draft">Draft</option>
               <option value="Issued">Issued</option>
               <option value="Closed">Closed</option>
-            </select>
+            </FormSelect>
           </label>
           <label className={styles.label}>
             Owner
-            <input
+            <FormInput
               className={styles.input}
               value={draft.general_info.owner}
               onChange={(event) =>
@@ -1028,7 +1029,7 @@ function InputStep({
           </label>
           <label className={styles.label}>
             Currency
-            <select
+            <FormSelect
               className={styles.select}
               value={draft.general_info.currency}
               onChange={(event) =>
@@ -1041,11 +1042,11 @@ function InputStep({
               <option value="EUR">EUR</option>
               <option value="INR">INR</option>
               <option value="GBP">GBP</option>
-            </select>
+            </FormSelect>
           </label>
           <label className={styles.label}>
             Requestor
-            <input
+            <FormInput
               className={styles.input}
               value={draft.general_info.requestor}
               onChange={(event) =>
@@ -1057,7 +1058,7 @@ function InputStep({
           </label>
           <label className={styles.label}>
             Department
-            <input
+            <FormInput
               className={styles.input}
               value={draft.general_info.department}
               onChange={(event) =>
@@ -1069,7 +1070,7 @@ function InputStep({
           </label>
           <label className={styles.label}>
             Category
-            <input
+            <FormInput
               className={styles.input}
               value={draft.general_info.category}
               onChange={(event) =>
@@ -1082,7 +1083,7 @@ function InputStep({
         </div>
         <label className={styles.label} style={{ marginTop: 16 }}>
           Scope Overview
-          <textarea
+          <FormTextarea
             className={styles.textarea}
             value={draft.scope_overview}
             onChange={(event) =>
@@ -1104,7 +1105,7 @@ function InputStep({
         <div className={`${styles.fieldGrid} ${styles.twoCol}`}>
           <label className={styles.label}>
             Clarifications Deadline
-            <input
+            <FormInput
               className={styles.input}
               type="date"
               value={draft.timelines.clarifications_deadline}
@@ -1117,7 +1118,7 @@ function InputStep({
           </label>
           <label className={styles.label}>
             Technical Bid Deadline
-            <input
+            <FormInput
               className={styles.input}
               type="date"
               value={draft.timelines.technical_bid_deadline}
@@ -1130,7 +1131,7 @@ function InputStep({
           </label>
           <label className={styles.label}>
             Commercial Bid Deadline
-            <input
+            <FormInput
               className={styles.input}
               type="date"
               value={draft.timelines.commercial_bid_deadline}
@@ -1143,7 +1144,7 @@ function InputStep({
           </label>
           <label className={styles.label}>
             Evaluation Start Date
-            <input
+            <FormInput
               className={styles.input}
               type="date"
               value={draft.timelines.evaluation_start_date}
@@ -1156,7 +1157,7 @@ function InputStep({
           </label>
           <label className={styles.label}>
             Negotiation Start Date
-            <input
+            <FormInput
               className={styles.input}
               type="date"
               value={draft.timelines.negotiation_start_date}
@@ -1169,7 +1170,7 @@ function InputStep({
           </label>
           <label className={styles.label}>
             Final Award Date
-            <input
+            <FormInput
               className={styles.input}
               type="date"
               value={draft.timelines.final_award_date}
@@ -1221,7 +1222,7 @@ function InputStep({
               <div className={`${styles.fieldGrid} ${styles.twoCol}`}>
                 <label className={styles.label}>
                   Title
-                  <input
+                  <FormInput
                     className={styles.input}
                     value={priority.title}
                     onChange={(event) =>
@@ -1233,7 +1234,7 @@ function InputStep({
                 </label>
                 <label className={styles.label}>
                   Description
-                  <input
+                  <FormInput
                     className={styles.input}
                     value={priority.description}
                     onChange={(event) =>
@@ -1284,7 +1285,7 @@ function InputStep({
                   Remove
                 </button>
               </div>
-              <textarea
+              <FormTextarea
                 className={styles.textarea}
                 value={condition}
                 onChange={(event) =>
@@ -1332,7 +1333,7 @@ function InputStep({
               {draft.line_items.map((item: LineItem, index: number) => (
                 <tr key={item.id}>
                   <td>
-                    <input
+                    <FormInput
                       className={styles.input}
                       value={item.product_name}
                       onChange={(event) =>
@@ -1343,7 +1344,7 @@ function InputStep({
                     />
                   </td>
                   <td>
-                    <input
+                    <FormInput
                       className={styles.input}
                       value={item.category}
                       onChange={(event) =>
@@ -1354,7 +1355,7 @@ function InputStep({
                     />
                   </td>
                   <td>
-                    <textarea
+                    <FormTextarea
                       className={styles.textarea}
                       value={item.description}
                       onChange={(event) =>
@@ -1365,7 +1366,7 @@ function InputStep({
                     />
                   </td>
                   <td>
-                    <input
+                    <FormInput
                       className={styles.input}
                       value={item.hsn_sac}
                       onChange={(event) =>
@@ -1376,7 +1377,7 @@ function InputStep({
                     />
                   </td>
                   <td>
-                    <input
+                    <FormInput
                       className={styles.input}
                       value={item.uom}
                       onChange={(event) =>
@@ -1452,7 +1453,7 @@ function ProposalStep({
         <div className={`${styles.fieldGrid} ${styles.threeCol}`}>
           <label className={styles.label}>
             Aggregate Technical Threshold
-            <input
+            <FormInput
               className={styles.input}
               type="number"
               value={proposal.aggregate_technical_threshold}
@@ -1465,11 +1466,11 @@ function ProposalStep({
           </label>
           <label className={styles.label}>
             Official Award Basis
-            <input className={styles.input} disabled value={proposal.official_award_basis} />
+            <FormInput className={styles.input} disabled value={proposal.official_award_basis} />
           </label>
           <label className={styles.label}>
             Generation Rationale
-            <textarea
+            <FormTextarea
               className={styles.textarea}
               value={proposal.generation_rationale.join("\n")}
               onChange={(event) =>
@@ -1523,7 +1524,7 @@ function ProposalStep({
               <div className={`${styles.fieldGrid} ${styles.twoCol}`}>
                 <label className={styles.label}>
                   Section ID
-                  <input
+                  <FormInput
                     className={styles.input}
                     value={section.id}
                     onChange={(event) =>
@@ -1535,7 +1536,7 @@ function ProposalStep({
                 </label>
                 <label className={styles.label}>
                   Title
-                  <input
+                  <FormInput
                     className={styles.input}
                     value={section.title}
                     onChange={(event) =>
@@ -1548,7 +1549,7 @@ function ProposalStep({
               </div>
               <label className={styles.label} style={{ marginTop: 12 }}>
                 Description
-                <textarea
+                <FormTextarea
                   className={styles.textarea}
                   value={section.description}
                   onChange={(event) =>
@@ -1645,7 +1646,7 @@ function ProposalStep({
               <div className={`${styles.fieldGrid} ${styles.twoCol}`}>
                 <label className={styles.label}>
                   Question ID
-                  <input
+                  <FormInput
                     className={styles.input}
                     value={question.id}
                     onChange={(event) =>
@@ -1657,7 +1658,7 @@ function ProposalStep({
                 </label>
                 <label className={styles.label}>
                   Linked Criteria (comma separated IDs)
-                  <input
+                  <FormInput
                     className={styles.input}
                     value={toCsv(question.linked_criteria)}
                     onChange={(event) =>
@@ -1670,7 +1671,7 @@ function ProposalStep({
               </div>
               <label className={styles.label} style={{ marginTop: 12 }}>
                 Question Text
-                <textarea
+                <FormTextarea
                   className={styles.textarea}
                   value={question.text}
                   onChange={(event) =>
@@ -1682,7 +1683,7 @@ function ProposalStep({
               </label>
               <label className={styles.label} style={{ marginTop: 12 }}>
                 Purpose
-                <input
+                <FormInput
                   className={styles.input}
                   value={question.purpose}
                   onChange={(event) =>
@@ -1900,7 +1901,7 @@ function CriterionEditor({
         <div className={`${styles.fieldGrid} ${styles.threeCol}`}>
           <label className={styles.label}>
             Evaluation Mode
-            <select
+            <FormSelect
               className={styles.select}
               value={criterion.criterion_type}
               onChange={(event) =>
@@ -1932,11 +1933,11 @@ function CriterionEditor({
                   {option.label}
                 </option>
               ))}
-            </select>
+            </FormSelect>
           </label>
           <label className={styles.label}>
             Technical Weight
-            <input
+            <FormInput
               className={styles.input}
               type="number"
               value={criterion.weight ?? ""}
@@ -1949,7 +1950,7 @@ function CriterionEditor({
           </label>
           <label className={styles.label}>
             Minimum Qualifying Score
-            <input
+            <FormInput
               className={styles.input}
               type="number"
               value={criterion.min_cutoff ?? ""}
@@ -1962,7 +1963,7 @@ function CriterionEditor({
           </label>
           <label className={styles.label}>
             Maximum Score
-            <input
+            <FormInput
               className={styles.input}
               type="number"
               value={criterion.max_score ?? ""}
@@ -1983,7 +1984,7 @@ function CriterionEditor({
         </div>
         <label className={styles.label}>
           Criterion Name
-          <input
+          <FormInput
             className={styles.input}
             value={criterion.title}
             onChange={(event) =>
@@ -1995,7 +1996,7 @@ function CriterionEditor({
         </label>
         <label className={styles.label}>
           What This Criterion Measures
-          <textarea
+          <FormTextarea
             className={styles.textarea}
             value={criterion.description}
             onChange={(event) =>
@@ -2023,7 +2024,7 @@ function CriterionEditor({
             <div className={`${styles.fieldGrid} ${styles.twoCol}`}>
               <label className={styles.label}>
                 Internal Criterion ID
-                <input
+                <FormInput
                   className={styles.input}
                   value={criterion.id}
                   onChange={(event) =>
@@ -2035,7 +2036,7 @@ function CriterionEditor({
               </label>
               <label className={styles.label}>
                 Internal Section ID
-                <input
+                <FormInput
                   className={styles.input}
                   value={criterion.section_id}
                   onChange={(event) =>
@@ -2047,7 +2048,7 @@ function CriterionEditor({
               </label>
               <label className={styles.label}>
                 Linked Vendor Question IDs (comma separated)
-                <input
+                <FormInput
                   className={styles.input}
                   value={toCsv(criterion.linked_question_ids)}
                   onChange={(event) =>
@@ -2059,7 +2060,7 @@ function CriterionEditor({
               </label>
               <label className={styles.label}>
                 Linked Structured Input Field IDs (comma separated)
-                <input
+                <FormInput
                   className={styles.input}
                   value={toCsv(criterion.linked_schedule_fields)}
                   onChange={(event) =>
@@ -2114,7 +2115,7 @@ function CriterionEditor({
                   <div className={`${styles.fieldGrid} ${styles.twoCol}`}>
                     <label className={styles.label}>
                       Evaluator Check ID
-                      <input
+                      <FormInput
                         className={styles.input}
                         value={evidence.id}
                         onChange={(event) =>
@@ -2131,7 +2132,7 @@ function CriterionEditor({
                     </label>
                     <label className={styles.label}>
                       Evaluator Check Name
-                      <input
+                      <FormInput
                         className={styles.input}
                         value={evidence.label}
                         onChange={(event) =>
@@ -2149,7 +2150,7 @@ function CriterionEditor({
                   </div>
                   <label className={styles.label} style={{ marginTop: 12 }}>
                     What Evaluator Must Verify
-                    <textarea
+                    <FormTextarea
                       className={styles.textarea}
                       value={evidence.description}
                       onChange={(event) =>
@@ -2265,7 +2266,7 @@ function ScheduleEditor({
       <div className={`${styles.fieldGrid} ${styles.twoCol}`}>
         <label className={styles.label}>
           Schedule ID
-          <input
+          <FormInput
             className={styles.input}
             value={schedule.id}
             onChange={(event) =>
@@ -2277,7 +2278,7 @@ function ScheduleEditor({
         </label>
         <label className={styles.label}>
           Schedule Name
-          <input
+          <FormInput
             className={styles.input}
             value={schedule.name}
             onChange={(event) =>
@@ -2290,7 +2291,7 @@ function ScheduleEditor({
       </div>
       <label className={styles.label} style={{ marginTop: 12 }}>
         Purpose
-        <textarea
+        <FormTextarea
           className={styles.textarea}
           value={schedule.purpose}
           onChange={(event) =>
@@ -2302,7 +2303,7 @@ function ScheduleEditor({
       </label>
       <label className={styles.label} style={{ marginTop: 12 }}>
         Linked Criteria (comma separated IDs)
-        <input
+        <FormInput
           className={styles.input}
           value={toCsv(schedule.linked_criteria)}
           onChange={(event) =>
@@ -2347,7 +2348,7 @@ function ScheduleEditor({
               <div className={`${styles.fieldGrid} ${styles.threeCol}`}>
                 <label className={styles.label}>
                   Column ID
-                  <input
+                  <FormInput
                     className={styles.input}
                     value={column.id}
                     onChange={(event) =>
@@ -2359,7 +2360,7 @@ function ScheduleEditor({
                 </label>
                 <label className={styles.label}>
                   Label
-                  <input
+                  <FormInput
                     className={styles.input}
                     value={column.label}
                     onChange={(event) =>
@@ -2371,7 +2372,7 @@ function ScheduleEditor({
                 </label>
                 <label className={styles.label}>
                   Required
-                  <select
+                  <FormSelect
                     className={styles.select}
                     value={column.required ? "true" : "false"}
                     onChange={(event) =>
@@ -2382,12 +2383,12 @@ function ScheduleEditor({
                   >
                     <option value="true">Required</option>
                     <option value="false">Optional</option>
-                  </select>
+                  </FormSelect>
                 </label>
               </div>
               <label className={styles.label} style={{ marginTop: 12 }}>
                 Description
-                <textarea
+                <FormTextarea
                   className={styles.textarea}
                   value={column.description}
                   onChange={(event) =>

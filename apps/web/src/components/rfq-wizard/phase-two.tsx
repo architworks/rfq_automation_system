@@ -16,6 +16,7 @@ import type {
   VendorReview,
 } from "@/lib/api";
 
+import { FormInput } from "./form-fields";
 import styles from "./rfq-wizard.module.css";
 
 type DownloadState = "idle" | "ready" | "done" | "error";
@@ -337,7 +338,7 @@ export function VendorsStep({
           </div>
         </div>
         <div className={styles.vendorToolbar}>
-          <input
+          <FormInput
             className={styles.input}
             name="new_vendor_name"
             placeholder="Add vendor name"
@@ -386,7 +387,7 @@ export function VendorsStep({
             <div className={`${styles.fieldGrid} ${styles.threeCol}`}>
               <label className={styles.label}>
                 Vendor Name
-                <input
+                <FormInput
                   className={styles.input}
                   name={`vendor_name_${vendor.id}`}
                   value={renameDrafts[vendor.id] ?? vendor.name}
@@ -438,7 +439,7 @@ export function VendorsStep({
               <div className={styles.buttonGroup}>
                 <label className={styles.uploadLabel}>
                   <span>{uploadingVendorId === vendor.id ? "Uploading..." : "Upload / Replace document"}</span>
-                  <input
+                  <FormInput
                     accept={ACCEPTED_VENDOR_FILES}
                     className={styles.uploadInput}
                     disabled={Boolean(uploadingVendorId)}
@@ -513,7 +514,7 @@ export function ReviewStep({
         <div className={`${styles.fieldGrid} ${styles.twoCol}`}>
           <label className={styles.label}>
             Base Currency
-            <input
+            <FormInput
               className={styles.input}
               name="base_currency"
               value={comparisonSettingsDraft.base_currency}
@@ -526,7 +527,7 @@ export function ReviewStep({
           </label>
           <label className={styles.label}>
             FX Effective Date
-            <input
+            <FormInput
               className={styles.input}
               name="fx_effective_date"
               type="date"
@@ -551,7 +552,7 @@ export function ReviewStep({
                 <div className={`${styles.fieldGrid} ${styles.twoCol}`}>
                   <label className={styles.label}>
                     Currency
-                    <input
+                    <FormInput
                       className={styles.input}
                       name={`fx_currency_${index}`}
                       value={rate.currency}
@@ -565,7 +566,7 @@ export function ReviewStep({
                   </label>
                   <label className={styles.label}>
                     Rate To Base
-                    <input
+                    <FormInput
                       className={styles.input}
                       name={`fx_rate_to_base_${index}`}
                       type="number"
@@ -625,7 +626,7 @@ export function ReviewStep({
                 <div className={`${styles.fieldGrid} ${styles.threeCol}`}>
                   <label className={styles.label}>
                     From UOM
-                    <input
+                    <FormInput
                       className={styles.input}
                       name={`uom_from_${index}`}
                       value={override.from_uom}
@@ -639,7 +640,7 @@ export function ReviewStep({
                   </label>
                   <label className={styles.label}>
                     To UOM
-                    <input
+                    <FormInput
                       className={styles.input}
                       name={`uom_to_${index}`}
                       value={override.to_uom}
@@ -653,7 +654,7 @@ export function ReviewStep({
                   </label>
                   <label className={styles.label}>
                     Factor
-                    <input
+                    <FormInput
                       className={styles.input}
                       name={`uom_factor_${index}`}
                       type="number"
@@ -670,7 +671,7 @@ export function ReviewStep({
                 </div>
                 <label className={styles.label} style={{ marginTop: 12 }}>
                   Line Item ID (optional)
-                  <input
+                  <FormInput
                     className={styles.input}
                     name={`uom_line_item_id_${index}`}
                     value={override.line_item_id ?? ""}
