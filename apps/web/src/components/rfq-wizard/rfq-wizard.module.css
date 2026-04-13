@@ -337,7 +337,7 @@
   font-weight: 800;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: #64748b;
+  color: #334155;
 }
 
 .summaryValue {
@@ -427,6 +427,11 @@
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
+}
+
+.scoreRowWinner td {
+  background: rgba(239, 246, 255, 0.88);
+  font-weight: 650;
 }
 
 .editorSection {
@@ -749,6 +754,150 @@
   color: #64748b;
 }
 
+.resultsHeroLayout {
+  display: grid;
+  gap: 18px;
+  grid-template-columns: minmax(0, 1.4fr) minmax(240px, 0.9fr);
+}
+
+.winnerHero {
+  display: grid;
+  gap: 16px;
+  padding: 22px;
+  border-radius: 24px;
+  border: 1px solid rgba(29, 78, 216, 0.18);
+  background:
+    radial-gradient(circle at top right, rgba(96, 165, 250, 0.18), transparent 34%),
+    linear-gradient(180deg, rgba(239, 246, 255, 0.94), rgba(248, 250, 252, 0.96));
+}
+
+.winnerHeroEyebrow {
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #1d4ed8;
+}
+
+.winnerHeroName {
+  font-size: clamp(1.8rem, 4vw, 2.6rem);
+  line-height: 1.05;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.winnerHeroSummary {
+  max-width: 60ch;
+  line-height: 1.65;
+  color: #334155;
+}
+
+.winnerMetricGrid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+
+.winnerMetricCard {
+  display: grid;
+  gap: 6px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  background: rgba(255, 255, 255, 0.86);
+}
+
+.winnerMetricLabel {
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #475569;
+}
+
+.winnerMetricValue {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.podiumGrid {
+  display: grid;
+  gap: 12px;
+  align-content: start;
+}
+
+.podiumCard {
+  display: grid;
+  gap: 8px;
+  padding: 16px;
+  border-radius: 20px;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.04);
+}
+
+.podiumCardWinner {
+  border-color: rgba(245, 158, 11, 0.34);
+  background:
+    radial-gradient(circle at top right, rgba(251, 191, 36, 0.22), transparent 38%),
+    rgba(255, 251, 235, 0.96);
+}
+
+.podiumRank {
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #9a3412;
+}
+
+.podiumVendor {
+  font-size: 1rem;
+  font-weight: 750;
+  line-height: 1.4;
+  color: #0f172a;
+}
+
+.podiumScore {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #1e293b;
+}
+
+.podiumMeta,
+.podiumEmpty {
+  line-height: 1.55;
+  color: #64748b;
+}
+
+.frameworkNote {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  background: rgba(248, 250, 252, 0.92);
+  line-height: 1.55;
+  color: #334155;
+}
+
+.scoreTraceList {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.traceSection {
+  display: grid;
+  gap: 12px;
+}
+
+.traceSectionTitle {
+  font-size: 0.92rem;
+  font-weight: 750;
+  color: #0f172a;
+}
+
 .reviewLayout {
   display: grid;
   gap: 18px;
@@ -823,6 +972,106 @@
   display: grid;
   gap: 16px;
   min-width: 0;
+}
+
+.resultAccordion {
+  border-radius: 18px;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  background: rgba(255, 255, 255, 0.92);
+  overflow: hidden;
+}
+
+.resultAccordion[open] {
+  border-color: rgba(29, 78, 216, 0.24);
+  box-shadow: 0 10px 24px rgba(30, 64, 175, 0.08);
+}
+
+.resultAccordionSummary {
+  position: relative;
+  cursor: pointer;
+  list-style: none;
+  padding: 16px 52px 16px 16px;
+}
+
+.resultAccordionSummary::-webkit-details-marker {
+  display: none;
+}
+
+.resultAccordionSummary::after {
+  content: "▾";
+  position: absolute;
+  top: 18px;
+  right: 16px;
+  font-size: 0.95rem;
+  color: #1d4ed8;
+  transition: transform 160ms ease;
+}
+
+.resultAccordion[open] .resultAccordionSummary::after {
+  transform: rotate(180deg);
+}
+
+.resultAccordionHeader {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.resultAccordionTitle {
+  font-size: 1rem;
+  font-weight: 750;
+  line-height: 1.4;
+  color: #0f172a;
+}
+
+.resultAccordionMeta {
+  margin-top: 4px;
+  line-height: 1.55;
+  color: #64748b;
+}
+
+.resultAccordionSummaryMetrics {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+  align-items: center;
+}
+
+.resultMetricPill {
+  display: grid;
+  gap: 4px;
+  min-width: 150px;
+  padding: 11px 12px;
+  border-radius: 16px;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  background: rgba(248, 250, 252, 0.94);
+}
+
+.resultMetricLabel {
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #475569;
+}
+
+.resultMetricValue {
+  font-size: 1rem;
+  font-weight: 750;
+  color: #0f172a;
+}
+
+.resultAccordionBody {
+  display: grid;
+  gap: 14px;
+  padding: 0 16px 16px;
+  border-top: 1px solid rgba(148, 163, 184, 0.18);
+  background:
+    linear-gradient(180deg, rgba(248, 250, 252, 0.92), rgba(255, 255, 255, 0.96)),
+    #fff;
 }
 
 .reviewAnswerCard {
@@ -957,7 +1206,19 @@
     grid-template-columns: 1fr;
   }
 
+  .resultsHeroLayout {
+    grid-template-columns: 1fr;
+  }
+
   .reviewSectionDock {
     position: static;
+  }
+
+  .resultAccordionHeader {
+    flex-direction: column;
+  }
+
+  .resultAccordionSummaryMetrics {
+    justify-content: flex-start;
   }
 }

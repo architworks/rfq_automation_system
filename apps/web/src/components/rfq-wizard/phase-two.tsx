@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 import type {
+    CommercialEvaluationResult,
     Criterion,
     ComparisonSettings,
     ExtractedField,
@@ -11,6 +12,7 @@ import type {
     NormalizedField,
     NormalizedPricingLine,
     Question,
+    TechnicalEvaluationResult,
     TechnicalCriterionResult,
     VendorPack,
     VendorRecord,
@@ -63,6 +65,10 @@ type ResultsStepProps = {
   reviews: VendorReview[];
 };
 
+type VendorScoreBreakdownItem = NonNullable<
+  NonNullable<EvaluationReport["official_recommendation"]["score_breakdown"]>[number]
+>;
+
 const ACCEPTED_VENDOR_FILES = ".pdf,.ppt,.pptx,.doc,.docx,.xls,.xlsx";
 
 export function PackStep({
@@ -84,7 +90,7 @@ export function PackStep({
       <section className={styles.card}>
         <div className={styles.cardHeader}>
           <div>
-            <h2 className={styles.cardTitle}>Vendor Pack Preview</h2>
+            <h2 className={styles.cardTitle}>Vendor RFQ Pack Preview</h2>
             <p className={styles.cardSubtle}>
               This is the buyer-approved vendor-facing pack derived directly from the locked framework.
             </p>
@@ -336,7 +342,7 @@ export function VendorsStep({
       <section className={styles.card}>
         <div className={styles.cardHeader}>
           <div>
-            <h2 className={styles.cardTitle}>Vendor Registry</h2>
+            <h2 className={styles.cardTitle}>Add Vendors</h2>
             <p className={styles.cardSubtle}>
               Register vendors here. Upload all source documents first, then run one extraction job for every uploaded vendor.
             </p>
@@ -611,7 +617,7 @@ export function ReviewStep({
         <section className={styles.card}>
           <div className={styles.cardHeader}>
             <div>
-              <h2 className={styles.cardTitle}>Vendor Reviews</h2>
+              <h2 className={styles.cardTitle}>Extraction Review</h2>
               <p className={styles.cardSubtle}>
                 Raw extraction and normalized views remain separate here so the buyer can see what changed.
               </p>
@@ -750,319 +756,793 @@ export function ResultsStep({
       ),
     [reviews],
   );
-  const scoreBreakdownByVendor = useMemo(
+  const technicalResultsByVendor = useMemo(
     () =>
       new Map(
-        (evaluationReport?.official_recommendation.score_breakdown ?? []).map((item) => [item.vendor_id, item]),
+        (evaluationReport?.technical_results ?? []).map((result) => [result.vendor_id, result]),
       ),
     [evaluationReport],
   );
+  const commercialResultsByVendor = useMemo(
+    () =>
+      new Map(
+        (evaluationReport?.commercial_results ?? []).map((result) => [result.vendor_id, result]),
+      ),
+    [evaluationReport],
+  );
+  const rankedScoreBreakdown = useMemo(
+    () =>
+      rankVendorBreakdowns(
+        evaluationReport?.official_recommendation.score_breakdown ?? [],
+        evaluationReport?.official_recommendation.winner_vendor_id ?? null,
+      ),
+    [evaluationReport],
+  );
+  const scoreBreakdownByVendor = useMemo(
+    () =>
+      new Map(
+        rankedScoreBreakdown.map((item) => [item.vendor_id, item]),
+      ),
+    [rankedScoreBreakdown],
+  );
   const technicalThreshold = evaluationReport?.technical_results?.[0]?.threshold ?? null;
-  const winnerName =
+  const winnerBreakdown =
     (evaluationReport?.official_recommendation.winner_vendor_id
-      ? scoreBreakdownByVendor.get(evaluationReport.official_recommendation.winner_vendor_id)?.vendor_name
-      : null) ??
+      ? scoreBreakdownByVendor.get(evaluationReport.official_recommendation.winner_vendor_id)
+      : null) ?? null;
+  const winnerName =
+    winnerBreakdown?.vendor_name ??
     evaluationReport?.official_recommendation.winner_vendor_id ??
     "No winner";
+  const eligibleVendorNames = useMemo(
+    () =>
+      (evaluationReport?.official_recommendation.eligible_vendor_ids ?? []).map(
+        (vendorId) => scoreBreakdownByVendor.get(vendorId)?.vendor_name ?? vendorId,
+      ),
+    [evaluationReport, scoreBreakdownByVendor],
+  );
+  const podiumEntries = useMemo(
+    () =>
+      buildPodiumEntries(
+        rankedScoreBreakdown,
+        evaluationReport?.official_recommendation.winner_vendor_id ?? null,
+      ),
+    [evaluationReport, rankedScoreBreakdown],
+  );
+  const resultsSections = useMemo(
+    () => [
+      { id: "results-official-result", label: "Official Award" },
+      { id: "results-ai-insights", label: "AI Insights" },
+      { id: "results-score-breakdown", label: "Score Trace" },
+      { id: "results-technical-evaluation", label: "Technical Detail" },
+      { id: "results-commercial-evaluation", label: "Commercial Detail" },
+    ],
+    [],
+  );
 
   return (
-    <div className={styles.grid}>
-      <section className={styles.card}>
-        <div className={styles.cardHeader}>
-          <div>
-            <h2 className={styles.cardTitle}>Evaluation Run</h2>
-            <p className={styles.cardSubtle}>
-              Official recommendation uses QCBS 70/30. LCS, QBS, and the AI scenarios are shown only as advisory insights.
-            </p>
-          </div>
-          <div className={styles.buttonGroup}>
-            <button
-              className={styles.primaryButton}
-              disabled={!normalizationReady || isRunningEvaluation}
-              onClick={onRunEvaluation}
-              type="button"
-            >
-              {isRunningEvaluation ? "Running evaluation..." : "Run evaluation"}
-            </button>
-          </div>
+    <div className={styles.reviewPageLayout}>
+      <aside className={styles.reviewPageSidebar}>
+        <div className={styles.reviewSectionDock}>
+          <div className={styles.previewSectionTitle}>Results Navigation</div>
+          {evaluationReport ? (
+            <>
+              <div className={styles.previewItemMeta}>
+                Jump between the official award, score trace, and advisory sections without losing your place.
+              </div>
+              <div className={styles.reviewSectionNavList}>
+                {resultsSections.map((section) => (
+                  <button
+                    className={styles.reviewSectionNavButton}
+                    key={section.id}
+                    onClick={() => scrollToReviewSection(section.id)}
+                    type="button"
+                  >
+                    {section.label}
+                  </button>
+                ))}
+              </div>
+            </>
+          ) : (
+            <div className={styles.reviewSectionDockEmpty}>
+              Run the evaluation to unlock section navigation for the official result and score trace.
+            </div>
+          )}
         </div>
+      </aside>
 
-        {!normalizationReady ? (
-          <div className={`${styles.banner} ${styles.errorBanner}`}>
-            Automatic normalization basis is unavailable. Set a supported RFQ currency and lock the framework again.
+      <div className={styles.reviewPageMain}>
+        <section className={styles.card}>
+          <div className={styles.cardHeader}>
+            <div>
+              <h2 className={styles.cardTitle}>Evaluation Run</h2>
+              <p className={styles.cardSubtle}>
+                Official recommendation uses QCBS 70/30. LCS, QBS, and the AI scenarios are shown only as advisory insights.
+              </p>
+            </div>
+            <div className={styles.buttonGroup}>
+              <button
+                className={styles.primaryButton}
+                disabled={!normalizationReady || isRunningEvaluation}
+                onClick={onRunEvaluation}
+                type="button"
+              >
+                {isRunningEvaluation ? "Running evaluation..." : "Run evaluation"}
+              </button>
+            </div>
           </div>
-        ) : null}
-      </section>
 
-      {!evaluationReport ? (
-        <div className={`${styles.banner} ${styles.infoBanner}`}>
-          No evaluation report is available yet. Run the official evaluation when vendor reviews and automatic normalization are ready.
-        </div>
-      ) : (
-        <>
-          {(evaluationReport.blocked_reasons ?? []).length > 0 ? (
+          {!normalizationReady ? (
             <div className={`${styles.banner} ${styles.errorBanner}`}>
-              {(evaluationReport.blocked_reasons ?? []).join(" ")}
+              Automatic normalization basis is unavailable. Set a supported RFQ currency and lock the framework again.
             </div>
           ) : null}
+        </section>
 
-          <section className={styles.card}>
-            <div className={styles.cardHeader}>
-              <div>
-                <h2 className={styles.cardTitle}>Official Result</h2>
-                <p className={styles.cardSubtle}>
-                  This section is the governed output. Everything below under AI insights is advisory only.
-                </p>
-              </div>
-              <div className={`${styles.statusBadge} ${styles.statusBadgeSuccess}`}>Official result</div>
-            </div>
-            <div className={styles.summaryGrid}>
-              <div className={styles.summaryItem}>
-                <span className={styles.summaryLabel}>Generated At</span>
-                <span className={styles.summaryValue}>{formatTimestamp(evaluationReport.generated_at)}</span>
-              </div>
-              <div className={styles.summaryItem}>
-                <span className={styles.summaryLabel}>Winner Vendor</span>
-                <span className={styles.summaryValue}>{winnerName}</span>
-              </div>
-              <div className={styles.summaryItem}>
-                <span className={styles.summaryLabel}>Eligible Vendors</span>
-                <span className={styles.summaryValue}>
-                  {(evaluationReport.official_recommendation.eligible_vendor_ids ?? []).join(", ") || "None"}
-                </span>
-              </div>
-              <div className={styles.summaryItem}>
-                <span className={styles.summaryLabel}>Aggregate Technical Threshold</span>
-                <span className={styles.summaryValue}>
-                  {technicalThreshold !== null ? `${formatOptionalNumber(technicalThreshold)} / 100` : "Not available"}
-                </span>
-              </div>
-              <div className={styles.summaryItem}>
-                <span className={styles.summaryLabel}>Commercial Comparison Currency</span>
-                <span className={styles.summaryValue}>{comparisonSettings?.base_currency ?? "Not available"}</span>
-              </div>
-              <div className={styles.summaryNarrative}>
-                <span className={styles.summaryLabel}>Explanation</span>
-                <span className={styles.summaryValue}>{evaluationReport.official_recommendation.explanation}</span>
-              </div>
-            </div>
-            {(evaluationReport.official_recommendation.risks ?? []).length > 0 ? (
-              <div className={styles.summaryNarrative} style={{ marginTop: 16 }}>
-                <span className={styles.summaryLabel}>Risks</span>
-                <span className={styles.summaryValue}>
-                  {(evaluationReport.official_recommendation.risks ?? []).join(" ")}
-                </span>
+        {!evaluationReport ? (
+          <div className={`${styles.banner} ${styles.infoBanner}`}>
+            No evaluation report is available yet. Run the official evaluation when vendor reviews and automatic normalization are ready.
+          </div>
+        ) : (
+          <>
+            {(evaluationReport.blocked_reasons ?? []).length > 0 ? (
+              <div className={`${styles.banner} ${styles.errorBanner}`}>
+                {(evaluationReport.blocked_reasons ?? []).join(" ")}
               </div>
             ) : null}
-          </section>
 
-          <section className={styles.card}>
-            <div className={styles.cardHeader}>
-              <div>
-                <h2 className={styles.cardTitle}>Official Score Breakdown</h2>
-                <p className={styles.cardSubtle}>
-                  Technical is the hard gate. A vendor must pass mandatory gates, criterion-level cutoffs, and the
-                  aggregate technical threshold before commercial scoring applies.
-                </p>
+            <section className={styles.card} id="results-official-result">
+              <div className={styles.cardHeader}>
+                <div>
+                  <h2 className={styles.cardTitle}>Official Result</h2>
+                  <p className={styles.cardSubtle}>
+                    This is the governed QCBS 70/30 award outcome. AI insights remain advisory and are shown separately.
+                  </p>
+                </div>
+                <div className={`${styles.statusBadge} ${styles.statusBadgeSuccess}`}>Official result</div>
               </div>
+
+              <div className={styles.resultsHeroLayout}>
+                <div className={styles.winnerHero}>
+                  <div className={styles.winnerHeroEyebrow}>Official QCBS 70/30 Winner</div>
+                  <div className={styles.winnerHeroName}>{winnerName}</div>
+                  <div className={styles.winnerHeroSummary}>
+                    {evaluationReport.official_recommendation.explanation}
+                  </div>
+                  <div className={styles.winnerMetricGrid}>
+                    <div className={styles.winnerMetricCard}>
+                      <span className={styles.winnerMetricLabel}>Final QCBS Score</span>
+                      <span className={styles.winnerMetricValue}>
+                        {formatOptionalNumber(winnerBreakdown?.final_score)}
+                      </span>
+                    </div>
+                    <div className={styles.winnerMetricCard}>
+                      <span className={styles.winnerMetricLabel}>Technical Score</span>
+                      <span className={styles.winnerMetricValue}>
+                        {formatOptionalNumber(winnerBreakdown?.technical_score)}
+                      </span>
+                    </div>
+                    <div className={styles.winnerMetricCard}>
+                      <span className={styles.winnerMetricLabel}>Commercial Score</span>
+                      <span className={styles.winnerMetricValue}>
+                        {formatOptionalNumber(winnerBreakdown?.commercial_score)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className={styles.podiumGrid}>
+                  {podiumEntries.length > 0 ? (
+                    podiumEntries.map((item, index) => (
+                      <div
+                        className={`${styles.podiumCard} ${index === 0 ? styles.podiumCardWinner : ""}`}
+                        key={item.vendor_id}
+                      >
+                        <div className={styles.podiumRank}>#{index + 1}</div>
+                        <div className={styles.podiumVendor}>{item.vendor_name}</div>
+                        <div className={styles.podiumScore}>
+                          {formatOptionalNumber(item.final_score)}
+                        </div>
+                        <div className={styles.podiumMeta}>
+                          {item.passed_technical_gate ? "Passed technical gate" : "Failed technical gate"}
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className={styles.podiumEmpty}>
+                      No ranked score breakdown is available yet.
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className={styles.summaryGrid} style={{ marginTop: 18 }}>
+                <div className={styles.summaryItem}>
+                  <span className={styles.summaryLabel}>Generated At</span>
+                  <span className={styles.summaryValue}>{formatTimestamp(evaluationReport.generated_at)}</span>
+                </div>
+                <div className={styles.summaryItem}>
+                  <span className={styles.summaryLabel}>Eligible Vendors</span>
+                  <span className={styles.summaryValue}>
+                    {eligibleVendorNames.join(", ") || "None"}
+                  </span>
+                </div>
+                <div className={styles.summaryItem}>
+                  <span className={styles.summaryLabel}>Framework Technical Threshold</span>
+                  <span className={styles.summaryValue}>
+                    {technicalThreshold !== null ? `${formatOptionalNumber(technicalThreshold)} / 100` : "Not available"}
+                  </span>
+                </div>
+                <div className={styles.summaryItem}>
+                  <span className={styles.summaryLabel}>Commercial Comparison Currency</span>
+                  <span className={styles.summaryValue}>{comparisonSettings?.base_currency ?? "Not available"}</span>
+                </div>
+              </div>
+
+              {(evaluationReport.official_recommendation.risks ?? []).length > 0 ? (
+                <div className={styles.reviewInsightBox} style={{ marginTop: 16 }}>
+                  <span className={styles.summaryLabel}>Decision Risks</span>
+                  <span className={styles.summaryValue}>
+                    {(evaluationReport.official_recommendation.risks ?? []).join(" ")}
+                  </span>
+                </div>
+              ) : null}
+            </section>
+
+            <section className={styles.card} id="results-ai-insights">
+              <div className={styles.cardHeader}>
+                <div>
+                  <h2 className={styles.cardTitle}>AI Insights</h2>
+                  <p className={styles.cardSubtle}>
+                    These scenarios are advisory only. They never override the official QCBS recommendation.
+                  </p>
+                </div>
+                <div className={`${styles.statusBadge} ${styles.statusBadgeWarning}`}>AI insights</div>
+              </div>
+              {(evaluationReport.advisory_scenarios ?? []).length === 0 ? (
+                <div className={styles.previewEmpty}>No advisory AI scenarios are available.</div>
+              ) : (
+                <div className={styles.previewList}>
+                  {(evaluationReport.advisory_scenarios ?? []).map((scenario, index) => (
+                    <div className={styles.previewItem} key={`${scenario.scenario_name}-${index}`}>
+                      <div className={styles.previewItemHeader}>
+                        <div>
+                          <div className={styles.previewTitle}>{scenario.scenario_name}</div>
+                          <div className={styles.previewItemMeta}>{scenario.scenario_kind}</div>
+                        </div>
+                        <div className={styles.previewBadge}>Winner: {scenario.winner_vendor_id ?? "None"}</div>
+                      </div>
+                      <div className={styles.previewItemBody}>{scenario.explanation}</div>
+                      <div className={styles.previewItemMeta}>{scenario.weighting_or_rule_basis}</div>
+                      {(scenario.excluded_vendor_ids ?? []).length > 0 ? (
+                        <div className={styles.previewItemMeta}>
+                          Excluded vendors: {(scenario.excluded_vendor_ids ?? []).join(", ")}
+                        </div>
+                      ) : null}
+                      <div className={styles.tableWrap}>
+                        <table className={styles.scoreTable}>
+                          <thead>
+                            <tr>
+                              <th>Vendor</th>
+                              <th>Score</th>
+                              <th>Notes</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {(scenario.ranking ?? []).map((item) => (
+                              <tr key={`${scenario.scenario_name}-${item.vendor_id}`}>
+                                <td>{item.vendor_name}</td>
+                                <td>{formatOptionalNumber(item.score)}</td>
+                                <td>{(item.notes ?? []).join(" ") || "None"}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </section>
+
+            <section className={styles.card} id="results-score-breakdown">
+              <div className={styles.cardHeader}>
+                <div>
+                  <h2 className={styles.cardTitle}>Official Score Breakdown</h2>
+                  <p className={styles.cardSubtle}>
+                    Technical is the hard gate. Vendors must clear mandatory gates, criterion-level cutoffs, and the
+                    framework technical threshold before commercial scoring applies.
+                  </p>
+                </div>
+              </div>
+              <div className={styles.frameworkNote}>
+                Framework technical threshold:{" "}
+                {technicalThreshold !== null ? `${formatOptionalNumber(technicalThreshold)} / 100` : "Not available"}.
+                Expand a vendor below to trace the exact technical and commercial numbers behind its result.
+              </div>
+              <div className={styles.tableWrap}>
+                <table className={styles.scoreTable}>
+                  <thead>
+                    <tr>
+                      <th>Vendor</th>
+                      <th>Technical Gate</th>
+                      <th>Technical Score</th>
+                      <th>Commercial Status</th>
+                      <th>Commercial Score</th>
+                      <th>Final QCBS Score</th>
+                      <th>Award Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {rankedScoreBreakdown.map((item) => (
+                      <tr
+                        className={
+                          item.vendor_id === evaluationReport.official_recommendation.winner_vendor_id
+                            ? styles.scoreRowWinner
+                            : undefined
+                        }
+                        key={item.vendor_id}
+                      >
+                        <td>{item.vendor_name}</td>
+                        <td>{item.passed_technical_gate ? "Passed" : "Failed"}</td>
+                        <td>{formatOptionalNumber(item.technical_score)}</td>
+                        <td>{item.commercially_comparable ? "Comparable" : "Blocked / Not comparable"}</td>
+                        <td>{formatOptionalNumber(item.commercial_score)}</td>
+                        <td>{formatOptionalNumber(item.final_score)}</td>
+                        <td>
+                          {item.vendor_id === evaluationReport.official_recommendation.winner_vendor_id
+                            ? "Official winner"
+                            : item.passed_technical_gate
+                              ? "Ranked"
+                              : "Stopped at technical gate"}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className={styles.scoreTraceList}>
+                {rankedScoreBreakdown.map((item) => (
+                  <OfficialScoreTraceCard
+                    commercialResult={commercialResultsByVendor.get(item.vendor_id) ?? null}
+                    criteriaById={criteriaById}
+                    key={item.vendor_id}
+                    scoreBreakdown={item}
+                    technicalResult={technicalResultsByVendor.get(item.vendor_id) ?? null}
+                    technicalThreshold={technicalThreshold}
+                    winnerVendorId={evaluationReport.official_recommendation.winner_vendor_id ?? null}
+                  />
+                ))}
+              </div>
+            </section>
+
+            <section className={styles.card} id="results-technical-evaluation">
+              <div className={styles.cardHeader}>
+                <div>
+                  <h2 className={styles.cardTitle}>Technical Evaluation</h2>
+                  <p className={styles.cardSubtle}>
+                    Expand a vendor to inspect the criterion-by-criterion technical evaluation and supporting evidence.
+                  </p>
+                </div>
+              </div>
+              <div className={styles.previewList}>
+                {(evaluationReport.technical_results ?? []).map((result) => (
+                  <details className={styles.resultAccordion} key={result.vendor_id}>
+                    <summary className={styles.resultAccordionSummary}>
+                      <div className={styles.resultAccordionHeader}>
+                        <div>
+                          <div className={styles.resultAccordionTitle}>{result.vendor_name}</div>
+                          <div className={styles.resultAccordionMeta}>
+                            {result.passed_gate ? "Qualified for commercial evaluation" : "Stopped at technical evaluation"}
+                          </div>
+                        </div>
+                        <div className={styles.resultAccordionSummaryMetrics}>
+                          <div className={styles.resultMetricPill}>
+                            <span className={styles.resultMetricLabel}>Technical Score</span>
+                            <strong className={styles.resultMetricValue}>
+                              {formatOptionalNumber(result.aggregate_score)} / 100
+                            </strong>
+                          </div>
+                          <div
+                            className={`${styles.statusBadge} ${
+                              result.passed_gate ? styles.statusBadgeSuccess : styles.statusBadgeDanger
+                            }`}
+                          >
+                            {result.passed_gate ? "Passed technical gate" : "Failed technical gate"}
+                          </div>
+                        </div>
+                      </div>
+                    </summary>
+
+                    <div className={styles.resultAccordionBody}>
+                      <div className={styles.summaryGrid}>
+                        <div className={styles.summaryItem}>
+                          <span className={styles.summaryLabel}>Aggregate Technical Score</span>
+                          <span className={styles.summaryValue}>{formatOptionalNumber(result.aggregate_score)} / 100</span>
+                        </div>
+                        <div className={styles.summaryItem}>
+                          <span className={styles.summaryLabel}>Technical Gate Result</span>
+                          <span className={styles.summaryValue}>
+                            {result.passed_gate ? "Qualified for commercial evaluation" : "Stopped at technical evaluation"}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className={styles.frameworkNote}>
+                        Framework technical threshold: {formatOptionalNumber(result.threshold)} / 100.
+                      </div>
+
+                      <div className={styles.summaryNarrative}>
+                        <span className={styles.summaryLabel}>Technical Evaluation Summary</span>
+                        <span className={styles.summaryValue}>{result.summary}</span>
+                      </div>
+
+                      {(result.disqualification_reasons ?? []).length > 0 ? (
+                        <div className={styles.reviewInsightBox}>
+                          <span className={styles.summaryLabel}>Why This Vendor Did Not Pass</span>
+                          <span className={styles.summaryValue}>
+                            {(result.disqualification_reasons ?? []).join(" ")}
+                          </span>
+                        </div>
+                      ) : null}
+
+                      <div className={styles.previewList}>
+                        {(result.criterion_results ?? []).map((criterion) => (
+                          <TechnicalCriterionCard
+                            criterionDefinition={criteriaById.get(criterion.criterion_id) ?? null}
+                            evidenceLookup={evidenceLookupByVendor.get(result.vendor_id) ?? new Map<string, string>()}
+                            key={criterion.criterion_id}
+                            questionLookup={questionsById}
+                            result={criterion}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  </details>
+                ))}
+              </div>
+            </section>
+
+            <section className={styles.card} id="results-commercial-evaluation">
+              <div className={styles.cardHeader}>
+                <div>
+                  <h2 className={styles.cardTitle}>Commercial Evaluation</h2>
+                  <p className={styles.cardSubtle}>
+                    Expand a vendor to inspect normalized totals, pricing blockers, line-item comparison status, and commercial scoring.
+                  </p>
+                </div>
+              </div>
+              <div className={styles.previewList}>
+                {(evaluationReport.commercial_results ?? []).map((result) => (
+                  <details className={styles.resultAccordion} key={result.vendor_id}>
+                    <summary className={styles.resultAccordionSummary}>
+                      <div className={styles.resultAccordionHeader}>
+                        <div>
+                          <div className={styles.resultAccordionTitle}>{result.vendor_name}</div>
+                          <div className={styles.resultAccordionMeta}>
+                            {result.award_ready ? "Commercially comparable and award-ready" : "Commercial comparison blocked"}
+                          </div>
+                        </div>
+                        <div className={styles.resultAccordionSummaryMetrics}>
+                          <div className={styles.resultMetricPill}>
+                            <span className={styles.resultMetricLabel}>Normalized Total</span>
+                            <strong className={styles.resultMetricValue}>
+                              {formatOptionalNumber(result.comparable_total)} {result.base_currency}
+                            </strong>
+                          </div>
+                          <div className={styles.resultMetricPill}>
+                            <span className={styles.resultMetricLabel}>Commercial Score</span>
+                            <strong className={styles.resultMetricValue}>
+                              {formatOptionalNumber(result.commercial_score)}
+                            </strong>
+                          </div>
+                        </div>
+                      </div>
+                    </summary>
+
+                    <div className={styles.resultAccordionBody}>
+                      <div className={styles.summaryGrid}>
+                        <div className={styles.summaryItem}>
+                          <span className={styles.summaryLabel}>Normalized Total In RFQ Currency</span>
+                          <span className={styles.summaryValue}>
+                            {formatOptionalNumber(result.comparable_total)} {result.base_currency}
+                          </span>
+                        </div>
+                        <div className={styles.summaryItem}>
+                          <span className={styles.summaryLabel}>Commercial Score</span>
+                          <span className={styles.summaryValue}>{formatOptionalNumber(result.commercial_score)}</span>
+                        </div>
+                        <div className={styles.summaryItem}>
+                          <span className={styles.summaryLabel}>Commercial Status</span>
+                          <span className={styles.summaryValue}>
+                            {result.award_ready ? "Comparable and award-ready" : "Blocked / not comparable"}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className={styles.summaryNarrative}>
+                        <span className={styles.summaryLabel}>Commercial Evaluation Summary</span>
+                        <span className={styles.summaryValue}>{result.explanation}</span>
+                      </div>
+
+                      {(result.line_items ?? []).length > 0 ? (
+                        <div className={styles.traceSection}>
+                          <div className={styles.traceSectionTitle}>Line-item commercial trace</div>
+                          <div className={styles.tableWrap}>
+                            <table className={styles.scoreTable}>
+                              <thead>
+                                <tr>
+                                  <th>Line Item</th>
+                                  <th>Normalized Total</th>
+                                  <th>Comparison Status</th>
+                                  <th>Notes</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {(result.line_items ?? []).map((lineItem) => (
+                                  <tr key={`${result.vendor_id}-${lineItem.line_item_id}`}>
+                                    <td>{lineItem.line_item_name}</td>
+                                    <td>
+                                      {formatOptionalNumber(lineItem.base_currency_total)} {result.base_currency}
+                                    </td>
+                                    <td>{formatComparabilityStatus(lineItem.comparability_status)}</td>
+                                    <td>{(lineItem.notes ?? []).join(" ") || "None"}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      ) : null}
+
+                      {(result.blockers ?? []).length > 0 ? (
+                        <div className={styles.reviewInsightBox}>
+                          <span className={styles.summaryLabel}>Commercial Blockers</span>
+                          <span className={styles.summaryValue}>{(result.blockers ?? []).join(" ")}</span>
+                        </div>
+                      ) : null}
+
+                      {(result.anomalies ?? []).length > 0 ? (
+                        <div className={styles.reviewInsightBox}>
+                          <span className={styles.summaryLabel}>Commercial Anomalies</span>
+                          <span className={styles.summaryValue}>{(result.anomalies ?? []).join(" ")}</span>
+                        </div>
+                      ) : null}
+                    </div>
+                  </details>
+                ))}
+              </div>
+            </section>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function OfficialScoreTraceCard({
+  commercialResult,
+  criteriaById,
+  scoreBreakdown,
+  technicalResult,
+  technicalThreshold,
+  winnerVendorId,
+}: {
+  commercialResult: CommercialEvaluationResult | null;
+  criteriaById: Map<string, Criterion>;
+  scoreBreakdown: VendorScoreBreakdownItem;
+  technicalResult: TechnicalEvaluationResult | null;
+  technicalThreshold: number | null;
+  winnerVendorId: string | null;
+}) {
+  const failedTechnicalCriteria = (technicalResult?.criterion_results ?? []).filter((criterion) => {
+    if (criterion.status === "failed") {
+      return true;
+    }
+    if (criterion.passed === false) {
+      return true;
+    }
+    return false;
+  });
+
+  return (
+    <details className={styles.resultAccordion}>
+      <summary className={styles.resultAccordionSummary}>
+        <div className={styles.resultAccordionHeader}>
+          <div>
+            <div className={styles.resultAccordionTitle}>{scoreBreakdown.vendor_name}</div>
+            <div className={styles.resultAccordionMeta}>
+              {scoreBreakdown.vendor_id === winnerVendorId
+                ? "Official winner"
+                : scoreBreakdown.passed_technical_gate
+                  ? "Passed the technical gate and entered ranking"
+                  : "Stopped at the technical gate"}
             </div>
+          </div>
+          <div className={styles.resultAccordionSummaryMetrics}>
+            <div className={styles.resultMetricPill}>
+              <span className={styles.resultMetricLabel}>Final QCBS Score</span>
+              <strong className={styles.resultMetricValue}>
+                {formatOptionalNumber(scoreBreakdown.final_score)}
+              </strong>
+            </div>
+            <div
+              className={`${styles.statusBadge} ${
+                scoreBreakdown.vendor_id === winnerVendorId
+                  ? styles.statusBadgeSuccess
+                  : scoreBreakdown.passed_technical_gate
+                    ? styles.statusBadgeNeutral
+                    : styles.statusBadgeDanger
+              }`}
+            >
+              {scoreBreakdown.vendor_id === winnerVendorId
+                ? "Winner"
+                : scoreBreakdown.passed_technical_gate
+                  ? "Ranked"
+                  : "Disqualified"}
+            </div>
+          </div>
+        </div>
+      </summary>
+
+      <div className={styles.resultAccordionBody}>
+        <div className={styles.summaryGrid}>
+          <div className={styles.summaryItem}>
+            <span className={styles.summaryLabel}>Technical Score</span>
+            <span className={styles.summaryValue}>{formatOptionalNumber(scoreBreakdown.technical_score)}</span>
+          </div>
+          <div className={styles.summaryItem}>
+            <span className={styles.summaryLabel}>Commercial Score</span>
+            <span className={styles.summaryValue}>{formatOptionalNumber(scoreBreakdown.commercial_score)}</span>
+          </div>
+          <div className={styles.summaryItem}>
+            <span className={styles.summaryLabel}>Final QCBS Score</span>
+            <span className={styles.summaryValue}>{formatOptionalNumber(scoreBreakdown.final_score)}</span>
+          </div>
+          <div className={styles.summaryItem}>
+            <span className={styles.summaryLabel}>Technical Gate</span>
+            <span className={styles.summaryValue}>
+              {scoreBreakdown.passed_technical_gate ? "Passed" : "Failed"}
+            </span>
+          </div>
+          <div className={styles.summaryItem}>
+            <span className={styles.summaryLabel}>Commercial Status</span>
+            <span className={styles.summaryValue}>
+              {scoreBreakdown.commercially_comparable ? "Comparable" : "Blocked / not comparable"}
+            </span>
+          </div>
+        </div>
+
+        {technicalThreshold !== null ? (
+          <div className={styles.frameworkNote}>
+            Framework technical threshold: {formatOptionalNumber(technicalThreshold)} / 100.
+          </div>
+        ) : null}
+
+        {technicalResult?.summary ? (
+          <div className={styles.summaryNarrative}>
+            <span className={styles.summaryLabel}>Technical Summary</span>
+            <span className={styles.summaryValue}>{technicalResult.summary}</span>
+          </div>
+        ) : null}
+
+        {failedTechnicalCriteria.length > 0 ? (
+          <div className={styles.reviewInsightBox}>
+            <span className={styles.summaryLabel}>Failed Technical Criteria / MAC</span>
+            <div className={styles.previewList}>
+              {failedTechnicalCriteria.map((criterion) => {
+                const criterionDefinition = criteriaById.get(criterion.criterion_id) ?? null;
+                return (
+                  <div className={styles.previewItem} key={criterion.criterion_id}>
+                    <div className={styles.previewItemHeader}>
+                      <div className={styles.previewTitle}>
+                        {criterionDefinition?.title ?? criterion.title}
+                      </div>
+                      <div className={styles.previewBadge}>
+                        {formatCriterionOutcomeLabel(criterion, criterionDefinition)}
+                      </div>
+                    </div>
+                    <div className={styles.previewItemMeta}>
+                      {formatCriterionTypeForBuyer(criterionDefinition?.criterion_type ?? criterion.criterion_type)}
+                    </div>
+                    <div className={styles.previewItemBody}>{splitReasoningSummary(criterion.explanation).summaryText}</div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ) : null}
+
+        <div className={styles.traceSection}>
+          <div className={styles.traceSectionTitle}>Technical score trace</div>
+          {technicalResult && (technicalResult.criterion_results ?? []).length > 0 ? (
             <div className={styles.tableWrap}>
               <table className={styles.scoreTable}>
                 <thead>
                   <tr>
-                    <th>Vendor</th>
-                    <th>Technical Score</th>
-                    <th>Technical Threshold</th>
-                    <th>Commercial Score</th>
-                    <th>Final QCBS Score</th>
-                    <th>Technical Gate</th>
-                    <th>Commercially Comparable</th>
+                    <th>Criterion</th>
+                    <th>Criterion Type</th>
+                    <th>Score / Outcome</th>
+                    <th>Cutoff / Rule</th>
+                    <th>Result</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {(evaluationReport.official_recommendation.score_breakdown ?? []).map((item) => (
-                    <tr key={item.vendor_id}>
-                      <td>{item.vendor_name}</td>
-                      <td>{formatOptionalNumber(item.technical_score)}</td>
-                      <td>{technicalThreshold !== null ? formatOptionalNumber(technicalThreshold) : "N/A"}</td>
-                      <td>{formatOptionalNumber(item.commercial_score)}</td>
-                      <td>{formatOptionalNumber(item.final_score)}</td>
-                      <td>{item.passed_technical_gate ? "Passed" : "Failed"}</td>
-                      <td>{item.commercially_comparable ? "Yes" : "No"}</td>
-                    </tr>
-                  ))}
+                  {(technicalResult.criterion_results ?? []).map((criterion) => {
+                    const criterionDefinition = criteriaById.get(criterion.criterion_id) ?? null;
+                    return (
+                      <tr key={`${scoreBreakdown.vendor_id}-${criterion.criterion_id}`}>
+                        <td>{criterionDefinition?.title ?? criterion.title}</td>
+                        <td>
+                          {formatCriterionTypeForBuyer(
+                            criterionDefinition?.criterion_type ?? criterion.criterion_type,
+                          )}
+                        </td>
+                        <td>{formatCriterionScore(criterion, criterionDefinition)}</td>
+                        <td>{formatCriterionCutoffForBuyer(criterionDefinition)}</td>
+                        <td>{formatCriterionOutcomeLabel(criterion, criterionDefinition)}</td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
-          </section>
+          ) : (
+            <div className={styles.previewEmpty}>No technical criterion trace is available.</div>
+          )}
+        </div>
 
-          <section className={styles.card}>
-            <div className={styles.cardHeader}>
-              <div>
-                <h2 className={styles.cardTitle}>Technical Evaluation</h2>
-                <p className={styles.cardSubtle}>Criterion-level technical outcomes, explanations, and disqualification reasons.</p>
+        <div className={styles.traceSection}>
+          <div className={styles.traceSectionTitle}>Commercial score trace</div>
+          {commercialResult ? (
+            <>
+              <div className={styles.summaryNarrative}>
+                <span className={styles.summaryLabel}>Commercial Summary</span>
+                <span className={styles.summaryValue}>{commercialResult.explanation}</span>
               </div>
-            </div>
-            <div className={styles.previewList}>
-              {(evaluationReport.technical_results ?? []).map((result) => (
-                <div className={styles.previewItem} key={result.vendor_id}>
-                  <div className={styles.previewItemHeader}>
-                    <div className={styles.previewTitle}>{result.vendor_name}</div>
-                    <div className={`${styles.statusBadge} ${result.passed_gate ? styles.statusBadgeSuccess : styles.statusBadgeDanger}`}>
-                      {result.passed_gate ? "Passed technical gate" : "Failed technical gate"}
-                    </div>
-                  </div>
-                  <div className={styles.summaryGrid} style={{ marginTop: 10 }}>
-                    <div className={styles.summaryItem}>
-                      <span className={styles.summaryLabel}>Aggregate Technical Score</span>
-                      <span className={styles.summaryValue}>{formatOptionalNumber(result.aggregate_score)} / 100</span>
-                    </div>
-                    <div className={styles.summaryItem}>
-                      <span className={styles.summaryLabel}>Aggregate Technical Threshold</span>
-                      <span className={styles.summaryValue}>{formatOptionalNumber(result.threshold)} / 100</span>
-                    </div>
-                    <div className={styles.summaryItem}>
-                      <span className={styles.summaryLabel}>Technical Gate Result</span>
-                      <span className={styles.summaryValue}>
-                        {result.passed_gate ? "Qualified for commercial evaluation" : "Stopped at technical evaluation"}
-                      </span>
-                    </div>
-                  </div>
-                  <div className={styles.summaryNarrative} style={{ marginTop: 10 }}>
-                    <span className={styles.summaryLabel}>Technical Evaluation Summary</span>
-                    <span className={styles.summaryValue}>{result.summary}</span>
-                  </div>
-                  {(result.disqualification_reasons ?? []).length > 0 ? (
-                    <div className={styles.summaryNarrative} style={{ marginTop: 10 }}>
-                      <span className={styles.summaryLabel}>Why This Vendor Did Not Pass</span>
-                      <span className={styles.summaryValue}>
-                        {(result.disqualification_reasons ?? []).join(" ")}
-                      </span>
-                    </div>
-                  ) : null}
-                  <div className={styles.previewList} style={{ marginTop: 10 }}>
-                    {(result.criterion_results ?? []).map((criterion) => (
-                      <TechnicalCriterionCard
-                        criterionDefinition={criteriaById.get(criterion.criterion_id) ?? null}
-                        evidenceLookup={evidenceLookupByVendor.get(result.vendor_id) ?? new Map<string, string>()}
-                        key={criterion.criterion_id}
-                        questionLookup={questionsById}
-                        result={criterion}
-                      />
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
 
-          <section className={styles.card}>
-            <div className={styles.cardHeader}>
-              <div>
-                <h2 className={styles.cardTitle}>Commercial Evaluation</h2>
-                <p className={styles.cardSubtle}>Normalized totals, comparability blockers, pricing anomalies, and commercial scores.</p>
-              </div>
-            </div>
-            <div className={styles.previewList}>
-              {(evaluationReport.commercial_results ?? []).map((result) => (
-                <div className={styles.previewItem} key={result.vendor_id}>
-                  <div className={styles.previewItemHeader}>
-                    <div className={styles.previewTitle}>{result.vendor_name}</div>
-                    <div className={`${styles.statusBadge} ${result.award_ready ? styles.statusBadgeSuccess : styles.statusBadgeWarning}`}>
-                      {result.award_ready ? "Award-ready" : "Blocked"}
-                    </div>
-                  </div>
-                  <div className={styles.summaryGrid} style={{ marginTop: 10 }}>
-                    <div className={styles.summaryItem}>
-                      <span className={styles.summaryLabel}>Converted Total In RFQ Currency</span>
-                      <span className={styles.summaryValue}>
-                        {formatOptionalNumber(result.comparable_total)} {result.base_currency}
-                      </span>
-                    </div>
-                    <div className={styles.summaryItem}>
-                      <span className={styles.summaryLabel}>Commercial Score</span>
-                      <span className={styles.summaryValue}>{formatOptionalNumber(result.commercial_score)}</span>
-                    </div>
-                    <div className={styles.summaryItem}>
-                      <span className={styles.summaryLabel}>Commercial Comparability</span>
-                      <span className={styles.summaryValue}>
-                        {result.award_ready ? "Comparable" : "Not yet comparable"}
-                      </span>
-                    </div>
-                  </div>
-                  <div className={styles.summaryNarrative} style={{ marginTop: 10 }}>
-                    <span className={styles.summaryLabel}>Commercial Evaluation Summary</span>
-                    <span className={styles.summaryValue}>{result.explanation}</span>
-                  </div>
-                  {(result.blockers ?? []).length > 0 ? (
-                    <div className={styles.summaryNarrative} style={{ marginTop: 10 }}>
-                      <span className={styles.summaryLabel}>Commercial Blockers</span>
-                      <span className={styles.summaryValue}>{(result.blockers ?? []).join(" ")}</span>
-                    </div>
-                  ) : null}
-                  {(result.anomalies ?? []).length > 0 ? (
-                    <div className={styles.summaryNarrative} style={{ marginTop: 10 }}>
-                      <span className={styles.summaryLabel}>Commercial Anomalies</span>
-                      <span className={styles.summaryValue}>{(result.anomalies ?? []).join(" ")}</span>
-                    </div>
-                  ) : null}
-                </div>
-              ))}
-            </div>
-          </section>
-
-          <section className={styles.card}>
-            <div className={styles.cardHeader}>
-              <div>
-                <h2 className={styles.cardTitle}>AI Insights</h2>
-                <p className={styles.cardSubtle}>These scenarios are advisory only. They never override the official QCBS recommendation.</p>
-              </div>
-              <div className={`${styles.statusBadge} ${styles.statusBadgeWarning}`}>AI insights</div>
-            </div>
-            <div className={styles.previewList}>
-              {(evaluationReport.advisory_scenarios ?? []).map((scenario, index) => (
-                <div className={styles.previewItem} key={`${scenario.scenario_name}-${index}`}>
-                  <div className={styles.previewItemHeader}>
-                    <div>
-                      <div className={styles.previewTitle}>{scenario.scenario_name}</div>
-                      <div className={styles.previewItemMeta}>{scenario.scenario_kind}</div>
-                    </div>
-                    <div className={styles.previewBadge}>Winner: {scenario.winner_vendor_id ?? "None"}</div>
-                  </div>
-                  <div className={styles.previewItemBody}>{scenario.explanation}</div>
-                  <div className={styles.previewItemMeta}>{scenario.weighting_or_rule_basis}</div>
-                  {(scenario.excluded_vendor_ids ?? []).length > 0 ? (
-                    <div className={styles.previewItemMeta}>
-                      Excluded vendors: {(scenario.excluded_vendor_ids ?? []).join(", ")}
-                    </div>
-                  ) : null}
-                  <div className={styles.tableWrap}>
-                    <table className={styles.scoreTable}>
-                      <thead>
-                        <tr>
-                          <th>Vendor</th>
-                          <th>Score</th>
-                          <th>Notes</th>
+              {(commercialResult.line_items ?? []).length > 0 ? (
+                <div className={styles.tableWrap}>
+                  <table className={styles.scoreTable}>
+                    <thead>
+                      <tr>
+                        <th>Line Item</th>
+                        <th>Normalized Total</th>
+                        <th>Comparison Status</th>
+                        <th>Notes</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {(commercialResult.line_items ?? []).map((lineItem) => (
+                        <tr key={`${scoreBreakdown.vendor_id}-${lineItem.line_item_id}`}>
+                          <td>{lineItem.line_item_name}</td>
+                          <td>
+                            {formatOptionalNumber(lineItem.base_currency_total)} {commercialResult.base_currency}
+                          </td>
+                          <td>{formatComparabilityStatus(lineItem.comparability_status)}</td>
+                          <td>{(lineItem.notes ?? []).join(" ") || "None"}</td>
                         </tr>
-                      </thead>
-                      <tbody>
-                        {(scenario.ranking ?? []).map((item) => (
-                          <tr key={`${scenario.scenario_name}-${item.vendor_id}`}>
-                            <td>{item.vendor_name}</td>
-                            <td>{formatOptionalNumber(item.score)}</td>
-                            <td>{(item.notes ?? []).join(" ") || "None"}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
-              ))}
-            </div>
-          </section>
-        </>
-      )}
-    </div>
+              ) : (
+                <div className={styles.previewEmpty}>No normalized commercial line-item trace is available.</div>
+              )}
+
+              {(commercialResult.blockers ?? []).length > 0 ? (
+                <div className={styles.reviewInsightBox}>
+                  <span className={styles.summaryLabel}>Commercial Blockers</span>
+                  <span className={styles.summaryValue}>{(commercialResult.blockers ?? []).join(" ")}</span>
+                </div>
+              ) : null}
+            </>
+          ) : (
+            <div className={styles.previewEmpty}>No commercial trace is available for this vendor.</div>
+          )}
+        </div>
+      </div>
+    </details>
   );
 }
 
@@ -1489,6 +1969,50 @@ function buildEvidenceLookup(review: VendorReview): Map<string, string> {
   return lookup;
 }
 
+function rankVendorBreakdowns(
+  scoreBreakdown: VendorScoreBreakdownItem[],
+  winnerVendorId: string | null,
+): VendorScoreBreakdownItem[] {
+  return [...scoreBreakdown].sort((left, right) => {
+    if (winnerVendorId) {
+      if (left.vendor_id === winnerVendorId && right.vendor_id !== winnerVendorId) {
+        return -1;
+      }
+      if (right.vendor_id === winnerVendorId && left.vendor_id !== winnerVendorId) {
+        return 1;
+      }
+    }
+
+    const finalDelta = safeSortableNumber(right.final_score) - safeSortableNumber(left.final_score);
+    if (finalDelta !== 0) {
+      return finalDelta;
+    }
+
+    const technicalDelta =
+      safeSortableNumber(right.technical_score) - safeSortableNumber(left.technical_score);
+    if (technicalDelta !== 0) {
+      return technicalDelta;
+    }
+
+    return left.vendor_name.localeCompare(right.vendor_name);
+  });
+}
+
+function buildPodiumEntries(
+  scoreBreakdown: VendorScoreBreakdownItem[],
+  winnerVendorId: string | null,
+): VendorScoreBreakdownItem[] {
+  const ranked = rankVendorBreakdowns(scoreBreakdown, winnerVendorId);
+  return ranked.slice(0, 3);
+}
+
+function safeSortableNumber(value: number | null | undefined): number {
+  if (typeof value !== "number" || Number.isNaN(value)) {
+    return Number.NEGATIVE_INFINITY;
+  }
+  return value;
+}
+
 function splitReasoningSummary(text: string): { summaryText: string; reasoningText: string | null } {
   const marker = "Reasoning summary:";
   const index = text.indexOf(marker);
@@ -1506,6 +2030,9 @@ function getCriterionQuestionText(
   criterionDefinition: Criterion | null,
   questionLookup: Map<string, Question>,
 ): string | null {
+  if (criterionDefinition?.vendor_question?.text) {
+    return criterionDefinition.vendor_question.text;
+  }
   const questionId = criterionDefinition?.linked_question_ids?.[0];
   if (!questionId) {
     return null;
@@ -1561,6 +2088,21 @@ function formatCriterionCutoffForBuyer(criterionDefinition: Criterion | null): s
     return formatOptionalNumber(criterionDefinition.min_cutoff);
   }
   return "Not set";
+}
+
+function formatComparabilityStatus(status: string): string {
+  switch (status) {
+    case "comparable":
+      return "Comparable";
+    case "needs_buyer_input":
+      return "Needs buyer input";
+    case "non_comparable":
+      return "Not comparable";
+    case "informational":
+      return "Informational only";
+    default:
+      return status;
+  }
 }
 
 function formatCriterionOutcomeLabel(result: TechnicalCriterionResult, criterionDefinition: Criterion | null): string {

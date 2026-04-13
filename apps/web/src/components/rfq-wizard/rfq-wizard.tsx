@@ -872,7 +872,7 @@ export function RfqWizard({
             type="button"
           >
             <span className={styles.stepLabel}>Step 4</span>
-            <span className={styles.stepTitle}>Vendor Pack</span>
+            <span className={styles.stepTitle}>Vendor RFQ Pack</span>
           </button>
           <button
             className={`${styles.stepButton} ${step === "vendors" ? styles.activeStep : ""}`}
@@ -881,7 +881,7 @@ export function RfqWizard({
             type="button"
           >
             <span className={styles.stepLabel}>Step 5</span>
-            <span className={styles.stepTitle}>Vendors</span>
+            <span className={styles.stepTitle}>Add Vendors</span>
           </button>
           <button
             className={`${styles.stepButton} ${step === "review" ? styles.activeStep : ""}`}
@@ -890,7 +890,7 @@ export function RfqWizard({
             type="button"
           >
             <span className={styles.stepLabel}>Step 6</span>
-            <span className={styles.stepTitle}>Review</span>
+            <span className={styles.stepTitle}>Run Extraction</span>
           </button>
           <button
             className={`${styles.stepButton} ${step === "results" ? styles.activeStep : ""}`}
@@ -899,7 +899,7 @@ export function RfqWizard({
             type="button"
           >
             <span className={styles.stepLabel}>Step 7</span>
-            <span className={styles.stepTitle}>Results</span>
+            <span className={styles.stepTitle}>Bidding Results</span>
           </button>
         </nav>
 
