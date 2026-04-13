@@ -19,14 +19,6 @@
   margin-bottom: 28px;
 }
 
-.eyebrow {
-  font-size: 0.84rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: #9a3412;
-}
-
 .titleRow {
   display: flex;
   flex-wrap: wrap;
@@ -607,6 +599,41 @@
   flex-wrap: wrap;
   gap: 12px;
   align-items: center;
+}
+
+.sessionCallout {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  max-width: 440px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(245, 158, 11, 0.38);
+  background:
+    radial-gradient(circle at top right, rgba(251, 191, 36, 0.18), transparent 38%),
+    rgba(255, 247, 237, 0.94);
+  color: #7c2d12;
+  box-shadow: 0 10px 24px rgba(124, 45, 18, 0.08);
+}
+
+.sessionCalloutIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  flex: 0 0 22px;
+  border-radius: 999px;
+  background: #ea580c;
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.sessionCalloutBody {
+  line-height: 1.5;
+  font-size: 0.9rem;
 }
 
 .code {

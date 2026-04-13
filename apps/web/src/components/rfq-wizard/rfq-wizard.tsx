@@ -785,7 +785,6 @@ export function RfqWizard({
     <div className={styles.shell}>
       <div className={styles.frame}>
         <header className={styles.hero}>
-          <div className={styles.eyebrow}>{lockedArtifact ? "Phase 2 Delivery" : "Phase 1 Delivery"}</div>
           <div className={styles.titleRow}>
             <h1 className={styles.title}>
               {lockedArtifact ? "Locked Framework to Explainable Evaluation" : "RFQ to Locked Rubric"}
@@ -827,6 +826,14 @@ export function RfqWizard({
             </span>
           </div>
           <div className={styles.heroActions}>
+            <div className={styles.sessionCallout} role="note">
+              <span aria-hidden="true" className={styles.sessionCalloutIcon}>
+                !
+              </span>
+              <div className={styles.sessionCalloutBody}>
+                <strong>Single-session demo.</strong> Reset the session before starting a new run.
+              </div>
+            </div>
             <button
               className={styles.ghostButton}
               disabled={isResettingSession}
