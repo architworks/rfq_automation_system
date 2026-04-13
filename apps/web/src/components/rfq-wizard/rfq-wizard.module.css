@@ -19,6 +19,11 @@
   margin-bottom: 28px;
 }
 
+.titleBlock {
+  display: grid;
+  gap: 4px;
+}
+
 .titleRow {
   display: flex;
   flex-wrap: wrap;
@@ -27,9 +32,18 @@
 }
 
 .title {
-  font-size: clamp(2rem, 4vw, 3rem);
-  line-height: 1.05;
-  font-weight: 700;
+  font-size: clamp(2.3rem, 5vw, 4rem);
+  line-height: 0.98;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  color: #16233b;
+}
+
+.titleContext {
+  font-size: 0.98rem;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+  color: #9a3412;
 }
 
 .subtitle {
@@ -683,6 +697,37 @@
 .autosave {
   font-size: 0.85rem;
   color: #64748b;
+}
+
+.footer {
+  margin-top: 28px;
+  padding-top: 18px;
+  border-top: 1px solid rgba(148, 163, 184, 0.24);
+}
+
+.footerInner {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  align-items: center;
+  justify-content: space-between;
+  color: #64748b;
+  font-size: 0.92rem;
+}
+
+.footerName {
+  font-weight: 700;
+  color: #334155;
+}
+
+.footerLink {
+  color: #9a3412;
+  font-weight: 650;
+  text-decoration: none;
+}
+
+.footerLink:hover {
+  text-decoration: underline;
 }
 
 .vendorToolbar {

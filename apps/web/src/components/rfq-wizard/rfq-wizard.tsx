@@ -786,9 +786,12 @@ export function RfqWizard({
       <div className={styles.frame}>
         <header className={styles.hero}>
           <div className={styles.titleRow}>
-            <h1 className={styles.title}>
-              {lockedArtifact ? "Locked Framework to Explainable Evaluation" : "RFQ to Locked Rubric"}
-            </h1>
+            <div className={styles.titleBlock}>
+              <h1 className={styles.title}>TenderLens</h1>
+              <div className={styles.titleContext}>
+                {lockedArtifact ? "Locked Framework to Explainable Evaluation" : "RFQ to Locked Rubric"}
+              </div>
+            </div>
             <div className={styles.statusPill}>
               Status: {lockedArtifact ? "Locked" : snapshot?.status ?? "draft"}
             </div>
@@ -821,19 +824,6 @@ export function RfqWizard({
                 ))}
               </FormSelect>
             </label>
-            <span className={styles.controlHint}>
-              Applies to rubric generation, extraction, AI scoring, and AI scenarios.
-            </span>
-          </div>
-          <div className={styles.heroActions}>
-            <div className={styles.sessionCallout} role="note">
-              <span aria-hidden="true" className={styles.sessionCalloutIcon}>
-                !
-              </span>
-              <div className={styles.sessionCalloutBody}>
-                <strong>Single-session demo.</strong> Reset the session before starting a new run.
-              </div>
-            </div>
             <button
               className={styles.ghostButton}
               disabled={isResettingSession}
@@ -842,6 +832,17 @@ export function RfqWizard({
             >
               {isResettingSession ? "Resetting..." : "Reset session"}
             </button>
+            <span className={styles.controlHint}>
+              Applies to rubric generation, extraction, AI scoring, and AI scenarios.
+            </span>
+            <div className={styles.sessionCallout} role="note">
+              <span aria-hidden="true" className={styles.sessionCalloutIcon}>
+                !
+              </span>
+              <div className={styles.sessionCalloutBody}>
+                <strong>Single-session demo.</strong> Reset the session before starting a new run.
+              </div>
+            </div>
           </div>
         </header>
 
@@ -1022,6 +1023,20 @@ export function RfqWizard({
             reviews={reviews}
           />
         ) : null}
+
+        <footer className={styles.footer}>
+          <div className={styles.footerInner}>
+            <span className={styles.footerName}>Archit Mishra</span>
+            <a
+              className={styles.footerLink}
+              href="https://archit-mishra.com/"
+              rel="noreferrer"
+              target="_blank"
+            >
+              archit-mishra.com
+            </a>
+          </div>
+        </footer>
       </div>
     </div>
   );
