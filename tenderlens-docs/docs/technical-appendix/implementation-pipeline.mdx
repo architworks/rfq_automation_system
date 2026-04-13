@@ -1,0 +1,198 @@
+---
+title: Implementation Pipeline
+description: Technical appendix showing the as-implemented pipeline and exact GenAI entry points.
+---
+
+# Implementation Pipeline
+
+This appendix captures the implemented pipeline from vendor document upload through extraction, normalization, evaluation, advisory scenarios, and final output.
+
+## End-to-end technical flow
+
+```mermaid
+flowchart TD
+    P0["Phase 1 prerequisite<br/>GenAI converts RFQ brief text into a structured rubric<br/>OpenAI SDK: client.responses.parse()<br/>Structured output schema: LLMRubricProposal"]
+    P["LockedFrameworkArtifact exists"]
+    P0 -. produces .-> P
+
+    U["Vendor document upload<br/>PUT /sessions/:session_id/vendors/:vendor_id/document<br/>store original file + metadata"]
+    P --> U
+
+    X["Buyer runs extraction<br/>POST /sessions/:session_id/vendors/:vendor_id/extract"]
+    U --> X
+
+    G1["GenAI extraction<br/>OpenAI SDK: client.responses.parse()<br/>Input = original vendor file + locked framework brief text<br/>Structured output schema: LLMVendorExtraction"]
+    X --> G1
+
+    R["Structured extraction object<br/>question answers + schedule answers + technical claims + commercial claims + evidence anchors + response states"]
+    G1 --> R
+
+    N["Deterministic normalization<br/>normalized fields + normalized pricing<br/>ECB FX snapshot + supported UOM math"]
+    R --> N
+
+    S["VendorReview stored"]
+    N --> S
+
+    E["Buyer runs evaluation<br/>POST /sessions/:session_id/evaluation/run"]
+    S --> E
+
+    D["Deterministic technical scoring<br/>MAC / pass-fail / numeric / discrete bands"]
+    G2["GenAI narrative technical scoring<br/>client.responses.parse()<br/>Structured output schema: NarrativeCriterionScoreSet"]
+    E --> D
+    E --> G2
+
+    TG["Technical gate<br/>MAC pass + critical cutoff pass + aggregate threshold"]
+    D --> TG
+    G2 --> TG
+
+    M["Deterministic commercial evaluation<br/>comparability + totals + commercial score"]
+    TG --> M
+
+    O["Official award<br/>QCBS = 0.70 * technical + 0.30 * commercial"]
+    M --> O
+
+    LQ["Deterministic advisory views<br/>LCS + QBS"]
+    O --> LQ
+
+    AIG["GenAI advisory scenarios<br/>client.responses.parse()<br/>Structured output schema: AIScenarioSet"]
+    O --> AIG
+
+    SAVE["EvaluationReport stored and returned to UI"]
+    LQ --> SAVE
+    AIG --> SAVE
+```
+
+## GenAI-only view
+
+```mermaid
+flowchart TD
+    RFQ["Editable RFQ draft"]
+    RFQBRIEF["Human-readable RFQ brief text"]
+    RUBRICCALL["client.responses.parse()<br/>text_format=LLMRubricProposal"]
+    RUBRICOUT["Structured rubric output"]
+
+    VFILE["Original uploaded vendor file"]
+    FRAMEWORK["Locked framework brief text"]
+    EXTRACTCALL["client.responses.parse()<br/>input=[input_file + input_text]<br/>text_format=LLMVendorExtraction"]
+    EXTRACTOUT["Structured extraction output"]
+
+    SCOREINPUT["Narrative scoring prompt"]
+    SCORECALL["client.responses.parse()<br/>text_format=NarrativeCriterionScoreSet"]
+    SCOREOUT["Narrative criterion scores"]
+
+    SCENARIOINPUT["Scenario prompt"]
+    SCENARIOCALL["client.responses.parse()<br/>text_format=AIScenarioSet"]
+    SCENARIOOUT["Three advisory AI scenarios"]
+
+    RFQ --> RFQBRIEF --> RUBRICCALL --> RUBRICOUT
+    VFILE --> EXTRACTCALL
+    FRAMEWORK --> EXTRACTCALL --> EXTRACTOUT
+    EXTRACTOUT --> SCOREINPUT --> SCORECALL --> SCOREOUT
+    RUBRICOUT --> SCENARIOINPUT
+    SCOREOUT --> SCENARIOINPUT --> SCENARIOCALL --> SCENARIOOUT
+```
+
+## Exact OpenAI SDK shape
+
+TenderLens uses the Python `OpenAI` SDK pointed at the Azure-hosted base URL. It does **not** use `AzureOpenAI`, `chat.completions.create`, or `files.create`.
+
+### Shared client shape
+
+```python
+from openai import OpenAI
+
+client = OpenAI(
+    base_url=AZURE_OPENAI_ENDPOINT,
+    api_key=AZURE_OPENAI_API_KEY,
+)
+```
+
+### Rubric generation
+
+```python
+response = client.responses.parse(
+    model=self._model,
+    instructions=instructions,
+    input=input_text,
+    text_format=LLMRubricProposal,
+)
+```
+
+### Vendor extraction
+
+```python
+response = client.responses.parse(
+    model=self._model,
+    instructions=instructions,
+    input=[
+        {
+            "role": "user",
+            "content": [
+                {
+                    "type": "input_file",
+                    "filename": document.file_name,
+                    "file_data": file_data,
+                },
+                {
+                    "type": "input_text",
+                    "text": locked_framework_brief,
+                },
+            ],
+        }
+    ],
+    text_format=LLMVendorExtraction,
+)
+```
+
+### Narrative technical scoring
+
+```python
+response = client.responses.parse(
+    model=self._model,
+    instructions=instructions,
+    input=scoring_prompt,
+    text_format=NarrativeCriterionScoreSet,
+)
+```
+
+### Advisory AI scenarios
+
+```python
+response = client.responses.parse(
+    model=self._model,
+    instructions=instructions,
+    input=scenario_prompt,
+    text_format=AIScenarioSet,
+)
+```
+
+## What is deterministic versus model-driven
+
+### Model-driven stages
+
+- rubric proposal generation
+- vendor extraction from messy documents
+- narrative technical scoring
+- advisory AI scenario generation
+
+### Deterministic stages
+
+- framework lock
+- normalized pricing construction
+- currency and supported UOM conversion
+- MAC and threshold enforcement
+- commercial score computation
+- official QCBS 70/30 calculation
+
+## Lightweight traceability note
+
+TenderLens does not treat explainability as a post-processing cosmetic step. The system keeps:
+
+- raw question answers
+- structured schedule answers
+- normalized fields
+- normalized pricing lines
+- evidence anchors
+- buyer-readable snippets
+
+That is why the result pages can show not only a score, but also the reasoning path behind the score.

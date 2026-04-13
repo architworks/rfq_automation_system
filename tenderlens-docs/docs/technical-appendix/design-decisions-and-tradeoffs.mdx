@@ -1,0 +1,128 @@
+---
+title: Design Decisions and Tradeoffs
+description: Technical appendix covering the major design choices behind TenderLens.
+---
+
+# Design Decisions and Tradeoffs
+
+This page explains the decisions that shaped TenderLens and the tradeoffs they introduce.
+
+## 1. Framework first, extraction second
+
+### Decision
+
+Generate and lock the evaluation framework before the vendor documents are evaluated.
+
+### Why
+
+This is the strongest decision in the system. It keeps:
+
+- rubric generation
+- vendor question generation
+- extraction
+- normalization
+- scoring
+- recommendation
+
+aligned to one shared framework object.
+
+### Tradeoff
+
+Framework generation can take time. That is acceptable because the time is spent building a stronger and less subjective downstream evaluation basis.
+
+## 2. AI where judgment is needed, deterministic logic where governance is needed
+
+### Decision
+
+Use AI for ambiguous or unstructured interpretation, but keep deterministic logic for normalization, gating, and official award math.
+
+### Why
+
+This gives the system flexibility where messy documents demand it, but keeps procurement governance stable where the logic should not drift.
+
+### Tradeoff
+
+The architecture is more complex than “ask one model to do everything,” but it is far more explainable and controllable.
+
+## 3. Official result separated from advisory insight
+
+### Decision
+
+Keep QCBS 70/30 as the official result and show LCS, QBS, and contextual AI scenarios as advisory only.
+
+### Why
+
+This preserves a strong distinction between:
+
+- the governed procurement basis
+- analytical exploration of alternate lenses
+
+### Tradeoff
+
+The UI and documentation must work harder to communicate that distinction clearly.
+
+## 4. Commercial pricing uses one canonical extraction path
+
+### Decision
+
+Structured commercial pricing is treated as canonical in the requested schedule answers rather than spread across multiple extraction buckets.
+
+### Why
+
+Pricing is inherently tabular and needs one stable source for normalization and comparability.
+
+### Tradeoff
+
+The extraction prompt and schema have to be stricter, but downstream commercial logic becomes cleaner and more reliable.
+
+## 5. Explainability is a first-class output
+
+### Decision
+
+Carry evidence anchors, normalized fields, and buyer-readable reasoning throughout the pipeline.
+
+### Why
+
+A procurement system cannot stop at “Vendor A scored 82.” It must also show:
+
+- what was extracted
+- how it was normalized
+- why a criterion passed or failed
+- why the official winner won
+
+### Tradeoff
+
+This increases model and UI complexity, but it is necessary for auditability and buyer trust.
+
+## 6. Prototype constraints were accepted deliberately
+
+### Decision
+
+Keep the current implementation lightweight:
+
+- no auth
+- no persistent database
+- one document per vendor
+- in-memory session state
+
+### Why
+
+The assignment is about proving the end-to-end system design, not fully productionizing it.
+
+### Tradeoff
+
+Operational robustness is intentionally limited. If this moved toward production, the next major investments would be:
+
+- durable storage
+- job orchestration
+- collaboration
+- operational monitoring
+- stronger ingestion coverage
+
+## What I would improve next
+
+- durable background execution for slow AI stages
+- persistent storage and audit history
+- more robust Word, PowerPoint, and spreadsheet fidelity handling
+- better seeded benchmark datasets for repeated evaluation testing
+- stronger reviewer workflows around framework approval and award sign-off

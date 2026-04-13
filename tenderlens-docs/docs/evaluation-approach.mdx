@@ -1,0 +1,127 @@
+---
+title: Evaluation Approach
+description: Rubric framework, technical gate, commercial comparison, and official versus advisory logic.
+---
+
+# Evaluation Approach
+
+TenderLens is designed to evaluate vendors in a way that is both **strong enough for procurement logic** and **explainable enough for review**. The prototype does not collapse everything into one vague “AI score.” It separates:
+
+- qualification
+- technical quality
+- commercial comparison
+- official recommendation
+- advisory AI insights
+
+## Criterion taxonomy
+
+The rubric uses four criterion types:
+
+### 1. MAC
+Mandatory acceptance criteria are hard gates. If a vendor fails a MAC, they should not progress as an award-eligible vendor.
+
+Typical examples:
+
+- legal or regulatory capability
+- mandatory compliance support
+- other pass/fail conditions the buyer explicitly requires
+
+### 2. Technical scored-only
+These criteria contribute to the technical score, but they do not have their own individual cutoff.
+
+Typical examples:
+
+- overall campaign solution quality
+- strength of the integrated delivery model
+- quality of strategic thinking
+
+### 3. Technical cutoff-backed
+These criteria contribute to the technical score and also enforce a minimum acceptable quality floor for that criterion.
+
+Typical examples:
+
+- governance quality
+- risk management quality
+- areas where a weak answer is too risky to ignore even if other technical areas are strong
+
+### 4. Commercial
+These criteria are used for pricing completeness, comparability, and final commercial ranking. They are kept outside the technical qualification gate.
+
+## Technical gate
+
+The technical gate is layered. A vendor must:
+
+1. pass all MAC checks
+2. pass any critical technical cutoffs
+3. meet the aggregate technical threshold
+
+Only vendors that clear the technical gate become eligible for formal commercial comparison and official award ranking.
+
+This is important because the system should not reward the cheapest price if the vendor is technically weak or fails mandatory requirements.
+
+## Commercial evaluation
+
+Commercial evaluation starts only after the technically qualified pool is known.
+
+The system then:
+
+- checks line-item pricing completeness
+- verifies comparability of quoted values
+- normalizes supported currencies into the RFQ currency
+- converts only supported weight and volume units mathematically
+- computes comparable totals
+
+The official commercial score is based on the standard formula:
+
+`100 * lowest_comparable_total / vendor_total`
+
+That means the lowest comparable total gets a commercial score of 100, and other vendors scale downward from there.
+
+## Official result versus advisory AI insight
+
+TenderLens deliberately separates:
+
+- **Official result**: the governed QCBS 70/30 award outcome
+- **AI insights**: advisory views such as `LCS`, `QBS`, and contextual AI-generated scenarios
+
+The advisory layer is useful, but it does not override the official procurement basis.
+
+## Why this reduces subjectivity
+
+The key to reducing subjectivity is not “remove AI completely.” The key is to use AI in the right place and keep deterministic logic where the system needs a stable, auditable rule.
+
+TenderLens does that by:
+
+- using AI to propose the framework and handle messy-document interpretation
+- using deterministic rules for official normalization and commercial math
+- applying a fixed official award basis after qualification is established
+
+## Where AI is used
+
+:::tip Where AI is used
+- Proposing the rubric structure, question set, schedules, and threshold rationale
+- Extracting answers, claims, pricing fields, and evidence anchors from vendor files
+- Scoring narrative technical criteria where a qualitative judgment is still needed
+- Producing advisory scenario explanations and buyer-facing reasoning summaries
+:::
+
+## Where AI is not used
+
+:::info Where AI is not used
+- MAC enforcement once the framework is locked
+- Technical threshold and cutoff enforcement once the scores exist
+- Currency conversion and supported unit conversion
+- Commercial score formula
+- Official QCBS 70/30 arithmetic
+- Final separation between official result and advisory outputs
+:::
+
+## What the buyer gets at the end
+
+By the end of the workflow, the buyer does not just get “a winner.” The buyer gets:
+
+- exact disqualification reasons
+- vendor-level technical and commercial traceability
+- normalized pricing visibility
+- evidence-backed evaluation summaries
+- one official result and clearly separated advisory alternatives

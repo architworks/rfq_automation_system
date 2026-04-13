@@ -1,0 +1,89 @@
+---
+title: Architecture and Deployment
+description: Technical appendix covering application shape, state model, and deployment.
+---
+
+# Architecture and Deployment
+
+## Current application shape
+
+TenderLens is implemented as a monorepo with two main applications:
+
+- `apps/web`: Next.js frontend
+- `apps/api`: FastAPI backend
+
+The browser talks directly to the API. There is no separate Next API proxy in the local development flow.
+
+## Core runtime model
+
+The prototype is session-oriented.
+
+- The browser owns a session identifier
+- The backend keeps session state in memory
+- Uploaded vendor files are stored in a TTL-managed temp directory
+- There is no durable database in the current prototype
+
+This is a deliberate prototype choice. It keeps the system lightweight while proving the end-to-end evaluation flow.
+
+## Major architectural layers
+
+### 1. RFQ and framework design
+
+- buyer enters RFQ details
+- AI generates one connected evaluation framework
+- buyer reviews and locks the framework
+
+### 2. Vendor pack and vendor ingestion
+
+- vendor-facing RFQ pack is derived from the locked framework
+- one source document is uploaded per vendor
+
+### 3. Extraction and normalization
+
+- AI extracts structured answers and evidence from the original vendor file
+- deterministic code normalizes the extracted data into a comparable basis
+
+### 4. Evaluation and recommendation
+
+- technical evaluation combines deterministic and narrative scoring
+- commercial comparison is deterministic
+- official award logic is deterministic
+- advisory AI scenarios are clearly separated
+
+## Why this architecture was chosen
+
+The architecture is intentionally biased toward one product principle:
+
+> Keep the system grounded to a locked framework object that every later subsystem can read.
+
+That prevents downstream stages from becoming loosely coupled AI utilities that no longer agree on what the procurement is actually judging.
+
+## Deployment shape for the product app
+
+The current product app is prepared for a Vercel deployment where:
+
+- the frontend and backend remain separate services
+- the frontend is served from the Next.js app
+- the backend is served from the FastAPI entrypoint
+
+The prototype still carries some serverless limitations because the session and temp-file model are optimized for the demo workflow rather than distributed long-running production state.
+
+## Deployment shape for the docs site
+
+The documentation site is intentionally separate from the product app.
+
+- it lives in `tenderlens-docs/`
+- it has its own package, config, and scripts
+- it can be moved into another repository
+- it can be deployed as its own Vercel project by setting the project root to that folder
+
+This separation keeps the submission documentation independent from the main application deployment.
+
+## Main limitations today
+
+- no durable state
+- no background job system for long-running AI work
+- limited multi-user and collaboration support
+- prototype-first document ingestion, especially for visually dense non-PDF documents
+
+These limitations are acceptable for the prototype because the current goal is to prove the workflow and the evaluation logic, not to finish production infrastructure.

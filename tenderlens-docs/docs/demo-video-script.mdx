@@ -1,0 +1,91 @@
+---
+title: Demo Video Script
+description: A 5-minute demo script covering the system flow, key decisions, and live walkthrough.
+---
+
+# Demo Video Script
+
+This page is written as a practical **5-minute narration script** for the demo.
+
+## Suggested setup before recording
+
+- Open the TenderLens app in the browser
+- Use the built-in sample RFQ path
+- Use **Load Generated Rubric** for the sample case so the demo does not spend several minutes waiting for a live rubric generation
+- Keep one or more vendor documents ready so you can show extraction, normalization, and results
+
+## 0:00–0:45 — Problem framing
+
+**What to say**
+
+“TenderLens is an AI-assisted procurement prototype designed for one hard problem: buyers receive messy vendor submissions across PDFs, Word documents, PowerPoints, and spreadsheets, but they still need to make a defensible award decision. The challenge is not just extracting text. The real challenge is defining what value means before the bids are judged, and then keeping the extraction, scoring, and final recommendation aligned to that definition.”
+
+## 0:45–1:30 — Core system concept
+
+**What to say**
+
+“The strongest design choice here is that TenderLens is framework-first. Instead of using disconnected AI calls for questionnaire generation, extraction, and scoring, the system first creates one connected evaluation framework. That framework includes the rubric, scoring structure, questions, schedules, and evidence expectations. Once the buyer locks it, every downstream step stays aligned to the same framework.”
+
+**What to show**
+
+- Land on the overview of the app
+- Point out the step flow
+
+## 1:30–2:30 — Framework generation and lock
+
+**What to say**
+
+“Here the buyer can start from a blank RFQ or use the sample. For the demo I’ll use the sample RFQ and the archived generated rubric so we can move quickly, but the downstream extraction and evaluation are still live. In the live path, rubric generation takes time because the model is not just inventing a few questions. It is generating a strong RFQ-specific framework that later governs extraction, scoring, and evidence alignment.”
+
+**What to click**
+
+1. Use RFQ Sample
+2. Load Generated Rubric
+3. Open Proposal Review
+4. Show the criteria, question linkage, and commercial schedules
+5. Lock the framework
+
+## 2:30–3:45 — Vendor ingestion, extraction, normalization, evidence
+
+**What to say**
+
+“After lock, the system derives a vendor-facing RFQ pack and the buyer can register vendors and upload one source document per vendor. Extraction is done one call per vendor against the whole locked framework. The system is not asking the model one question at a time. It asks the model to return a structured extraction object with question answers, schedule answers, technical claims, commercial notes, and evidence anchors.”
+
+“After extraction, TenderLens separates raw extracted data from normalized data. Currency normalization and supported unit conversion are deterministic, not AI invented. And every material answer keeps evidence snippets and locators so the buyer can review why something was extracted or normalized a certain way.”
+
+**What to click**
+
+1. Open Add Vendors
+2. Show uploaded vendor files
+3. Run extraction
+4. Open the review page
+5. Show question answers, structured pricing tables, normalized pricing, and evidence-backed review detail
+
+## 3:45–4:40 — Technical gate, commercial comparison, and final result
+
+**What to say**
+
+“Now the important distinction: the technical gate is hard. Vendors must pass MAC checks, clear any critical cutoff-backed criteria, and meet the aggregate technical threshold before they are commercially ranked. Price does not rescue a technically weak vendor.”
+
+“The commercial side is then compared only on the technically qualified pool, and the official recommendation is computed using QCBS 70/30. That gives us one governed official result.”
+
+**What to click**
+
+1. Open Bidding Results
+2. Show the official winner
+3. Show the technical gate explanation
+4. Show score trace and commercial comparison
+
+## 4:40–5:00 — AI insights, strengths, and future work
+
+**What to say**
+
+“Below the official result, TenderLens also shows advisory AI insights such as LCS, QBS, and contextual scenarios. These are useful for analysis, but they do not override the official procurement basis.”
+
+“If I had more time, I would push this toward durable background jobs, persistent storage, stronger document ingestion coverage, and richer collaboration and audit tooling. But even in prototype form, the key strength is already here: the system is connected end-to-end, evidence-backed, and far less subjective than a chain of disconnected LLM calls.”
+
+## Fallback lines if a live step is slow
+
+- “This step is live and can take a few minutes because the model is generating a complete framework rather than a shallow question list.”
+- “For the purpose of the demo, I’m using the archived sample rubric so we can focus on the extraction, normalization, and evaluation pipeline.”
+- “The important point is not just that AI is used, but that it is used in a controlled, connected way.”
