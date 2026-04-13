@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import json
 from datetime import UTC, datetime
 from functools import lru_cache
@@ -363,23 +364,47 @@ def create_app() -> FastAPI:
                 detail="No uploaded vendor documents are waiting for extraction.",
             )
 
-        for vendor_id in vendor_ids:
-            try:
-                review = _extract_vendor_review(
+        reviews_by_vendor: dict[str, VendorReview] = {}
+        extraction_errors: dict[str, str] = {}
+
+        with ThreadPoolExecutor(max_workers=len(vendor_ids)) as executor:
+            futures = {
+                executor.submit(
+                    _extract_vendor_review,
                     session_id=session_id,
                     vendor_id=vendor_id,
                     store=store,
                     llm_client=llm_client,
-                )
-            except LLMConfigurationError as exc:
-                raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc)) from exc
-            except LLMTaskError as exc:
-                store.set_vendor_extraction_error(session_id, vendor_id, str(exc))
+                ): vendor_id
+                for vendor_id in vendor_ids
+            }
+
+            for future in as_completed(futures):
+                vendor_id = futures[future]
+                try:
+                    reviews_by_vendor[vendor_id] = future.result()
+                except LLMConfigurationError as exc:
+                    raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc)) from exc
+                except LLMTaskError as exc:
+                    extraction_errors[vendor_id] = str(exc)
+                except HTTPException as exc:
+                    extraction_errors[vendor_id] = (
+                        exc.detail if isinstance(exc.detail, str) else "Vendor extraction failed."
+                    )
+                except Exception as exc:  # pragma: no cover - defensive
+                    extraction_errors[vendor_id] = str(exc)
+
+        for vendor_id in vendor_ids:
+            review = reviews_by_vendor.get(vendor_id)
+            if review is not None:
+                saved = store.save_vendor_review(session_id, review)
+                if saved is None:
+                    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Vendor not found.")
                 continue
 
-            saved = store.save_vendor_review(session_id, review)
-            if saved is None:
-                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Vendor not found.")
+            error_message = extraction_errors.get(vendor_id)
+            if error_message:
+                store.set_vendor_extraction_error(session_id, vendor_id, error_message)
 
         refreshed = _get_record_or_404(session_id, store)
         return refreshed.snapshot()

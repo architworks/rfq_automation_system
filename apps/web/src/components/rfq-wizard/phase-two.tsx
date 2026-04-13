@@ -515,6 +515,10 @@ export function ReviewStep({
     () => (selectedVendorId ? (evaluationReport?.technical_results ?? []).find((item) => item.vendor_id === selectedVendorId) ?? null : null),
     [evaluationReport, selectedVendorId],
   );
+  const selectedVendor = useMemo(
+    () => (selectedVendorId ? vendors.find((vendor) => vendor.id === selectedVendorId) ?? null : null),
+    [selectedVendorId, vendors],
+  );
   const criterionResultsById = useMemo(
     () => new Map((selectedTechnicalResult?.criterion_results ?? []).map((criterion) => [criterion.criterion_id, criterion])),
     [selectedTechnicalResult],
@@ -533,115 +537,128 @@ export function ReviewStep({
   );
 
   return (
-    <div className={styles.grid}>
-      <section className={styles.card}>
-        <div className={styles.cardHeader}>
-          <div>
-            <h2 className={styles.cardTitle}>Normalization Basis</h2>
-            <p className={styles.cardSubtle}>
-              Commercial normalization is automatic. The RFQ base currency drives FX conversion, and only weight or volume UOMs convert mathematically.
-            </p>
-          </div>
-          <div className={styles.buttonGroup}>
-            <button className={styles.secondaryButton} onClick={onGoToResults} type="button">
-              Go to results
-            </button>
-          </div>
-        </div>
-
-        <div className={styles.summaryGrid}>
-          <div className={styles.summaryItem}>
-            <span className={styles.summaryLabel}>RFQ Currency</span>
-            <span className={styles.summaryValue}>{comparisonSettings?.base_currency ?? "Not available"}</span>
-          </div>
-          <div className={styles.summaryItem}>
-            <span className={styles.summaryLabel}>FX Effective Date</span>
-            <span className={styles.summaryValue}>{comparisonSettings?.fx_effective_date ?? "Not available"}</span>
-          </div>
-          <div className={styles.summaryItem}>
-            <span className={styles.summaryLabel}>FX Coverage</span>
-            <span className={styles.summaryValue}>
-              {comparisonSettings ? `${(comparisonSettings.fx_rates ?? []).length + 1} currencies` : "Not available"}
-            </span>
-          </div>
-          <div className={styles.summaryNarrative}>
-            <span className={styles.summaryLabel}>Normalization Policy</span>
-            <span className={styles.summaryValue}>
-              Currency conversion uses the stored ECB snapshot. Lot and Count do not convert. Only weight and volume units convert mathematically.
-            </span>
-          </div>
-        </div>
-      </section>
-
-      <section className={styles.card}>
-        <div className={styles.cardHeader}>
-          <div>
-            <h2 className={styles.cardTitle}>Vendor Reviews</h2>
-            <p className={styles.cardSubtle}>
-              Raw extraction and normalized views remain separate here so the buyer can see what changed.
-            </p>
-          </div>
-        </div>
-        <div className={styles.reviewLayout}>
-          <div className={styles.reviewSidebar}>
-            {vendors.map((vendor) => {
-              const review = reviewsByVendor.get(vendor.id);
-              return (
-                <button
-                  className={`${styles.reviewSidebarButton} ${selectedVendorId === vendor.id ? styles.reviewSidebarButtonActive : ""}`}
-                  key={vendor.id}
-                  onClick={() => onSelectVendor(vendor.id)}
-                  type="button"
-                >
-                  <span>{vendor.name}</span>
-                  <span className={`${styles.statusBadge} ${statusClassName(vendor.status)}`}>{vendor.status}</span>
-                  <span className={styles.previewItemMeta}>{review ? "Review available" : "No review yet"}</span>
-                </button>
-              );
-            })}
-          </div>
-
-          <div className={styles.reviewContent}>
-            {!selectedReview ? (
-              <div className={`${styles.banner} ${styles.infoBanner}`}>
-                Select a vendor with extracted data to inspect its raw and normalized review.
+    <div className={styles.reviewPageLayout}>
+      <aside className={styles.reviewPageSidebar}>
+        <div className={styles.reviewSectionDock}>
+          <div className={styles.previewSectionTitle}>Review Navigation</div>
+          {selectedReview && selectedVendor ? (
+            <>
+              <div className={styles.previewItemMeta}>
+                Jump across the extracted sections for <strong>{selectedVendor.name}</strong>.
               </div>
-            ) : (
-              <>
-                {selectedReview.visual_fidelity_warning ? (
-                  <div className={`${styles.banner} ${styles.infoBanner}`}>
-                    {selectedReview.visual_fidelity_warning}
-                  </div>
-                ) : null}
+              <div className={styles.reviewSectionNavList}>
+                {reviewSections.map((section) => (
+                  <button
+                    className={styles.reviewSectionNavButton}
+                    key={section.id}
+                    onClick={() => scrollToReviewSection(section.id)}
+                    type="button"
+                  >
+                    {section.label}
+                  </button>
+                ))}
+              </div>
+            </>
+          ) : (
+            <div className={styles.reviewSectionDockEmpty}>
+              Select a vendor with extracted data to enable section navigation.
+            </div>
+          )}
+        </div>
+      </aside>
 
-                {(selectedReview.blockers ?? []).length > 0 ? (
-                  <div className={`${styles.banner} ${styles.errorBanner}`}>
-                    {(selectedReview.blockers ?? []).join(" ")}
-                  </div>
-                ) : null}
+      <div className={styles.reviewPageMain}>
+        <section className={styles.card}>
+          <div className={styles.cardHeader}>
+            <div>
+              <h2 className={styles.cardTitle}>Normalization Basis</h2>
+              <p className={styles.cardSubtle}>
+                Commercial normalization is automatic. The RFQ base currency drives FX conversion, and only weight or volume UOMs convert mathematically.
+              </p>
+            </div>
+            <div className={styles.buttonGroup}>
+              <button className={styles.secondaryButton} onClick={onGoToResults} type="button">
+                Go to results
+              </button>
+            </div>
+          </div>
 
-                {(selectedReview.warnings ?? []).length > 0 ? (
-                  <div className={`${styles.banner} ${styles.infoBanner}`}>
-                    {(selectedReview.warnings ?? []).join(" ")}
-                  </div>
-                ) : null}
+          <div className={styles.summaryGrid}>
+            <div className={styles.summaryItem}>
+              <span className={styles.summaryLabel}>RFQ Currency</span>
+              <span className={styles.summaryValue}>{comparisonSettings?.base_currency ?? "Not available"}</span>
+            </div>
+            <div className={styles.summaryItem}>
+              <span className={styles.summaryLabel}>FX Effective Date</span>
+              <span className={styles.summaryValue}>{comparisonSettings?.fx_effective_date ?? "Not available"}</span>
+            </div>
+            <div className={styles.summaryItem}>
+              <span className={styles.summaryLabel}>FX Coverage</span>
+              <span className={styles.summaryValue}>
+                {comparisonSettings ? `${(comparisonSettings.fx_rates ?? []).length + 1} currencies` : "Not available"}
+              </span>
+            </div>
+            <div className={styles.summaryNarrative}>
+              <span className={styles.summaryLabel}>Normalization Policy</span>
+              <span className={styles.summaryValue}>
+                Currency conversion uses the stored ECB snapshot. Lot and Count do not convert. Only weight and volume units convert mathematically.
+              </span>
+            </div>
+          </div>
+        </section>
 
-                <div className={styles.reviewDetailLayout}>
-                  <aside className={styles.reviewSectionNav}>
-                    <div className={styles.previewSectionTitle}>Review Navigation</div>
-                    <div className={styles.reviewSectionNavList}>
-                      {reviewSections.map((section) => (
-                        <button
-                          className={styles.reviewSectionNavButton}
-                          key={section.id}
-                          onClick={() => scrollToReviewSection(section.id)}
-                          type="button"
-                        >
-                          {section.label}
-                        </button>
-                      ))}
+        <section className={styles.card}>
+          <div className={styles.cardHeader}>
+            <div>
+              <h2 className={styles.cardTitle}>Vendor Reviews</h2>
+              <p className={styles.cardSubtle}>
+                Raw extraction and normalized views remain separate here so the buyer can see what changed.
+              </p>
+            </div>
+          </div>
+          <div className={styles.reviewLayout}>
+            <div className={styles.reviewSidebar}>
+              {vendors.map((vendor) => {
+                const review = reviewsByVendor.get(vendor.id);
+                return (
+                  <button
+                    className={`${styles.reviewSidebarButton} ${selectedVendorId === vendor.id ? styles.reviewSidebarButtonActive : ""}`}
+                    key={vendor.id}
+                    onClick={() => onSelectVendor(vendor.id)}
+                    type="button"
+                  >
+                    <span>{vendor.name}</span>
+                    <span className={`${styles.statusBadge} ${statusClassName(vendor.status)}`}>{vendor.status}</span>
+                    <span className={styles.previewItemMeta}>{review ? "Review available" : "No review yet"}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className={styles.reviewContent}>
+              {!selectedReview ? (
+                <div className={`${styles.banner} ${styles.infoBanner}`}>
+                  Select a vendor with extracted data to inspect its raw and normalized review.
+                </div>
+              ) : (
+                <>
+                  {selectedReview.visual_fidelity_warning ? (
+                    <div className={`${styles.banner} ${styles.infoBanner}`}>
+                      {selectedReview.visual_fidelity_warning}
                     </div>
-                  </aside>
+                  ) : null}
+
+                  {(selectedReview.blockers ?? []).length > 0 ? (
+                    <div className={`${styles.banner} ${styles.errorBanner}`}>
+                      {(selectedReview.blockers ?? []).join(" ")}
+                    </div>
+                  ) : null}
+
+                  {(selectedReview.warnings ?? []).length > 0 ? (
+                    <div className={`${styles.banner} ${styles.infoBanner}`}>
+                      {(selectedReview.warnings ?? []).join(" ")}
+                    </div>
+                  ) : null}
 
                   <div className={styles.reviewSectionContent}>
                     <section className={styles.previewPanel}>
@@ -698,12 +715,12 @@ export function ReviewStep({
                       />
                     </section>
                   </div>
-                </div>
-              </>
-            )}
+                </>
+              )}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      </div>
     </div>
   );
 }

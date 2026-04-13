@@ -714,10 +714,45 @@
   color: #9f1239;
 }
 
+.reviewPageLayout {
+  display: grid;
+  gap: 20px;
+  grid-template-columns: minmax(180px, 220px) minmax(0, 1fr);
+}
+
+.reviewPageSidebar {
+  min-width: 0;
+  align-self: stretch;
+}
+
+.reviewPageMain {
+  display: grid;
+  gap: 20px;
+  min-width: 0;
+}
+
+.reviewSectionDock {
+  position: sticky;
+  top: 20px;
+  display: grid;
+  gap: 12px;
+  align-content: start;
+  padding: 16px;
+  border-radius: 20px;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.05);
+}
+
+.reviewSectionDockEmpty {
+  line-height: 1.55;
+  color: #64748b;
+}
+
 .reviewLayout {
   display: grid;
   gap: 18px;
-  grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
+  grid-template-columns: minmax(190px, 230px) minmax(0, 1fr);
 }
 
 .reviewSidebar {
@@ -755,25 +790,6 @@
   display: grid;
   gap: 16px;
   min-width: 0;
-}
-
-.reviewDetailLayout {
-  display: grid;
-  gap: 18px;
-  grid-template-columns: minmax(220px, 250px) minmax(0, 1fr);
-  align-items: start;
-}
-
-.reviewSectionNav {
-  position: sticky;
-  top: 20px;
-  display: grid;
-  gap: 12px;
-  align-content: start;
-  padding: 14px;
-  border-radius: 18px;
-  border: 1px solid rgba(148, 163, 184, 0.22);
-  background: rgba(248, 250, 252, 0.8);
 }
 
 .reviewSectionNavList {
@@ -937,11 +953,11 @@
     grid-template-columns: 1fr;
   }
 
-  .reviewDetailLayout {
+  .reviewPageLayout {
     grid-template-columns: 1fr;
   }
 
-  .reviewSectionNav {
+  .reviewSectionDock {
     position: static;
   }
 }
