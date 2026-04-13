@@ -319,6 +319,7 @@ class OpenAIResponsesClient(LLMClient):
             "and each scored criterion must use the same value for weight and max_score. "
             "Commercial criteria must have no weight and no cutoff. "
             "Set one aggregate technical threshold for qualified bids. "
+            "Unless the RFQ clearly signals unusually high delivery or safety risk, prefer a moderate aggregate threshold around 60 rather than defaulting to 70 or above. "
             "Every criterion must include exactly one evidence check. "
             "For every non-commercial criterion, include one nested vendor_question inside that criterion instead of returning a separate question list. "
             "Questions must be mutually distinct and collectively cover the criteria without unnecessary overlap. "

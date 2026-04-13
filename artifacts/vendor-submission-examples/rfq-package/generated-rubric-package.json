@@ -387,7 +387,7 @@
       "qualitative_scoring_guidance": "Score strongly where the response shows joined-up thinking from concept to production delivery, practical control of production stages, and readiness to deliver master film and cutdowns for launch use. Score weakly where major production stages are glossed over, handoffs are unclear, or delivery outputs are not well addressed."
     }
   ],
-  "aggregate_technical_threshold": 70.0,
+  "aggregate_technical_threshold": 60.0,
   "questions": [
     {
       "id": "q_cr_mac_1",
