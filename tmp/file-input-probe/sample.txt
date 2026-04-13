@@ -1,0 +1,2 @@
+Vendor submission sample for file-input probe.
+Capability: claims review yes.

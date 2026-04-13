@@ -57,13 +57,13 @@ Our view is that the launch should use a clear, emotionally resonant idea that c
 
 **Question:** Describe your end-to-end approach for ensuring child-directed marketing safety and claims usage compliance across strategy, creative, TVC, social, and launch approvals. Include where reviews occur, who owns them, how issues are escalated, and how rework is prevented.
 
-**Response:** Our team would brief external counsel at concept stage, then review scripts and social copy before release. We would maintain a claims checklist and ask the buyer to confirm any new product statements before assets go live. Compared with larger networks, our model is lighter but intended to stay practical and fast.
+**Response:** Our team would brief external counsel at concept stage, then review scripts and social copy before release. We would maintain a simple claims checklist and ask the buyer to confirm any new product statements before assets go live. The model is intentionally lightweight and does not rely on a full shared control register across all workstreams.
 
 ### q_cr_tech_2
 
 **Question:** Provide your proposed launch workplan from kickoff to launch, showing key stages for strategy, creative, TVC, social, compliance review, and program management. Explain how approvals will be managed, what the critical dependencies are, and how schedule risks will be controlled.
 
-**Response:** We would move quickly by keeping a small decision team, daily internal stand-ups, and limited creative route exploration. If a delay occurs, we would prioritize the film and highest-impact social assets first and push lower-priority variants behind launch.
+**Response:** We would move quickly by keeping a small decision team, daily internal stand-ups, and limited creative route exploration. If a delay occurs, we would prioritize the film and highest-impact social assets first, but we do not propose a formal multi-stage approval calendar, detailed recovery path, or separate escalation routine beyond the weekly buyer check-in.
 
 ### q_cr_tech_3
 

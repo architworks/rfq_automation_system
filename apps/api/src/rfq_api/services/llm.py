@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+import base64
 from collections import defaultdict
 from collections.abc import Iterable
 from typing import Annotated, Literal, TypeVar, cast
@@ -9,7 +10,6 @@ from openai import OpenAI
 from pydantic import BaseModel, Field
 
 from ..config import Settings
-from .documents import build_file_data_url
 from ..models import (
     AwardType,
     BuyerPriority,
@@ -376,7 +376,6 @@ class OpenAIResponsesClient(LLMClient):
         llm_settings: LLMSettings,
     ) -> RawExtraction:
         framework_brief = self._build_locked_framework_brief(artifact)
-        file_data = build_file_data_url(document, document_bytes)
         instructions = (
             "Extract only information that is explicitly grounded in the vendor document and relevant to the locked RFQ framework. "
             "Do not invent answers, prices, experience, or evidence. "
@@ -399,34 +398,41 @@ class OpenAIResponsesClient(LLMClient):
             f"When a unit is visible, use one of these canonical UOM tokens where the document clearly supports it: {', '.join(ALLOWED_EXTRACTION_UOM_TOKENS)}. "
             f"When a currency is visible, prefer a standard code from this supported list when the document clearly supports it: {', '.join(supported_currency_codes())}."
         )
-        input_payload = [
-            {
-                "role": "user",
-                "content": [
-                    {
-                        "type": "input_file",
-                        "filename": document.file_name,
-                        "file_data": file_data,
-                    },
-                    {
-                        "type": "input_text",
-                        "text": (
-                            f"Vendor: {vendor.name}\n\n"
-                            "Locked RFQ framework\n"
-                            f"{framework_brief}\n\n"
-                            "Return a single structured extraction for this vendor document."
-                        ),
-                    },
-                ],
-            }
-        ]
-        extracted = self._parse_structured_input(
-            instructions=instructions,
-            input_payload=input_payload,
-            text_format=LLMVendorExtraction,
-            error_label="Vendor extraction",
-            llm_settings=llm_settings,
-        )
+        try:
+            file_data = self._build_input_file_data(document=document, document_bytes=document_bytes)
+            input_payload = [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "input_file",
+                            "filename": document.file_name,
+                            "file_data": file_data,
+                        },
+                        {
+                            "type": "input_text",
+                            "text": (
+                                f"Vendor: {vendor.name}\n\n"
+                                "Locked RFQ framework\n"
+                                f"{framework_brief}\n\n"
+                                "Return a single structured extraction for this vendor document."
+                            ),
+                        },
+                    ],
+                }
+            ]
+            extracted = self._parse_structured_input(
+                instructions=instructions,
+                input_payload=input_payload,
+                text_format=LLMVendorExtraction,
+                error_label="Vendor extraction",
+                llm_settings=llm_settings,
+            )
+        except LLMTaskError:
+            raise
+        except Exception as exc:  # pragma: no cover - network/runtime dependent
+            raise LLMTaskError(f"Vendor extraction failed: {exc}") from exc
+
         raw_extraction = self._compose_raw_extraction(extracted)
         self._enforce_numeric_question_expectations(raw_extraction, artifact)
         return raw_extraction
@@ -681,6 +687,11 @@ class OpenAIResponsesClient(LLMClient):
         if parsed is None:
             raise LLMTaskError("Structured output call returned no parsed object.")
         return parsed, self._extract_reasoning_summary(response)
+
+    @staticmethod
+    def _build_input_file_data(*, document: VendorDocument, document_bytes: bytes) -> str:
+        base64_string = base64.b64encode(document_bytes).decode("utf-8")
+        return f"data:{document.mime_type};base64,{base64_string}"
 
     @staticmethod
     def _format_validation_feedback(issues: list[ValidationIssue]) -> str:

@@ -1,9 +1,6 @@
 from __future__ import annotations
 
-import base64
 from pathlib import Path
-
-from ..models import VendorDocument
 
 
 SUPPORTED_EXTENSIONS = {
@@ -31,13 +28,8 @@ def build_visual_fidelity_warnings(extension: str) -> list[str]:
         return []
     if extension in {".xls", ".xlsx"}:
         return [
-            "Spreadsheet uploads are processed with spreadsheet augmentation, but embedded charts and layout-heavy visuals may not carry through exactly.",
+            "Native file input is used for this spreadsheet. OpenAI processes spreadsheets through a spreadsheet-specific augmentation flow, so chart fidelity and full workbook layout may not fully carry through.",
         ]
     return [
-        "Non-PDF uploads are sent as text-first file inputs to the model, so embedded charts, diagrams, and visual layout cues may be missed.",
+        "Native file input is used for this document. OpenAI processes non-PDF office files as text-only input, so embedded charts, diagrams, images, and layout-heavy cues may not fully carry through.",
     ]
-
-
-def build_file_data_url(document: VendorDocument, content: bytes) -> str:
-    base64_string = base64.b64encode(content).decode("utf-8")
-    return f"data:{document.mime_type};base64,{base64_string}"

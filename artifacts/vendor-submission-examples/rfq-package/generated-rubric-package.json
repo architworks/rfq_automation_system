@@ -268,9 +268,9 @@
       "title": "Compliance delivery approach",
       "description": "Approach for keeping child-directed marketing and claims usage safe across launch asset creation, review, and approval.",
       "criterion_type": "technical_cutoff_backed",
-      "weight": 25.0,
-      "min_cutoff": 15.0,
-      "max_score": 25.0,
+      "weight": 30.0,
+      "min_cutoff": 18.0,
+      "max_score": 30.0,
       "evidence_checks": [
         {
           "id": "ev_cr_tech_1",
@@ -299,9 +299,9 @@
       "title": "Launch plan and approvals",
       "description": "Ability to manage approvals and deliver to the buyer launch calendar with visible dependencies and controls.",
       "criterion_type": "technical_cutoff_backed",
-      "weight": 20.0,
-      "min_cutoff": 12.0,
-      "max_score": 20.0,
+      "weight": 25.0,
+      "min_cutoff": 15.0,
+      "max_score": 25.0,
       "evidence_checks": [
         {
           "id": "ev_cr_tech_2",
@@ -330,9 +330,9 @@
       "title": "Strategy and creative approach",
       "description": "Approach to launch strategy, audience segmentation, messaging framework, and creative territory development.",
       "criterion_type": "technical_scored_only",
-      "weight": 20.0,
+      "weight": 25.0,
       "min_cutoff": null,
-      "max_score": 20.0,
+      "max_score": 25.0,
       "evidence_checks": [
         {
           "id": "ev_cr_tech_3",
@@ -361,9 +361,9 @@
       "title": "TVC delivery capability",
       "description": "Approach to TVC concept development, production, post-production, and delivery of master film and cutdowns.",
       "criterion_type": "technical_scored_only",
-      "weight": 15.0,
+      "weight": 20.0,
       "min_cutoff": null,
-      "max_score": 15.0,
+      "max_score": 20.0,
       "evidence_checks": [
         {
           "id": "ev_cr_tech_4",

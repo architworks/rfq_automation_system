@@ -340,6 +340,7 @@ export function VendorsStep({
             <p className={styles.cardSubtle}>
               Register vendors here. Upload all source documents first, then run one extraction job for every uploaded vendor.
             </p>
+            <p className={styles.cardSubtle}>One document per vendor. Native file input is used for PDF, Word, PowerPoint, and Excel uploads.</p>
           </div>
         </div>
         <div className={styles.vendorToolbar}>

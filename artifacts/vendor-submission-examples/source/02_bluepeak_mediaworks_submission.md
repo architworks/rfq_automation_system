@@ -51,41 +51,41 @@ We believe the launch should be built around one claims-safe family-health platf
 
 **Question:** State whether the buyer launch timelines are achievable. Select one option: Achievable as issued / Achievable with dependencies / Not achievable. Then list the key dependencies or constraints, or state None.
 
-**Response:** Achievable with dependencies. The plan assumes weekly buyer decision windows, claims wording freeze before final film edit, and prompt regional feedback on social adaptations. Media buying activation also depends on market account access by the agreed cutover date.
+**Response:** Achievable as issued. Standard buyer approvals within the agreed turnaround windows will be sufficient; no exceptional dependencies or scope caveats are required beyond normal launch governance inputs.
 
 ### q_cr_tech_1
 
 **Question:** Describe your end-to-end approach for ensuring child-directed marketing safety and claims usage compliance across strategy, creative, TVC, social, and launch approvals. Include where reviews occur, who owns them, how issues are escalated, and how rework is prevented.
 
-**Response:** BluePeak uses a layered compliance model: message architecture review before creative build, pre-shoot claims verification, edit-stage compliance review, and final market release sign-off. We use one control log across creative, social, and media teams so that claims-safe language stays consistent through production and launch.
+**Response:** Our compliance operating model places checkpoints at briefing, audience and message architecture approval, creative territory selection, storyboard approval, final script, pre-shoot legal lock, rough cut, final cut, and market adaptation release. One compliance lead owns the child-directed advertising and claims register, red-flags deviations immediately, and can hold release until written closure is recorded. This control log is shared across strategy, creative, production, social, and media teams so rework is prevented before assets progress.
 
 ### q_cr_tech_2
 
 **Question:** Provide your proposed launch workplan from kickoff to launch, showing key stages for strategy, creative, TVC, social, compliance review, and program management. Explain how approvals will be managed, what the critical dependencies are, and how schedule risks will be controlled.
 
-**Response:** We would manage speed by locking the decision calendar upfront, parallelizing market adaptation work, and using a shared issue log with owner-by-owner turnaround targets. If delays appear, we prioritize milestone protection by moving non-critical adaptations behind the master asset release.
+**Response:** We would protect the launch calendar through parallel workstreams, pre-booked production and post capacity, a milestone tracker shared with the buyer, and clear approval SLAs by stage. Critical dependencies are buyer approvals, claims wording freeze, and market adaptation decisions; each has an owner, target turnaround, and recovery path. If a delay appears, we trigger same-day escalation and preserve launch dates by separating non-critical local adaptations from the master asset path while keeping film, social, and compliance reviews synchronized.
 
 ### q_cr_tech_3
 
 **Question:** Describe your approach to launch strategy and creative development for the new kids health drink, including audience segmentation, messaging framework, creative territory development, and how the master campaign idea will be carried into launch assets.
 
-**Response:** Our strategy and creative approach centers on a family-health launch platform that can flex by market while keeping one clear claims-safe promise. We would build the audience segmentation and messaging framework first, then translate it into one film-led master idea supported by digital and social launch assets.
+**Response:** Our strategy and creative approach starts with caregiver trust plus kid appeal, then builds one claims-safe master campaign idea that travels from flagship film into social, retail, and launch governance assets. We would define audience segments, message roles, and creative territories before development begins, then translate the chosen route into a modular toolkit so the same strategic spine carries into launch assets without resetting core approvals.
 
 ### q_cr_tech_4
 
 **Question:** Describe your approach to TVC development and production for the global launch, covering concept development, pre-production, shoot management, post-production, and delivery of the master film and cutdowns for paid media use.
 
-**Response:** Our TVC approach covers concept development, storyboard and script approval, production planning, shoot management, edit supervision, and final delivery of the hero film with cutdowns. We would pre-align production constraints with compliance and regional adaptation needs so the master asset can feed paid media quickly.
+**Response:** We would handle TVC development and production through one integrated film workstream covering concept development, script and storyboard, production-board approval, shoot planning, post-production, and delivery of the master film with paid-media cutdowns. One lead producer owns schedule and handoffs, while compliance reviewers stay active before shoot lock, at rough cut, and at final release. This gives the buyer one controlled path from concept to delivered hero film and cutdowns without fragmented ownership.
 
 ## Commercial Pricing Schedule
 
 | Line Item Ref | Line Item Name | Included in Quote | Currency | Total Price | Exclusions or Assumptions |
 | --- | --- | --- | --- | --- | --- |
-| li_1 | Strategy & Creative Development | Yes | EUR | 410000 | Regional adaptation planning included. |
-| li_2 | TVC Development | Yes | EUR | 265000 | Concept, script, and storyboard included. |
-| li_3 | TVC Production | Yes | EUR | 930000 | Production and post-production included. |
-| li_4 | Social Organic Content | Yes | EUR | 215000 | Regional transcreation priced for priority launch markets only. |
-| li_5 | Social Paid Media Planning | Yes | EUR | 190000 | Paid media strategy and phasing included. |
-| li_6 | Social Paid Media Buying & Optimization | Yes | EUR | 360000 | Media spend excluded from fee. |
-| li_7 | Kids Advertising & Claims Compliance Review | Yes | EUR | 220000 | Central plus local counsel review included. |
-| li_8 | Launch Program Management | Yes | EUR | 310000 | PMO and reporting included. |
+| li_1 | Strategy & Creative Development | Yes | EUR | 365000 | Regional adaptation planning included. |
+| li_2 | TVC Development | Yes | EUR | 238000 | Concept, script, and storyboard included. |
+| li_3 | TVC Production | Yes | EUR | 760000 | Production and post-production included. |
+| li_4 | Social Organic Content | Yes | EUR | 182000 | Regional transcreation priced for priority launch markets only. |
+| li_5 | Social Paid Media Planning | Yes | EUR | 150000 | Paid media strategy and phasing included. |
+| li_6 | Social Paid Media Buying & Optimization | Yes | EUR | 302000 | Media spend excluded from fee. |
+| li_7 | Kids Advertising & Claims Compliance Review | Yes | EUR | 176000 | Central plus local counsel review included. |
+| li_8 | Launch Program Management | Yes | EUR | 242000 | PMO and reporting included. |

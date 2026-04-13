@@ -57,35 +57,35 @@ We believe a kids-health launch succeeds when the creative system is designed ar
 
 **Question:** Describe your end-to-end approach for ensuring child-directed marketing safety and claims usage compliance across strategy, creative, TVC, social, and launch approvals. Include where reviews occur, who owns them, how issues are escalated, and how rework is prevented.
 
-**Response:** Our compliance operating model is the strongest part of our offer. We embed claims counsel from briefing through final release, maintain a child-safety control register, and require red-amber-green clearance before any creative, script, or media asset moves to the next stage. Exceptions cannot be closed informally; they require written owner sign-off.
+**Response:** Our compliance operating model is the strongest part of our offer. We embed claims counsel from briefing through final release, maintain a child-safety and claims control register, and require red-amber-green clearance before any strategy, creative, script, film, social, or media asset moves to the next stage. Exceptions cannot be closed informally; they require written owner sign-off and tracked closure before release.
 
 ### q_cr_tech_2
 
 **Question:** Provide your proposed launch workplan from kickoff to launch, showing key stages for strategy, creative, TVC, social, compliance review, and program management. Explain how approvals will be managed, what the critical dependencies are, and how schedule risks will be controlled.
 
-**Response:** We protect launch speed through a gated but predictable operating rhythm. Each milestone has a pre-read, approval owner, fallback option, and recovery path. Where a task threatens the critical path, we separate non-critical local adaptations from the master release so the campaign can still launch on time.
+**Response:** We protect launch speed through a gated but predictable operating rhythm. Each milestone has a pre-read, approval owner, fallback option, and recovery path, and the approval board is visible against the critical path from kickoff to launch. Where a task threatens timing, we separate non-critical local adaptations from the master release, deploy pre-cleared backup assets, and escalate within the same day so the campaign can still launch on time.
 
 ### q_cr_tech_3
 
 **Question:** Describe your approach to launch strategy and creative development for the new kids health drink, including audience segmentation, messaging framework, creative territory development, and how the master campaign idea will be carried into launch assets.
 
-**Response:** Our strategic and creative approach is intentionally claims-safe first, then creatively expressive within those boundaries. The work would focus on a trust-building hero message, tightly controlled script language, and modular adaptation into social and paid media formats.
+**Response:** Our strategic and creative approach is intentionally claims-safe first, then creatively expressive within those boundaries. The work would focus on a trust-building hero message, disciplined audience and message architecture, tightly controlled script language, and modular adaptation into social and paid media formats so the master idea stays usable across markets.
 
 ### q_cr_tech_4
 
 **Question:** Describe your approach to TVC development and production for the global launch, covering concept development, pre-production, shoot management, post-production, and delivery of the master film and cutdowns for paid media use.
 
-**Response:** Our TVC approach uses close coupling between concept, script, production planning, and post-production review. We would keep regulatory and claims reviewers active through storyboard, shoot prep, rough cut, and final delivery so the master film and cutdowns stay launch-ready without late-stage rework.
+**Response:** Our TVC approach uses close coupling between concept, script, production planning, shoot readiness, and post-production review. Regulatory and claims reviewers stay active through storyboard, shoot prep, rough cut, and final delivery so the master film and cutdowns remain launch-ready without late-stage rework or fragmented handoffs.
 
 ## Commercial Pricing Schedule
 
 | Line Item Ref | Line Item Name | Included in Quote | Currency | Total Price | Exclusions or Assumptions |
 | --- | --- | --- | --- | --- | --- |
-| li_1 | Strategy & Creative Development | Yes | USD | 380000 | Compliance-first strategic development. |
-| li_2 | TVC Development | Yes | USD | 260000 | Script and storyboard with regulatory review embedded. |
-| li_3 | TVC Production | Yes | USD | 820000 | Music rights, celebrity usage, and extraordinary travel excluded. |
-| li_4 | Social Organic Content | Yes | USD | 185000 | Organic adaptation pack included. |
-| li_5 | Social Paid Media Planning | Yes | USD | 160000 | Planning and phasing included. |
-| li_6 | Social Paid Media Buying & Optimization | Yes | USD | 285000 | Working media spend excluded. |
-| li_7 | Kids Advertising & Claims Compliance Review | Yes | USD | 235000 | Senior counsel and market alignment included. |
-| li_8 | Launch Program Management | Yes | USD | 230000 | Program controls and executive reporting included. |
+| li_1 | Strategy & Creative Development | Yes | USD | 395000 | Compliance-first strategic development. |
+| li_2 | TVC Development | Yes | USD | 270000 | Script and storyboard with regulatory review embedded. |
+| li_3 | TVC Production | Yes | USD | 835000 | Music rights, celebrity usage, and extraordinary travel excluded. |
+| li_4 | Social Organic Content | Yes | USD | 190000 | Organic adaptation pack included. |
+| li_5 | Social Paid Media Planning | Yes | USD | 168000 | Planning and phasing included. |
+| li_6 | Social Paid Media Buying & Optimization | Yes | USD | 295000 | Working media spend excluded. |
+| li_7 | Kids Advertising & Claims Compliance Review | Yes | USD | 248000 | Senior counsel and market alignment included. |
+| li_8 | Launch Program Management | Yes | USD | 245000 | Program controls and executive reporting included. |

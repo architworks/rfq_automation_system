@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import pytest
 
+
 def test_vendor_pack_is_derived_from_locked_artifact(client) -> None:
     session_id = _lock_session(client)
 
@@ -26,6 +27,7 @@ def test_upload_replace_and_review_flow(client) -> None:
     )
     assert first_upload.status_code == 200
     assert first_upload.json()["vendors"][0]["document"]["file_name"] == "alpha.docx"
+    assert first_upload.json()["vendors"][0]["warnings"]
 
     second_upload = client.put(
         f"/sessions/{session_id}/vendors/{vendor_id}/document",
@@ -46,6 +48,20 @@ def test_upload_replace_and_review_flow(client) -> None:
     assert len(payload["raw_extraction"]["schedule_answers"]) == 8
     assert payload["raw_extraction"]["commercial_claims"] == []
     assert payload["normalized_pricing"][0]["comparability_status"] == "comparable"
+
+
+def test_unsupported_vendor_upload_is_rejected(client) -> None:
+    session_id = _lock_session(client)
+    snapshot = client.post(f"/sessions/{session_id}/vendors", json={"name": "Alpha"})
+    vendor_id = snapshot.json()["vendors"][0]["id"]
+
+    upload = client.put(
+        f"/sessions/{session_id}/vendors/{vendor_id}/document",
+        files={"file": ("alpha.csv", b"a,b\\n1,2\\n", "text/csv")},
+    )
+
+    assert upload.status_code == 400
+    assert "Allowed extensions" in upload.json()["detail"]
 
 
 def test_bulk_extract_runs_for_all_uploaded_vendors(client) -> None:

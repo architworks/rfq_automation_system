@@ -303,7 +303,10 @@ def create_app() -> FastAPI:
         if not file.filename:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Uploaded file must have a filename.")
 
-        extension, mime_type = validate_document_name(file.filename)
+        try:
+            extension, mime_type = validate_document_name(file.filename)
+        except ValueError as exc:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
         content = await file.read()
         if not content:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Uploaded file is empty.")
