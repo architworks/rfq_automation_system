@@ -1,0 +1,76 @@
+---
+title: Tradeoffs and Limitations
+description: Reviewer-facing summary of the main design tradeoffs in TenderLens.
+---
+
+# Tradeoffs and Limitations
+
+TenderLens is intentionally designed as a connected evaluation prototype rather than a full production procurement suite. That means several decisions are strong for the assignment and the end-to-end demo, but they also come with real tradeoffs.
+
+## 1. Framework-first design
+
+The biggest strength in the system is also the first tradeoff.
+
+TenderLens spends time up front generating and locking a strong evaluation framework before vendor documents are judged. That improves alignment across questionnaire generation, extraction, scoring, and final recommendation. It also reduces the risk of downstream AI subjectivity.
+
+The tradeoff is latency. Framework generation is slower than a shallow prompt that simply produces a few questions or a quick summary. In this design, that delay is intentional because the quality of the framework directly affects every later stage.
+
+## 2. AI where interpretation is needed, deterministic logic where governance is needed
+
+The system uses AI for the parts of procurement that are messy and document-heavy:
+
+- rubric proposal generation
+- vendor extraction
+- qualitative technical scoring
+- advisory scenario generation
+
+The system does **not** use AI for the governed official math:
+
+- technical gate enforcement
+- supported unit conversion
+- currency normalization
+- commercial scoring
+- official QCBS 70/30 calculation
+
+The tradeoff is architectural complexity. A one-model system would be simpler to describe, but it would be much harder to audit and trust.
+
+## 3. Explainability as a first-class output
+
+TenderLens carries evidence anchors, extracted answers, normalized values, and result reasoning through the pipeline.
+
+That makes the system much more useful for evaluation review, because the output is not just “Vendor A won.” It is possible to inspect what was extracted, how it was normalized, and why a criterion passed or failed.
+
+The tradeoff is that both the backend contract and the UI become heavier. Explainability is not free. It requires more structure, more intermediate objects, and more careful presentation.
+
+## 4. Official result separated from AI insight
+
+The official procurement basis is fixed and governed. Advisory views such as `LCS`, `QBS`, and AI-generated scenarios are kept separate from the official result.
+
+That separation is important for reviewer trust, because it prevents exploratory AI output from being confused with the award basis.
+
+The tradeoff is presentation overhead. The UI and documentation have to work harder to explain why multiple recommendation views exist and why only one of them is official.
+
+## 5. Prototype-first operating model
+
+The current implementation accepts several prototype constraints deliberately:
+
+- no durable database
+- no authentication or collaboration
+- one main browser session
+- temp-file-backed vendor artifacts
+
+Those choices keep the project small enough to prove the full RFQ-to-award pipeline in one assignment.
+
+The tradeoff is that operational robustness is intentionally limited. The system demonstrates the evaluation architecture well, but it is not yet production infrastructure.
+
+## 6. Document fidelity limitations
+
+The prototype handles real vendor-style submissions, but visually dense and long documents are still a hard problem.
+
+That is especially true for:
+
+- very large files
+- layout-heavy Word or PowerPoint submissions
+- content where exact visual placement matters
+
+The tradeoff is that the demo prioritizes connected evaluation logic over full document-intelligence depth. That was the right trade for the assignment, but it is one of the clearest areas for future improvement.

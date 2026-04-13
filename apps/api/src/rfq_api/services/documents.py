@@ -26,10 +26,16 @@ def validate_document_name(file_name: str) -> tuple[str, str]:
 def build_visual_fidelity_warnings(extension: str) -> list[str]:
     if extension == ".pdf":
         return []
+    if extension in {".doc", ".docx"}:
+        return [
+            "This Word document will be converted to HTML before extraction. Text and tables carry through best; comments, tracked changes, floating objects, and layout-heavy cues may not fully carry through.",
+        ]
+    if extension in {".ppt", ".pptx"}:
+        return [
+            "This presentation will be converted into slide-wise text and tables before extraction. Images, diagrams, charts, animations, speaker notes, and exact slide layout may not fully carry through.",
+        ]
     if extension in {".xls", ".xlsx"}:
         return [
             "Native file input is used for this spreadsheet. OpenAI processes spreadsheets through a spreadsheet-specific augmentation flow, so chart fidelity and full workbook layout may not fully carry through.",
         ]
-    return [
-        "Native file input is used for this document. OpenAI processes non-PDF office files as text-only input, so embedded charts, diagrams, images, and layout-heavy cues may not fully carry through.",
-    ]
+    return []

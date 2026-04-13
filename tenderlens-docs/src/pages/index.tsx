@@ -43,29 +43,39 @@ const systemSteps = [
   'Technical qualification, commercial comparison, official award logic, and advisory AI insights are generated from the same grounded evidence chain.',
 ];
 
+const tradeoffs = [
+  'Framework generation is slower up front, but that time is what creates a stronger and less subjective downstream evaluation basis.',
+  'The system is more complex than a single LLM workflow, but that complexity is what separates governed official logic from AI interpretation.',
+  'Explainability improves trust, but it also requires more structured intermediate artifacts and heavier UI presentation.',
+];
+
 const improvements = [
   'Move long-running AI work onto durable background jobs instead of synchronous request/response flows.',
   'Add persistent storage for sessions, vendor uploads, extracted evidence, and evaluation reports.',
-  'Expand production-grade ingestion for more document edge cases, especially visual-heavy Word, PowerPoint, and spreadsheet submissions.',
-  'Add buyer collaboration, review workflows, and audit history around framework edits and award decisions.',
-  'Harden observability, evaluation QA, and benchmark datasets for repeated procurement scenarios.',
+  'Add an evidence-linked citation viewer that highlights the exact source text, table block, or document region behind each extracted answer.',
+  'Introduce evaluation metrics for GenAI extraction and qualitative scoring quality, including evidence-link precision and repeatability.',
+  'Support longer vendor files through a hybrid retrieval approach paired with grounded in-context answering against the locked framework.',
 ];
 
 export default function Home(): ReactNode {
   return (
     <Layout
-      title="TenderLens"
+      title="TenderLens - At a Glance"
       description="Submission-first documentation for an AI-assisted RFQ evaluation and award recommendation prototype.">
       <main className={styles.page}>
         <section className={styles.hero}>
           <div className={styles.heroInner}>
-            <div className={styles.eyebrow}>Submission Documentation</div>
+            <div className={styles.eyebrow}>Submission Cover Page</div>
             <Heading as="h1" className={styles.heroTitle}>
-              TenderLens
+              TenderLens - At a Glance
             </Heading>
             <p className={styles.heroSubtitle}>
               An AI-assisted RFQ evaluation prototype designed to turn messy vendor submissions
               into a defensible, explainable award recommendation.
+            </p>
+            <p className={styles.heroNote}>
+              This landing page is a cover view. The full submission continues through the
+              Overview, Evaluation, System Flow, Tradeoffs, and Technical Appendix pages.
             </p>
             <div className={styles.heroActions}>
               <Link className="button button--primary button--lg" to="/docs/overview">
@@ -173,9 +183,25 @@ export default function Home(): ReactNode {
 
         <section className={styles.section}>
           <div className={styles.sectionHeader}>
+            <div className={styles.sectionEyebrow}>Tradeoffs</div>
+            <Heading as="h2" className={styles.sectionTitle}>
+              What this design accepts deliberately
+            </Heading>
+          </div>
+          <div className={styles.cardGrid}>
+            {tradeoffs.map((item) => (
+              <article className={styles.infoCard} key={item}>
+                <p>{item}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section className={styles.section}>
+          <div className={styles.sectionHeader}>
             <div className={styles.sectionEyebrow}>Future Work</div>
             <Heading as="h2" className={styles.sectionTitle}>
-              What I would improve with more time
+              What I would build next
             </Heading>
           </div>
           <div className={styles.cardGrid}>
@@ -192,12 +218,15 @@ export default function Home(): ReactNode {
             Continue through the submission
           </Heading>
           <p className={styles.ctaText}>
-            Start with the evaluator-facing overview, then move into the evaluation logic, system
-            flow, and technical appendix.
+            Start with the evaluator-facing overview, then move into the evaluation logic,
+            tradeoffs, future improvements, and technical appendix.
           </p>
           <div className={styles.heroActions}>
             <Link className="button button--primary button--lg" to="/docs/overview">
               Overview
+            </Link>
+            <Link className="button button--secondary button--lg" to="/docs/tradeoffs-and-limitations">
+              Tradeoffs
             </Link>
             <Link className="button button--secondary button--lg" to="/docs/technical-appendix/implementation-pipeline">
               Technical Appendix

@@ -5,6 +5,8 @@ const sidebars: SidebarsConfig = {
     'overview',
     'evaluation-approach',
     'end-to-end-flow',
+    'tradeoffs-and-limitations',
+    'what-i-would-build-next',
     'demo-video-script',
     {
       type: 'category',

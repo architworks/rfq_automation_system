@@ -18,7 +18,7 @@ flowchart TD
     X["Buyer runs extraction<br/>POST /sessions/:session_id/vendors/:vendor_id/extract<br/>main.extract_vendor_document()"]
     U --> X
 
-    G1["GenAI extraction<br/>OpenAI SDK: client.responses.parse()<br/>Input = original vendor file + locked framework brief text<br/>Structured output schema: LLMVendorExtraction"]
+    G1["GenAI extraction<br/>OpenAI SDK: client.responses.parse()<br/>Input = conditional document payload + locked framework brief text<br/>Structured output schema: LLMVendorExtraction"]
     X --> G1
 
     R["Structured extraction object<br/>question answers + schedule answers + technical claims + commercial claims + evidence anchors + response states"]
@@ -84,7 +84,7 @@ flowchart TD
 
     VFILE["Original uploaded vendor file<br/>PDF / PPT / PPTX / DOC / DOCX / XLS / XLSX"]
     FRAMEWORK["Locked framework brief text<br/>criteria, schedule fields, vendor questions, line item IDs"]
-    EXTRACTCALL["OpenAI SDK call<br/>client.responses.parse(<br/>input=[input_file + input_text],<br/>text_format=LLMVendorExtraction<br/>)"]
+    EXTRACTCALL["OpenAI SDK call<br/>client.responses.parse(<br/>input=conditional payload,<br/>text_format=LLMVendorExtraction<br/>)"]
     EXTRACTOUT["Structured extraction output<br/>document_summary<br/>question_answers<br/>schedule_answers (canonical commercial pricing path)<br/>technical_claims<br/>commercial_claims (notes only)<br/>evidence anchors<br/>response states"]
 
     SCOREINPUT["Text-only scoring prompt<br/>narrative criteria brief + vendor review summary"]
@@ -168,11 +168,11 @@ response = client.responses.parse(
 
 ### Phase 2 Vendor Extraction
 - SDK call: `client.responses.parse(...)`
-- Input type: multimodal-style `input` payload with original vendor file plus prompt text
-- File input: yes
+- Input type: conditional by document format
+- File input: yes for PDF and spreadsheets, no for Word and PowerPoint
 - Structured outputs: yes
 - Reasoning summary: no
-- Current payload shape:
+- Current payload shapes:
 
 ```python
 response = client.responses.parse(
@@ -198,13 +198,54 @@ response = client.responses.parse(
 )
 ```
 
-- What `input_file` contains:
+- For PDF, XLS, and XLSX:
+- `input_file` contains:
   - The original uploaded vendor document bytes
   - Converted locally into a base64 data URL by `build_file_data_url()`
   - Format: `data:{mime_type};base64,{...}`
+
+- For DOCX:
+
+```python
+response = client.responses.parse(
+    model=self._model,
+    instructions=instructions,
+    input=(
+        "...locked framework brief...\n\n"
+        "Converted vendor document HTML\n"
+        "<p>...</p>"
+    ),
+    text_format=LLMVendorExtraction,
+)
+```
+
+- For DOC:
+  - The file is first converted locally to `.docx`
+  - Then extracted through the same HTML fallback path as DOCX
+
+- For PPTX:
+
+```python
+response = client.responses.parse(
+    model=self._model,
+    instructions=instructions,
+    input=(
+        "...locked framework brief...\n\n"
+        "Converted presentation content\n"
+        "Slide 1\nText lines\n- ...\nTable 1\n..."
+    ),
+    text_format=LLMVendorExtraction,
+)
+```
+
+- For PPT:
+  - The file is first converted locally to `.pptx`
+  - Then extracted through the same slide-text-and-table fallback path as PPTX
+
 - What this means:
-  - The extraction step uses the original vendor file, not pre-extracted text
-  - It is one LLM call per vendor document, not one call per question
+  - The extraction step is still one LLM call per vendor document, not one call per question
+  - PDFs and spreadsheets are sent as native file input
+  - Word and PowerPoint files are converted locally into structured text before the LLM call
   - The model is asked to return all requested questionnaire evidence in one schema-bound response
   - Commercial and measurable fields should separate `numeric_value`, `currency`, `quantity_value`, and `uom` instead of collapsing them into one prose string
   - Line-item commercial pricing is canonical only in `schedule_answers`; `commercial_claims` are for supporting notes that do not fit a requested schedule field

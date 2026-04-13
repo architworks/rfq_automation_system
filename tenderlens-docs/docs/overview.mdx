@@ -47,26 +47,34 @@ Once the buyer reviews and locks that framework, the extractor, normalizer, scor
 
 ## High-level system design
 
+This is the **system-design view**, not the click-by-click buyer flow. The evaluator journey is documented separately on the [End-to-End Flow](./end-to-end-flow) page.
+
 ```mermaid
-flowchart LR
-    A[RFQ input] --> B[AI framework generation]
-    B --> C[Buyer review and lock]
-    C --> D[Vendor pack]
-    D --> E[Vendor submissions]
-    E --> F[AI extraction]
-    F --> G[Deterministic normalization]
-    G --> H[Technical gate]
-    H --> I[Commercial comparison]
-    I --> J[Official result]
-    I --> K[Advisory AI insights]
+flowchart TB
+    buyer["<b>Buyer in browser</b>"]
+    documents["<b>Vendor source documents</b>"]
+    app["<b>Application layer</b><br/>Next.js frontend<br/>FastAPI orchestration"]
+    state["<b>Session state</b><br/>Locked framework artifact<br/>Temp uploads and derived files"]
+    ai["<b>Model-driven layer</b><br/>Rubric generation<br/>Vendor extraction<br/>Narrative scoring<br/>AI insights"]
+    deterministic["<b>Deterministic evaluation layer</b><br/>Normalization<br/>Technical gate<br/>Commercial math<br/>Official QCBS 70/30"]
+    outputs["<b>Review views and final report</b>"]
+
+    buyer --> app
+    documents --> app
+    app --> state
+    state --> ai
+    ai --> deterministic
+    deterministic --> outputs
 ```
 
-At a high level, the system works in four layers:
+At a high level, the runtime is organized into four layers:
 
-1. **Framework definition**: define what “good” means before the vendor documents are judged.
-2. **Evidence capture**: pull structured answers and evidence anchors out of messy submissions.
-3. **Deterministic evaluation**: normalize, gate, compare, and compute the official award basis.
-4. **Advisory intelligence**: generate contextual AI insights that do not override the official result.
+The locked framework inside session state governs both the model-driven stage and the deterministic evaluation stage, even though that control relationship is not drawn as a separate arrow here in order to keep the diagram readable.
+
+1. **Application layer**: the browser UI and FastAPI backend drive the session, review flow, and result presentation.
+2. **Session state**: the system keeps the locked framework, vendor artifacts, and derived reports tied to one session context.
+3. **Model-driven stages**: AI is used for framework generation, vendor extraction, narrative technical scoring, and advisory scenarios.
+4. **Deterministic stages**: normalization, qualification, commercial math, and the official QCBS result remain governed by fixed logic.
 
 ## Why the workflow is framework-first
 

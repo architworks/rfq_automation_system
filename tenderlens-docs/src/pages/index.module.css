@@ -42,6 +42,14 @@
   color: #475569;
 }
 
+.heroNote {
+  max-width: 52rem;
+  margin: -0.15rem 0 0;
+  font-size: 0.98rem;
+  line-height: 1.7;
+  color: #64748b;
+}
+
 .heroActions {
   display: flex;
   flex-wrap: wrap;

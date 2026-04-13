@@ -13,6 +13,7 @@ from typing import Annotated, Literal, TypeVar, cast
 
 import mammoth
 from openai import OpenAI
+from pptx import Presentation
 from pydantic import BaseModel, Field
 
 from ..config import Settings
@@ -711,6 +712,12 @@ class OpenAIResponsesClient(LLMClient):
                 document=document,
                 document_bytes=document_bytes,
             )
+        if document.extension in {".ppt", ".pptx"}:
+            return cls._build_presentation_extraction_text(
+                extraction_prompt=extraction_prompt,
+                document=document,
+                document_bytes=document_bytes,
+            )
 
         file_data = cls._build_input_file_data(document=document, document_bytes=document_bytes)
         return [
@@ -765,6 +772,44 @@ class OpenAIResponsesClient(LLMClient):
             "Converted vendor document HTML\n"
             f"{html_output}\n\n"
             "Word conversion notes\n"
+            f"{rendered_conversion_notes}"
+        )
+
+    @classmethod
+    def _build_presentation_extraction_text(
+        cls,
+        *,
+        extraction_prompt: str,
+        document: VendorDocument,
+        document_bytes: bytes,
+    ) -> str:
+        normalized_pptx_bytes = document_bytes
+        conversion_notes: list[str] = []
+        original_file_type = document.extension.lstrip(".").upper()
+
+        if document.extension == ".ppt":
+            normalized_pptx_bytes = cls._convert_ppt_to_pptx_bytes(document=document, document_bytes=document_bytes)
+            conversion_notes.append("Legacy .ppt content was converted to .pptx before slide text extraction.")
+
+        extracted_text, extraction_messages = cls._convert_pptx_to_text(document_bytes=normalized_pptx_bytes)
+        if not extracted_text.strip():
+            raise LLMTaskError(
+                f"Vendor extraction failed: {original_file_type} conversion produced no readable content for {document.file_name}."
+            )
+
+        conversion_notes.extend(f"Presentation conversion note: {message}" for message in extraction_messages)
+        rendered_conversion_notes = "None."
+        if conversion_notes:
+            rendered_conversion_notes = cls._numbered_lines(conversion_notes)
+
+        return (
+            f"{extraction_prompt}\n\n"
+            "Document ingestion mode\n"
+            f"The original vendor file was a {original_file_type} presentation. It was converted into slide-wise text and tables before extraction. "
+            "Use only the converted presentation content below. Do not infer missing content from images, diagrams, charts, animations, speaker notes, comments, or exact visual layout.\n\n"
+            "Converted presentation content\n"
+            f"{extracted_text}\n\n"
+            "Presentation conversion notes\n"
             f"{rendered_conversion_notes}"
         )
 
@@ -834,6 +879,93 @@ class OpenAIResponsesClient(LLMClient):
                     f"Vendor extraction failed: .doc conversion to .docx did not produce an output file for {document.file_name}."
                 )
             return output_path.read_bytes()
+
+    @classmethod
+    def _convert_pptx_to_text(cls, *, document_bytes: bytes) -> tuple[str, list[str]]:
+        presentation = Presentation(io.BytesIO(document_bytes))
+        slides: list[str] = []
+        extraction_messages: list[str] = []
+
+        for slide_index, slide in enumerate(presentation.slides, start=1):
+            text_lines: list[str] = []
+            table_blocks: list[list[str]] = []
+
+            for shape in slide.shapes:
+                if getattr(shape, "has_text_frame", False):
+                    for paragraph in shape.text_frame.paragraphs:
+                        text = cls._normalize_rich_text_block(paragraph.text)
+                        if text:
+                            text_lines.append(text)
+
+                if getattr(shape, "has_table", False):
+                    table_rows: list[str] = []
+                    for row in shape.table.rows:
+                        row_cells = [cls._normalize_rich_text_block(cell.text) for cell in row.cells]
+                        if any(row_cells):
+                            table_rows.append(" | ".join(row_cells))
+                    if table_rows:
+                        table_blocks.append(table_rows)
+
+            slide_parts = [f"Slide {slide_index}"]
+            if text_lines:
+                slide_parts.append("Text lines")
+                slide_parts.extend(f"- {text}" for text in text_lines)
+            if table_blocks:
+                for table_index, table_rows in enumerate(table_blocks, start=1):
+                    slide_parts.append(f"Table {table_index}")
+                    slide_parts.extend(table_rows)
+            if not text_lines and not table_blocks:
+                extraction_messages.append(f"Slide {slide_index} contained no readable text frames or tables.")
+                slide_parts.append("No readable text frames or tables were detected on this slide.")
+
+            slides.append("\n".join(slide_parts))
+
+        return "\n\n".join(slides), extraction_messages
+
+    @staticmethod
+    def _convert_ppt_to_pptx_bytes(*, document: VendorDocument, document_bytes: bytes) -> bytes:
+        converter = shutil.which("soffice") or shutil.which("libreoffice")
+        if not converter:
+            raise LLMTaskError(
+                f"Vendor extraction failed: no local converter is available to transform legacy .ppt files for {document.file_name}."
+            )
+
+        with tempfile.TemporaryDirectory(prefix="rfq-ppt-convert-") as temp_dir:
+            temp_path = Path(temp_dir)
+            input_path = temp_path / document.file_name
+            output_path = temp_path / f"{input_path.stem}.pptx"
+            input_path.write_bytes(document_bytes)
+
+            try:
+                subprocess.run(
+                    [
+                        converter,
+                        "--headless",
+                        "--convert-to",
+                        "pptx",
+                        str(input_path),
+                        "--outdir",
+                        str(temp_path),
+                    ],
+                    check=True,
+                    capture_output=True,
+                    text=True,
+                )
+            except subprocess.CalledProcessError as exc:
+                details = exc.stderr.strip() or exc.stdout.strip() or str(exc)
+                raise LLMTaskError(
+                    f"Vendor extraction failed: .ppt conversion to .pptx failed for {document.file_name}: {details}"
+                ) from exc
+
+            if not output_path.exists():
+                raise LLMTaskError(
+                    f"Vendor extraction failed: .ppt conversion to .pptx did not produce an output file for {document.file_name}."
+                )
+            return output_path.read_bytes()
+
+    @staticmethod
+    def _normalize_rich_text_block(value: str) -> str:
+        return " ".join(value.split())
 
     @staticmethod
     def _format_validation_feedback(issues: list[ValidationIssue]) -> str:

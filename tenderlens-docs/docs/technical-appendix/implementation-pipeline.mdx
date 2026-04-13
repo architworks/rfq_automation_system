@@ -21,7 +21,7 @@ flowchart TD
     X["Buyer runs extraction<br/>POST /sessions/:session_id/vendors/:vendor_id/extract"]
     U --> X
 
-    G1["GenAI extraction<br/>OpenAI SDK: client.responses.parse()<br/>Input = original vendor file + locked framework brief text<br/>Structured output schema: LLMVendorExtraction"]
+    G1["GenAI extraction<br/>OpenAI SDK: client.responses.parse()<br/>Input = conditional document payload + locked framework brief text<br/>Structured output schema: LLMVendorExtraction"]
     X --> G1
 
     R["Structured extraction object<br/>question answers + schedule answers + technical claims + commercial claims + evidence anchors + response states"]
@@ -73,7 +73,7 @@ flowchart TD
 
     VFILE["Original uploaded vendor file"]
     FRAMEWORK["Locked framework brief text"]
-    EXTRACTCALL["client.responses.parse()<br/>input=[input_file + input_text]<br/>text_format=LLMVendorExtraction"]
+    EXTRACTCALL["client.responses.parse()<br/>input=conditional payload<br/>text_format=LLMVendorExtraction"]
     EXTRACTOUT["Structured extraction output"]
 
     SCOREINPUT["Narrative scoring prompt"]
@@ -143,6 +143,16 @@ response = client.responses.parse(
     text_format=LLMVendorExtraction,
 )
 ```
+
+For PDF, XLS, and XLSX, the call uses native `input_file` plus `input_text`.
+
+For DOCX, the file is converted locally to HTML and sent as plain text input.
+
+For DOC, the file is first converted to DOCX, then sent through the same HTML fallback path.
+
+For PPTX, the file is converted locally into slide-wise text and extracted tables, then sent as plain text input.
+
+For PPT, the file is first converted to PPTX, then sent through the same presentation-text fallback path.
 
 ### Narrative technical scoring
 

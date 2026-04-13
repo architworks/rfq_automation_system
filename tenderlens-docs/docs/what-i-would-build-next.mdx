@@ -1,0 +1,55 @@
+---
+title: What I Would Build Next
+description: Reviewer-facing view of the most important next improvements for TenderLens.
+---
+
+# What I Would Build Next
+
+If this prototype were extended beyond the assignment, I would focus on the next layer of rigor rather than simply adding more screens.
+
+## 1. Durable execution for long-running AI stages
+
+Rubric generation and document analysis are naturally slower than normal CRUD flows. The next step would be to move those stages onto durable background execution with resumable job state instead of relying on synchronous request-response handling.
+
+That would make the system more reliable for longer runs, reduce timeout risk, and make the user experience calmer during model-heavy steps.
+
+## 2. Persistent storage and audit history
+
+The current session model is intentionally lightweight. A stronger next version would persist:
+
+- locked frameworks
+- uploaded vendor documents
+- extracted artifacts
+- evaluation reports
+- review history
+
+That would make TenderLens much stronger as an auditable procurement workspace rather than only a live demo pipeline.
+
+## 3. Evidence-linked citation UI
+
+Today the system stores evidence references and snippets, but the next meaningful improvement would be a richer evidence viewer that highlights the exact source text or table block from which a value was derived.
+
+Instead of only showing a snippet and locator, the UI could visually focus the reviewer on the precise supporting passage, cell range, or block region that justifies the extracted answer or score.
+
+## 4. Evaluation metrics for GenAI analysis quality
+
+The next version should measure the GenAI stages more explicitly instead of treating them as a black box. I would add evaluation metrics across extraction and qualitative scoring, for example:
+
+- extraction accuracy against checked examples
+- field completeness
+- evidence-link precision
+- consistency of qualitative scoring across repeated runs
+
+That would make the AI layer more measurable and give the reviewer a clearer sense of where the model is reliable and where it still needs improvement.
+
+## 5. Support for longer files through hybrid retrieval plus in-context answering
+
+Very long vendor submissions should not rely only on a single direct in-context read. A stronger architecture would combine selective retrieval over the document with grounded in-context answering for the specific locked framework questions and evaluation fields.
+
+The goal would not be to make the system more “agentic.” The goal would be to keep extraction aligned to the locked framework while scaling to longer files without losing traceability.
+
+## 6. Stronger document intelligence for layout-heavy files
+
+A further improvement would be better handling for layout-rich Word, PowerPoint, and spreadsheet submissions where structure and visual grouping carry meaning.
+
+That would improve both extraction fidelity and reviewer confidence, especially for tables, comparison matrices, annexures, and evidence-heavy commercial schedules.

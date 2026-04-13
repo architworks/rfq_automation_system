@@ -186,6 +186,107 @@ def test_vendor_extraction_payload_uses_doc_html_fallback(monkeypatch) -> None:
     assert "<p>Legacy Word content</p>" in payload
 
 
+def test_vendor_extraction_payload_uses_pptx_text_fallback(monkeypatch) -> None:
+    artifact = LockedFrameworkArtifact(
+        locked_at=datetime.now(UTC),
+        rfq_snapshot=build_seed_rfq(),
+        rubric_snapshot=build_valid_rubric_proposal(),
+        governance=GovernanceInfo(
+            official_award_basis="QCBS 70/30",
+            technical_threshold_strategy="Test threshold strategy",
+            advisory_outputs=["LCS", "QBS", "RFQ-specific AI scenarios"],
+            persistence_scope="Test scope",
+        ),
+        download_metadata=DownloadMetadata(file_name="artifact.json"),
+    )
+    vendor = VendorRecord(id="vendor_pptx", name="PPTX Vendor")
+    document = VendorDocument(
+        file_name="vendor.pptx",
+        mime_type="application/vnd.openxmlformats-officedocument.presentationml.presentation",
+        extension=".pptx",
+        size_bytes=8,
+        uploaded_at=datetime.now(UTC),
+    )
+
+    def fake_convert_pptx_to_text(*, document_bytes: bytes) -> tuple[str, list[str]]:
+        assert document_bytes == b"pptxdata"
+        return "Slide 1\nText lines\n- Launch plan\nTable 1\nMetric | Value", ["Slide 2 contained no readable text frames or tables."]
+
+    monkeypatch.setattr(
+        OpenAIResponsesClient,
+        "_convert_pptx_to_text",
+        staticmethod(fake_convert_pptx_to_text),
+    )
+
+    payload = OpenAIResponsesClient._build_vendor_extraction_input_payload(
+        artifact=artifact,
+        vendor=vendor,
+        document=document,
+        document_bytes=b"pptxdata",
+    )
+
+    assert isinstance(payload, str)
+    assert "The original vendor file was a PPTX presentation." in payload
+    assert "Converted presentation content" in payload
+    assert "Slide 1" in payload
+    assert "Presentation conversion note: Slide 2 contained no readable text frames or tables." in payload
+
+
+def test_vendor_extraction_payload_uses_ppt_text_fallback(monkeypatch) -> None:
+    artifact = LockedFrameworkArtifact(
+        locked_at=datetime.now(UTC),
+        rfq_snapshot=build_seed_rfq(),
+        rubric_snapshot=build_valid_rubric_proposal(),
+        governance=GovernanceInfo(
+            official_award_basis="QCBS 70/30",
+            technical_threshold_strategy="Test threshold strategy",
+            advisory_outputs=["LCS", "QBS", "RFQ-specific AI scenarios"],
+            persistence_scope="Test scope",
+        ),
+        download_metadata=DownloadMetadata(file_name="artifact.json"),
+    )
+    vendor = VendorRecord(id="vendor_ppt", name="PPT Vendor")
+    document = VendorDocument(
+        file_name="vendor.ppt",
+        mime_type="application/vnd.ms-powerpoint",
+        extension=".ppt",
+        size_bytes=7,
+        uploaded_at=datetime.now(UTC),
+    )
+
+    def fake_convert_ppt_to_pptx_bytes(*, document: VendorDocument, document_bytes: bytes) -> bytes:
+        assert document.file_name == "vendor.ppt"
+        assert document_bytes == b"pptdata"
+        return b"converted-pptx"
+
+    def fake_convert_pptx_to_text(*, document_bytes: bytes) -> tuple[str, list[str]]:
+        assert document_bytes == b"converted-pptx"
+        return "Slide 1\nText lines\n- Legacy deck content", []
+
+    monkeypatch.setattr(
+        OpenAIResponsesClient,
+        "_convert_ppt_to_pptx_bytes",
+        staticmethod(fake_convert_ppt_to_pptx_bytes),
+    )
+    monkeypatch.setattr(
+        OpenAIResponsesClient,
+        "_convert_pptx_to_text",
+        staticmethod(fake_convert_pptx_to_text),
+    )
+
+    payload = OpenAIResponsesClient._build_vendor_extraction_input_payload(
+        artifact=artifact,
+        vendor=vendor,
+        document=document,
+        document_bytes=b"pptdata",
+    )
+
+    assert isinstance(payload, str)
+    assert "The original vendor file was a PPT presentation." in payload
+    assert "Legacy .ppt content was converted to .pptx before slide text extraction." in payload
+    assert "Slide 1" in payload
+
+
 def test_compose_rubric_backfills_question_and_schedule_links() -> None:
     long_question_text = (
         "Describe your governance approach across strategy, creative, production, media, compliance, "

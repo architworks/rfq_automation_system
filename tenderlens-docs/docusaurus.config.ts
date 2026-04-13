@@ -69,6 +69,11 @@ const config: Config = {
           label: 'System Flow',
         },
         {
+          to: '/docs/tradeoffs-and-limitations',
+          position: 'left',
+          label: 'Tradeoffs',
+        },
+        {
           to: '/docs/demo-video-script',
           position: 'left',
           label: 'Demo Script',
@@ -98,6 +103,14 @@ const config: Config = {
             {
               label: 'End-to-End Flow',
               to: '/docs/end-to-end-flow',
+            },
+            {
+              label: 'Tradeoffs and Limitations',
+              to: '/docs/tradeoffs-and-limitations',
+            },
+            {
+              label: 'What I Would Build Next',
+              to: '/docs/what-i-would-build-next',
             },
             {
               label: 'Demo Video Script',
