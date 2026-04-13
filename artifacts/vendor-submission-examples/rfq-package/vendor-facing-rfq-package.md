@@ -1,6 +1,6 @@
 # Vendor-Facing RFQ Package Snapshot
 
-This package uses the prefilled sample RFQ plus the live AI-generated questionnaire.
+This package uses the prefilled sample RFQ plus the archived medium-reasoning generated rubric.
 
 ## RFQ Header
 
@@ -38,39 +38,50 @@ Select an integrated agency partner for the global launch of a new kids health d
 - li_7: Kids Advertising & Claims Compliance Review [Services, Lot] - Legal and regulatory review of kids advertising content and product-related claims across launch assets and scripts.
 - li_8: Launch Program Management [Services, Lot] - Program management, stakeholder coordination, asset trafficking and master launch governance across all workstreams.
 
-## AI-Generated Questionnaire
+## Archived Generated Questionnaire
 
-1. **q_m1** - Confirm whether you can support child-directed advertising for this program. Answer Yes or No, and name the team or function that will provide this support.
-   - Purpose: Checks the mandatory capability confirmation for child-directed advertising support.
-2. **q_m2** - Confirm whether you can support claims review for this program. Answer Yes or No, and name the team or function that will provide this support.
-   - Purpose: Checks the mandatory capability confirmation for claims review support.
-3. **q_m3** - Provide the full name, title, and accountable role of the engagement lead who would be responsible for this RFQ.
-   - Purpose: Captures the named engagement lead required by the RFQ.
-4. **q_m4** - Provide your baseline launch governance approach, including the meeting cadence, approval path, and escalation route you would use for this engagement.
-   - Purpose: Checks that the minimum governance approach has been provided.
-5. **q_m5** - State whether the launch timelines in this RFQ are achievable for your proposed delivery model. Select one: Achievable or Not achievable.
-   - Purpose: Captures the mandatory achievability status declaration.
-6. **q_m6** - List the key dependencies, buyer inputs, or approval assumptions that sit behind your stated launch timeline position.
-   - Purpose: Captures the mandatory disclosure of timeline dependencies.
-7. **q_t1** - Describe your operating model for managing child-directed advertising and claims compliance across strategy, creative, TVC, social, media activation, and final launch approvals. Cover review checkpoints, decision ownership, and escalation handling.
-   - Purpose: Evaluates the strength of the end-to-end compliance control model.
-8. **q_t2** - Describe how you would manage approvals, dependencies, and critical path activities so that the launch calendar can be met. Include turnaround assumptions, delay management, and how you would protect key milestones.
-   - Purpose: Evaluates the credibility of the vendor's launch speed and approval management plan.
+1. **q_cr_mac_1** - Confirm whether your agency can support child-directed advertising for this launch. Answer Yes or No and identify the in-house team or partner capability that will perform this work.
+   - Purpose: Tests the mandatory requirement for child-directed advertising support capability.
+2. **q_cr_mac_2** - Confirm whether your agency can support claims review for launch assets and product-related claims. Answer Yes or No and identify the in-house team or partner capability that will perform this work.
+   - Purpose: Tests the mandatory requirement for claims review support capability.
+3. **q_cr_mac_3** - Provide the full name, role title, and email address of the named engagement lead who will own this launch program.
+   - Purpose: Tests the mandatory requirement to provide a named engagement lead.
+4. **q_cr_mac_4** - Confirm whether you are providing a launch governance approach. Answer Yes or No and submit a brief overview covering meeting cadence, decision ownership, and escalation.
+   - Purpose: Tests the mandatory requirement to provide a governance approach.
+5. **q_cr_mac_5** - State whether the buyer launch timelines are achievable. Select one option: Achievable as issued / Achievable with dependencies / Not achievable. Then list the key dependencies or constraints, or state None.
+   - Purpose: Tests the mandatory requirement to state timeline achievability with dependencies.
+6. **q_cr_tech_1** - Describe your end-to-end approach for ensuring child-directed marketing safety and claims usage compliance across strategy, creative, TVC, social, and launch approvals. Include where reviews occur, who owns them, how issues are escalated, and how rework is prevented.
+   - Purpose: Assesses the critical technical risk around kids advertising compliance and claims usage safety.
+7. **q_cr_tech_2** - Provide your proposed launch workplan from kickoff to launch, showing key stages for strategy, creative, TVC, social, compliance review, and program management. Explain how approvals will be managed, what the critical dependencies are, and how schedule risks will be controlled.
+   - Purpose: Assesses the critical technical risk around launch speed and approval management.
+8. **q_cr_tech_3** - Describe your approach to launch strategy and creative development for the new kids health drink, including audience segmentation, messaging framework, creative territory development, and how the master campaign idea will be carried into launch assets.
+   - Purpose: Assesses the quality of the proposed strategy and creative development method.
+9. **q_cr_tech_4** - Describe your approach to TVC development and production for the global launch, covering concept development, pre-production, shoot management, post-production, and delivery of the master film and cutdowns for paid media use.
+   - Purpose: Assesses the quality of the proposed TVC development and production capability.
 
 ## Structured Commercial Schedules
 
-### Pricing Schedule (s_c1)
+### Commercial line-item pricing schedule (sched_comm_1)
 
-- Line Item Reference (Required): RFQ line item number.
-- Line Item Name (Required): Requested service line item name.
-- Pricing Treatment (Required): State whether the line item is priced as Standalone or Bundled.
+- Line item reference (Required): Reference number for the requested RFQ line item.
 
-### Exclusions and Assumptions Schedule (s_c2)
+### Commercial line-item pricing schedule (col_line_name)
 
-- Exclusion or Assumption (Required): State the exclusion or assumption, or enter 'None'.
-- Affected Line Item (Required): Identify the impacted RFQ line item or line items.
-- Commercial Impact (Required): Explain the scope, timing, or cost impact of the exclusion or assumption.
+- Line item reference (Required): Reference number for the requested RFQ line item.
+- Line item name (Required): Name of the requested RFQ service lot.
+- Included in quote (Required): State Yes or No for whether the line item is included in the commercial quote.
+- Currency (Required): Currency used for the quoted line item price.
+- Total price (Required): Total quoted price for the line item.
+- Exclusions or assumptions (Required): List exclusions or assumptions for the line item, or state None.
 
-## Known AI Rubric Gap
+## Internal Rubric Traceability Snapshot
 
-The generated rubric also contains a technical criterion titled `Strategy and creative approach` (`t3`) without its own vendor-facing question. The sample vendor submissions therefore include an additional short strategy and creative response section grounded in the RFQ scope and line item 1 so that the likely intent of that criterion is still represented in the response set.
+- cr_mac_1: Child advertising capability [mac] -> questions q_cr_mac_1
+- cr_mac_2: Claims review capability [mac] -> questions q_cr_mac_2
+- cr_mac_3: Named engagement lead [mac] -> questions q_cr_mac_3
+- cr_mac_4: Governance approach submitted [mac] -> questions q_cr_mac_4
+- cr_mac_5: Timeline statement submitted [mac] -> questions q_cr_mac_5
+- cr_tech_1: Compliance delivery approach [technical_cutoff_backed] -> questions q_cr_tech_1
+- cr_tech_2: Launch plan and approvals [technical_cutoff_backed] -> questions q_cr_tech_2
+- cr_tech_3: Strategy and creative approach [technical_scored_only] -> questions q_cr_tech_3
+- cr_tech_4: TVC delivery capability [technical_scored_only] -> questions q_cr_tech_4

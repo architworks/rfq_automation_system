@@ -44,7 +44,11 @@ from .services.rubric_generation import RubricGenerationService
 from .services.rubric_normalization import normalize_rubric_proposal
 from .services.validation import validate_rubric_proposal
 from .services.vendor_pack import build_vendor_pack
-from .seeds import build_blank_rfq, build_sample_rfq
+from .seeds import (
+    build_blank_rfq,
+    build_sample_generated_rubric,
+    build_sample_rfq,
+)
 from .session_store import SessionStore
 
 
@@ -82,6 +86,10 @@ def create_app() -> FastAPI:
         if template_name == "blank":
             return build_blank_rfq()
         return build_sample_rfq()
+
+    @app.get("/rubric-templates/{template_name}", response_model=RubricProposal)
+    def get_rubric_template(template_name: Literal["sample"]) -> RubricProposal:
+        return build_sample_generated_rubric()
 
     @app.post("/sessions", response_model=SessionSnapshot)
     def create_session(

@@ -1,66 +1,74 @@
 [
   {
-    "id": "q_m1",
-    "text": "Confirm whether you can support child-directed advertising for this program. Answer Yes or No, and name the team or function that will provide this support.",
-    "purpose": "Checks the mandatory capability confirmation for child-directed advertising support.",
+    "id": "q_cr_mac_1",
+    "text": "Confirm whether your agency can support child-directed advertising for this launch. Answer Yes or No and identify the in-house team or partner capability that will perform this work.",
+    "purpose": "Tests the mandatory requirement for child-directed advertising support capability.",
     "linked_criteria": [
-      "m1"
+      "cr_mac_1"
     ]
   },
   {
-    "id": "q_m2",
-    "text": "Confirm whether you can support claims review for this program. Answer Yes or No, and name the team or function that will provide this support.",
-    "purpose": "Checks the mandatory capability confirmation for claims review support.",
+    "id": "q_cr_mac_2",
+    "text": "Confirm whether your agency can support claims review for launch assets and product-related claims. Answer Yes or No and identify the in-house team or partner capability that will perform this work.",
+    "purpose": "Tests the mandatory requirement for claims review support capability.",
     "linked_criteria": [
-      "m2"
+      "cr_mac_2"
     ]
   },
   {
-    "id": "q_m3",
-    "text": "Provide the full name, title, and accountable role of the engagement lead who would be responsible for this RFQ.",
-    "purpose": "Captures the named engagement lead required by the RFQ.",
+    "id": "q_cr_mac_3",
+    "text": "Provide the full name, role title, and email address of the named engagement lead who will own this launch program.",
+    "purpose": "Tests the mandatory requirement to provide a named engagement lead.",
     "linked_criteria": [
-      "m3"
+      "cr_mac_3"
     ]
   },
   {
-    "id": "q_m4",
-    "text": "Provide your baseline launch governance approach, including the meeting cadence, approval path, and escalation route you would use for this engagement.",
-    "purpose": "Checks that the minimum governance approach has been provided.",
+    "id": "q_cr_mac_4",
+    "text": "Confirm whether you are providing a launch governance approach. Answer Yes or No and submit a brief overview covering meeting cadence, decision ownership, and escalation.",
+    "purpose": "Tests the mandatory requirement to provide a governance approach.",
     "linked_criteria": [
-      "m4"
+      "cr_mac_4"
     ]
   },
   {
-    "id": "q_m5",
-    "text": "State whether the launch timelines in this RFQ are achievable for your proposed delivery model. Select one: Achievable or Not achievable.",
-    "purpose": "Captures the mandatory achievability status declaration.",
+    "id": "q_cr_mac_5",
+    "text": "State whether the buyer launch timelines are achievable. Select one option: Achievable as issued / Achievable with dependencies / Not achievable. Then list the key dependencies or constraints, or state None.",
+    "purpose": "Tests the mandatory requirement to state timeline achievability with dependencies.",
     "linked_criteria": [
-      "m5"
+      "cr_mac_5"
     ]
   },
   {
-    "id": "q_m6",
-    "text": "List the key dependencies, buyer inputs, or approval assumptions that sit behind your stated launch timeline position.",
-    "purpose": "Captures the mandatory disclosure of timeline dependencies.",
+    "id": "q_cr_tech_1",
+    "text": "Describe your end-to-end approach for ensuring child-directed marketing safety and claims usage compliance across strategy, creative, TVC, social, and launch approvals. Include where reviews occur, who owns them, how issues are escalated, and how rework is prevented.",
+    "purpose": "Assesses the critical technical risk around kids advertising compliance and claims usage safety.",
     "linked_criteria": [
-      "m6"
+      "cr_tech_1"
     ]
   },
   {
-    "id": "q_t1",
-    "text": "Describe your operating model for managing child-directed advertising and claims compliance across strategy, creative, TVC, social, media activation, and final launch approvals. Cover review checkpoints, decision ownership, and escalation handling.",
-    "purpose": "Evaluates the strength of the end-to-end compliance control model.",
+    "id": "q_cr_tech_2",
+    "text": "Provide your proposed launch workplan from kickoff to launch, showing key stages for strategy, creative, TVC, social, compliance review, and program management. Explain how approvals will be managed, what the critical dependencies are, and how schedule risks will be controlled.",
+    "purpose": "Assesses the critical technical risk around launch speed and approval management.",
     "linked_criteria": [
-      "t1"
+      "cr_tech_2"
     ]
   },
   {
-    "id": "q_t2",
-    "text": "Describe how you would manage approvals, dependencies, and critical path activities so that the launch calendar can be met. Include turnaround assumptions, delay management, and how you would protect key milestones.",
-    "purpose": "Evaluates the credibility of the vendor's launch speed and approval management plan.",
+    "id": "q_cr_tech_3",
+    "text": "Describe your approach to launch strategy and creative development for the new kids health drink, including audience segmentation, messaging framework, creative territory development, and how the master campaign idea will be carried into launch assets.",
+    "purpose": "Assesses the quality of the proposed strategy and creative development method.",
     "linked_criteria": [
-      "t2"
+      "cr_tech_3"
+    ]
+  },
+  {
+    "id": "q_cr_tech_4",
+    "text": "Describe your approach to TVC development and production for the global launch, covering concept development, pre-production, shoot management, post-production, and delivery of the master film and cutdowns for paid media use.",
+    "purpose": "Assesses the quality of the proposed TVC development and production capability.",
+    "linked_criteria": [
+      "cr_tech_4"
     ]
   }
 ]

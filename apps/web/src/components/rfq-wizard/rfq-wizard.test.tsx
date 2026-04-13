@@ -430,6 +430,7 @@ function createStatefulApi(
     getRfqTemplate: vi.fn(async (templateName: "blank" | "sample") =>
       cloneValue(templateName === "sample" ? createSampleDraft() : createBlankDraft()),
     ),
+    getRubricTemplate: vi.fn(async () => cloneValue(createRubricProposal())),
     getSession: vi.fn(async () => cloneValue(snapshot)),
     saveLlmSettings: vi.fn(async (_sessionId, reasoningEffort) => {
       snapshot = {
@@ -652,6 +653,43 @@ describe("RfqWizard", () => {
     expect(readSnapshot().rfq_draft.buyer_priorities).toHaveLength(2);
     expect(api.getRfqTemplate).toHaveBeenCalledWith("sample");
     expect(api.saveRfq).toHaveBeenCalled();
+  });
+
+  it("keeps archived sample rubric loading disabled until the sample RFQ is in place", async () => {
+    const { api } = createStatefulApi(createSessionSnapshot({ withRubric: false, template: "blank" }));
+
+    render(
+      <RfqWizard api={api} autosaveMs={25} onStepChange={vi.fn()} sessionId="session_123" step="input" />,
+    );
+
+    const button = await screen.findByRole("button", { name: "Load Generated Rubric" });
+    expect(button).toBeDisabled();
+  });
+
+  it("loads the archived generated rubric explicitly after the sample RFQ is applied", async () => {
+    const { api, readSnapshot } = createStatefulApi(createSessionSnapshot({ withRubric: false, template: "blank" }));
+    const onStepChange = vi.fn();
+
+    render(
+      <RfqWizard api={api} autosaveMs={25} onStepChange={onStepChange} sessionId="session_123" step="input" />,
+    );
+
+    expect(await screen.findByRole("button", { name: "Use RFQ Sample" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Use RFQ Sample" }));
+
+    const loadRubricButton = await screen.findByRole("button", { name: "Load Generated Rubric" });
+    await waitFor(() => {
+      expect(loadRubricButton).toBeEnabled();
+    });
+
+    fireEvent.click(loadRubricButton);
+
+    await waitFor(() => {
+      expect(api.getRubricTemplate).toHaveBeenCalledWith("sample");
+    });
+    expect(api.saveRubric).toHaveBeenCalledTimes(1);
+    expect(readSnapshot().rubric_proposal).not.toBeNull();
+    expect(onStepChange).toHaveBeenCalledWith("proposal");
   });
 
   it("clears the full RFQ draft back to blank inputs", async () => {

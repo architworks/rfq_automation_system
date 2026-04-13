@@ -1,4 +1,19 @@
-from .models import BuyerPriority, GeneralInfo, LineItem, RFQDraft, RFQTimelineSet
+from __future__ import annotations
+
+import json
+from functools import lru_cache
+from pathlib import Path
+
+from .models import (
+    BuyerPriority,
+    ComparisonSettings,
+    GeneralInfo,
+    LineItem,
+    LockedFrameworkArtifact,
+    RFQDraft,
+    RFQTimelineSet,
+    RubricProposal,
+)
 
 
 def build_blank_rfq() -> RFQDraft:
@@ -175,3 +190,29 @@ def build_sample_rfq() -> RFQDraft:
 
 def build_seed_rfq() -> RFQDraft:
     return build_sample_rfq()
+
+
+_SAMPLE_GENERATED_FRAMEWORK_PATH = Path(__file__).resolve().parent / "seed_data" / "sample_generated_framework.json"
+
+
+@lru_cache(maxsize=1)
+def _load_sample_generated_framework_payload() -> dict:
+    return json.loads(_SAMPLE_GENERATED_FRAMEWORK_PATH.read_text())
+
+
+def build_sample_generated_rubric() -> RubricProposal:
+    payload = _load_sample_generated_framework_payload()
+    return RubricProposal.model_validate(payload["rubric_proposal"])
+
+
+def build_sample_generated_artifact() -> LockedFrameworkArtifact:
+    payload = _load_sample_generated_framework_payload()
+    return LockedFrameworkArtifact.model_validate(payload["locked_artifact"])
+
+
+def build_sample_generated_comparison_settings() -> ComparisonSettings | None:
+    payload = _load_sample_generated_framework_payload()
+    comparison_settings = payload.get("comparison_settings")
+    if comparison_settings is None:
+        return None
+    return ComparisonSettings.model_validate(comparison_settings)

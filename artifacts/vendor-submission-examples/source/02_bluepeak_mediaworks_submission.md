@@ -4,80 +4,88 @@ Prepared by: BluePeak MediaWorks Europe-APAC Team | Contact: Javier Mehra | Curr
 
 RFQ Reference: RFQ-MKT-KIDS-GL-2026-001 - RFQ for global launch marketing services for new kids health drink
 
-## Executive Note
+## Executive Summary
 
-This response covers the exact AI-generated questionnaire, the requested line items, and the commercial schedule expectations from the RFQ package.
+This response covers the archived generated questionnaire, the requested service line items, and the commercial pricing schedule expected in the RFQ package.
+
+## Agency Overview
+
+BluePeak MediaWorks operates as a regional network model with shared strategy, creative, media, and regulatory resources across Europe and APAC. For this launch, BluePeak is positioning itself as a cross-market coordination partner with strong adaptation discipline and media integration, but with a more premium commercial model than the benchmark vendor.
+
+## Strategic Point of View
+
+We believe the launch should be built around one claims-safe family-health platform that can flex by market while preserving a single strategic spine across film, social, and activation.
+
+## Selected Relevant Work
+
+- Regional children’s dairy campaign rolled out with one central asset system and local market adaptation packs.
+- Consumer health launch using synchronized creative, media planning, and compliance review across EMEA and Asia.
 
 ## Questionnaire Responses
 
-### q_m1
+### q_cr_mac_1
 
-**Question:** Confirm whether you can support child-directed advertising for this program. Answer Yes or No, and name the team or function that will provide this support.
+**Question:** Confirm whether your agency can support child-directed advertising for this launch. Answer Yes or No and identify the in-house team or partner capability that will perform this work.
 
 **Response:** Yes. Child-directed advertising support would be provided by our Youth Audience Strategy Lead and the regional policy reviewers assigned to the account.
 
-### q_m2
+### q_cr_mac_2
 
-**Question:** Confirm whether you can support claims review for this program. Answer Yes or No, and name the team or function that will provide this support.
+**Question:** Confirm whether your agency can support claims review for launch assets and product-related claims. Answer Yes or No and identify the in-house team or partner capability that will perform this work.
 
 **Response:** Yes. Claims review support would be provided through our central regulatory desk with local counsel review in India, the UK, and key launch markets.
 
-### q_m3
+### q_cr_mac_3
 
-**Question:** Provide the full name, title, and accountable role of the engagement lead who would be responsible for this RFQ.
+**Question:** Provide the full name, role title, and email address of the named engagement lead who will own this launch program.
 
-**Response:** Javier Mehra, Client Partner. Javier would be the accountable engagement lead for scope, budget, and cross-market alignment.
+**Response:** Javier Mehra, Client Partner, javier.mehra@bluepeakmediaworks.com. Javier would be the accountable engagement lead for scope, budget, and cross-market alignment.
 
-### q_m4
+### q_cr_mac_4
 
-**Question:** Provide your baseline launch governance approach, including the meeting cadence, approval path, and escalation route you would use for this engagement.
+**Question:** Confirm whether you are providing a launch governance approach. Answer Yes or No and submit a brief overview covering meeting cadence, decision ownership, and escalation.
 
-**Response:** We propose a weekly client steering call, Monday delivery huddle, and a formal approval tracker owned by the PMO lead. Material risks move from workstream leads to the client partner and then to a joint escalation forum within one business day.
+**Response:** Yes. We propose a weekly client steering call, Monday delivery huddle, and a formal approval tracker owned by the PMO lead. Material risks move from workstream leads to the client partner and then to a joint escalation forum within one business day.
 
-### q_m5
+### q_cr_mac_5
 
-**Question:** State whether the launch timelines in this RFQ are achievable for your proposed delivery model. Select one: Achievable or Not achievable.
+**Question:** State whether the buyer launch timelines are achievable. Select one option: Achievable as issued / Achievable with dependencies / Not achievable. Then list the key dependencies or constraints, or state None.
 
-**Response:** Achievable.
+**Response:** Achievable with dependencies. The plan assumes weekly buyer decision windows, claims wording freeze before final film edit, and prompt regional feedback on social adaptations. Media buying activation also depends on market account access by the agreed cutover date.
 
-### q_m6
+### q_cr_tech_1
 
-**Question:** List the key dependencies, buyer inputs, or approval assumptions that sit behind your stated launch timeline position.
-
-**Response:** The plan assumes weekly buyer decision windows, claims wording freeze before final film edit, and prompt regional feedback on social adaptations. Media buying activation also depends on market account access by the agreed cutover date.
-
-### q_t1
-
-**Question:** Describe your operating model for managing child-directed advertising and claims compliance across strategy, creative, TVC, social, media activation, and final launch approvals. Cover review checkpoints, decision ownership, and escalation handling.
+**Question:** Describe your end-to-end approach for ensuring child-directed marketing safety and claims usage compliance across strategy, creative, TVC, social, and launch approvals. Include where reviews occur, who owns them, how issues are escalated, and how rework is prevented.
 
 **Response:** BluePeak uses a layered compliance model: message architecture review before creative build, pre-shoot claims verification, edit-stage compliance review, and final market release sign-off. We use one control log across creative, social, and media teams so that claims-safe language stays consistent through production and launch.
 
-### q_t2
+### q_cr_tech_2
 
-**Question:** Describe how you would manage approvals, dependencies, and critical path activities so that the launch calendar can be met. Include turnaround assumptions, delay management, and how you would protect key milestones.
+**Question:** Provide your proposed launch workplan from kickoff to launch, showing key stages for strategy, creative, TVC, social, compliance review, and program management. Explain how approvals will be managed, what the critical dependencies are, and how schedule risks will be controlled.
 
 **Response:** We would manage speed by locking the decision calendar upfront, parallelizing market adaptation work, and using a shared issue log with owner-by-owner turnaround targets. If delays appear, we prioritize milestone protection by moving non-critical adaptations behind the master asset release.
 
-## Additional Strategy and Creative Response
+### q_cr_tech_3
 
-Our strategy and creative approach centers on a family-health launch platform that can flex by market while keeping one clear claims-safe promise. We would use a strong film-led master asset supported by social cutdowns and a phased paid media ramp-up.
+**Question:** Describe your approach to launch strategy and creative development for the new kids health drink, including audience segmentation, messaging framework, creative territory development, and how the master campaign idea will be carried into launch assets.
+
+**Response:** Our strategy and creative approach centers on a family-health launch platform that can flex by market while keeping one clear claims-safe promise. We would build the audience segmentation and messaging framework first, then translate it into one film-led master idea supported by digital and social launch assets.
+
+### q_cr_tech_4
+
+**Question:** Describe your approach to TVC development and production for the global launch, covering concept development, pre-production, shoot management, post-production, and delivery of the master film and cutdowns for paid media use.
+
+**Response:** Our TVC approach covers concept development, storyboard and script approval, production planning, shoot management, edit supervision, and final delivery of the hero film with cutdowns. We would pre-align production constraints with compliance and regional adaptation needs so the master asset can feed paid media quickly.
 
 ## Commercial Pricing Schedule
 
-| Line Item Ref | Line Item Name | Pricing Treatment | Quoted Price | Notes |
-| --- | --- | --- | --- | --- |
-| li_1 | Strategy & Creative Development | Standalone | EUR 315,000 | Regional adaptation planning included. |
-| li_2 | TVC Development | Standalone | EUR 205,000 | Concept, script, storyboard. |
-| li_3 | TVC Production | Standalone | EUR 740,000 | Production and post-production. |
-| li_4 | Social Organic Content | Bundled | EUR 165,000 | Bundled with launch toolkit adaptation. |
-| li_5 | Social Paid Media Planning | Standalone | EUR 140,000 | Paid media strategy and phasing. |
-| li_6 | Social Paid Media Buying & Optimization | Bundled | EUR 285,000 | Bundled buying fee; media spend excluded. |
-| li_7 | Kids Advertising & Claims Compliance Review | Standalone | EUR 160,000 | Central plus local counsel review. |
-| li_8 | Launch Program Management | Standalone | EUR 235,000 | PMO and reporting. |
-
-## Exclusions and Assumptions Schedule
-
-| Exclusion or Assumption | Affected Line Item | Commercial Impact |
-| --- | --- | --- |
-| Local language transcreation is priced only for priority launch markets. | li_4, li_5 | Additional markets can be added by change request. |
-| Platform media spend is excluded from service fees. | li_6 | Buyer funds media budgets directly. |
+| Line Item Ref | Line Item Name | Included in Quote | Currency | Total Price | Exclusions or Assumptions |
+| --- | --- | --- | --- | --- | --- |
+| li_1 | Strategy & Creative Development | Yes | EUR | 410000 | Regional adaptation planning included. |
+| li_2 | TVC Development | Yes | EUR | 265000 | Concept, script, and storyboard included. |
+| li_3 | TVC Production | Yes | EUR | 930000 | Production and post-production included. |
+| li_4 | Social Organic Content | Yes | EUR | 215000 | Regional transcreation priced for priority launch markets only. |
+| li_5 | Social Paid Media Planning | Yes | EUR | 190000 | Paid media strategy and phasing included. |
+| li_6 | Social Paid Media Buying & Optimization | Yes | EUR | 360000 | Media spend excluded from fee. |
+| li_7 | Kids Advertising & Claims Compliance Review | Yes | EUR | 220000 | Central plus local counsel review included. |
+| li_8 | Launch Program Management | Yes | EUR | 310000 | PMO and reporting included. |

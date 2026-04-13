@@ -29,6 +29,17 @@ def test_get_rfq_templates_returns_blank_and_sample_variants(client) -> None:
     assert len(sample.json()["line_items"]) == 8
 
 
+def test_get_sample_rubric_template_returns_archived_generated_rubric(client) -> None:
+    sample_rubric = client.get("/rubric-templates/sample")
+
+    assert sample_rubric.status_code == 200
+    payload = sample_rubric.json()
+    assert payload["official_award_basis"] == OFFICIAL_AWARD_BASIS
+    assert len(payload["criteria"]) >= 1
+    assert len(payload["questions"]) >= 1
+    assert payload["questions"][0]["id"].startswith("q_")
+
+
 def test_generate_rubric_returns_schema_valid_proposal(client) -> None:
     created = client.post("/sessions", json={})
     session_id = created.json()["session_id"]

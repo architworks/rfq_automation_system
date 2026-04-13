@@ -52,6 +52,7 @@ export interface ArtifactDownload {
 export interface RfqApiClient {
   createOrHydrateSession(sessionId?: string): Promise<SessionSnapshot>;
   getRfqTemplate(templateName: "blank" | "sample"): Promise<RFQDraft>;
+  getRubricTemplate(templateName: "sample"): Promise<RubricProposal>;
   getSession(sessionId: string): Promise<SessionSnapshot>;
   saveLlmSettings(sessionId: string, reasoningEffort: ReasoningEffort): Promise<SessionSnapshot>;
   saveRfq(sessionId: string, draft: RFQDraft): Promise<SessionSnapshot>;
@@ -146,6 +147,11 @@ export const apiClient: RfqApiClient = {
   },
   getRfqTemplate(templateName) {
     return requestJson<RFQDraft>(`/rfq-templates/${templateName}`, {
+      method: "GET",
+    });
+  },
+  getRubricTemplate(templateName) {
+    return requestJson<RubricProposal>(`/rubric-templates/${templateName}`, {
       method: "GET",
     });
   },

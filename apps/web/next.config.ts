@@ -19,6 +19,10 @@ const nextConfig: NextConfig = {
           destination: `${localApiOrigin}/rfq-templates/:path*`,
         },
         {
+          source: "/rubric-templates/:path*",
+          destination: `${localApiOrigin}/rubric-templates/:path*`,
+        },
+        {
           source: "/healthz",
           destination: `${localApiOrigin}/healthz`,
         },
@@ -37,6 +41,10 @@ const nextConfig: NextConfig = {
       {
         source: "/rfq-templates/:path*",
         destination: "/api/rfq-templates/:path*",
+      },
+      {
+        source: "/rubric-templates/:path*",
+        destination: "/api/rubric-templates/:path*",
       },
       {
         source: "/healthz",

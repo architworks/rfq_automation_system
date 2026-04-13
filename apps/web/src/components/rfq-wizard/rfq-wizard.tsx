@@ -255,6 +255,7 @@ export function RfqWizard({
   const [isLocking, setIsLocking] = useState(false);
   const [isResettingSession, setIsResettingSession] = useState(false);
   const [isApplyingTemplate, setIsApplyingTemplate] = useState(false);
+  const [isLoadingGeneratedSampleRubric, setIsLoadingGeneratedSampleRubric] = useState(false);
   const [isSavingLlmSettings, setIsSavingLlmSettings] = useState(false);
   const [isRunningEvaluation, setIsRunningEvaluation] = useState(false);
   const [uploadingVendorId, setUploadingVendorId] = useState<string | null>(null);
@@ -265,6 +266,7 @@ export function RfqWizard({
   const [downloadState, setDownloadState] = useState<"idle" | "ready" | "done" | "error">("idle");
   const [vendorPackDownloadState, setVendorPackDownloadState] = useState<"idle" | "ready" | "done" | "error">("idle");
   const [vendorDocumentDownloadState, setVendorDocumentDownloadState] = useState<"idle" | "ready" | "done" | "error">("idle");
+  const [sampleTemplateDraft, setSampleTemplateDraft] = useState<RFQDraft | null>(null);
 
   const initialisedRef = useRef(false);
   const savedRfqRef = useRef("");
@@ -336,8 +338,37 @@ export function RfqWizard({
     };
   }, [api, sessionId]);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadSampleTemplateReference() {
+      try {
+        const sampleTemplate = await api.getRfqTemplate("sample");
+        if (!cancelled) {
+          setSampleTemplateDraft(sampleTemplate);
+        }
+      } catch {
+        if (!cancelled) {
+          setSampleTemplateDraft(null);
+        }
+      }
+    }
+
+    void loadSampleTemplateReference();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [api]);
+
   const rfqSignature = useMemo(() => snapshotToJson(rfqDraft), [rfqDraft]);
   const rubricSignature = useMemo(() => snapshotToJson(rubricProposal), [rubricProposal]);
+  const sampleTemplateSignature = useMemo(() => snapshotToJson(sampleTemplateDraft), [sampleTemplateDraft]);
+  const canLoadGeneratedSampleRubric = Boolean(
+    sampleTemplateDraft &&
+      rfqDraft &&
+      rfqSignature === sampleTemplateSignature,
+  );
 
   useEffect(() => {
     if (!initialisedRef.current || step !== "input" || !rfqDraft) {
@@ -416,6 +447,30 @@ export function RfqWizard({
       setRequestError(error instanceof Error ? error.message : "Failed to generate rubric.");
     } finally {
       setIsGenerating(false);
+    }
+  }
+
+  async function handleLoadGeneratedSampleRubric() {
+    if (!canLoadGeneratedSampleRubric) {
+      return;
+    }
+
+    setIsLoadingGeneratedSampleRubric(true);
+    setRequestError(null);
+    setValidationIssues([]);
+
+    try {
+      const archivedRubric = await api.getRubricTemplate("sample");
+      const updated = await api.saveRubric(sessionId, archivedRubric);
+      applySessionSnapshot(updated);
+      setRubricProposal(updated.rubric_proposal ?? null);
+      savedRubricRef.current = snapshotToJson(updated.rubric_proposal);
+      setAutosaveMessage("Archived sample rubric loaded");
+      onStepChange("proposal");
+    } catch (error) {
+      setRequestError(error instanceof Error ? error.message : "Failed to load the archived sample rubric.");
+    } finally {
+      setIsLoadingGeneratedSampleRubric(false);
     }
   }
 
@@ -858,10 +913,13 @@ export function RfqWizard({
 
         {step === "input" ? (
             <InputStep
+              canLoadGeneratedSampleRubric={canLoadGeneratedSampleRubric}
               draft={rfqDraft}
+              isLoadingGeneratedSampleRubric={isLoadingGeneratedSampleRubric}
               onChange={updateDraft}
               onClear={() => void handleApplyRfqTemplate("blank")}
               onGenerate={handleGenerateRubric}
+              onLoadGeneratedSampleRubric={handleLoadGeneratedSampleRubric}
               onUseSample={() => void handleApplyRfqTemplate("sample")}
               isApplyingTemplate={isApplyingTemplate}
               isGenerating={isGenerating}
@@ -963,18 +1021,24 @@ export function RfqWizard({
 }
 
 function InputStep({
+  canLoadGeneratedSampleRubric,
   draft,
+  isLoadingGeneratedSampleRubric,
   onChange,
   onClear,
   onGenerate,
+  onLoadGeneratedSampleRubric,
   onUseSample,
   isApplyingTemplate,
   isGenerating,
 }: {
+  canLoadGeneratedSampleRubric: boolean;
   draft: RFQDraft;
+  isLoadingGeneratedSampleRubric: boolean;
   onChange: (mutator: (draft: RFQDraft) => void) => void;
   onClear: () => void;
   onGenerate: () => void;
+  onLoadGeneratedSampleRubric: () => void;
   onUseSample: () => void;
   isApplyingTemplate: boolean;
   isGenerating: boolean;
@@ -989,10 +1053,23 @@ function InputStep({
           <button className={styles.secondaryButton} disabled={isApplyingTemplate} onClick={onUseSample} type="button">
             {isApplyingTemplate ? "Applying template..." : "Use RFQ Sample"}
           </button>
+          <button
+            className={styles.secondaryButton}
+            disabled={!canLoadGeneratedSampleRubric || isApplyingTemplate || isGenerating || isLoadingGeneratedSampleRubric}
+            onClick={onLoadGeneratedSampleRubric}
+            type="button"
+          >
+            {isLoadingGeneratedSampleRubric ? "Loading generated rubric..." : "Load Generated Rubric"}
+          </button>
           <button className={styles.ghostButton} disabled={isApplyingTemplate} onClick={onClear} type="button">
             Clear RFQ
           </button>
         </div>
+      </div>
+      <div className={styles.meta}>
+        <span>
+          The archived generated rubric is available only when the current RFQ exactly matches the built-in sample.
+        </span>
       </div>
 
       <section className={styles.card}>

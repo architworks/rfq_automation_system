@@ -1,1 +1,112 @@
-{"general_info":{"subject":"RFQ for global launch marketing services for new kids health drink","rfq_code":"RFQ-MKT-KIDS-GL-2026-001","sourcing_type":"RFQ","round":"Round 1","status":"Draft","owner":"Ava Thompson","currency":"USD","requestor":"Global Brand Marketing Team","department":"Marketing Procurement","category":"Marketing Services"},"scope_overview":"Select an integrated agency partner for the global launch of a new kids health drink covering strategy, creative, TVC development and production, paid and organic social, claims compliance review, and launch governance.","timelines":{"clarifications_deadline":"2026-05-12","technical_bid_deadline":"2026-05-19","commercial_bid_deadline":"2026-05-21","evaluation_start_date":"2026-05-22","negotiation_start_date":"2026-05-27","final_award_date":"2026-06-02"},"buyer_priorities":[{"id":"priority_compliance","title":"Kids advertising compliance","description":"The program must be safe for child-directed marketing and claims usage."},{"id":"priority_speed","title":"Launch speed","description":"The buyer values partners who can manage approvals and hit the launch calendar."},{"id":"priority_integration","title":"Integrated delivery","description":"The buyer prefers partners who can coordinate multiple launch workstreams cleanly."}],"mandatory_conditions":["Vendors must explicitly confirm capability to support child-directed advertising and claims review.","Vendors must provide a named engagement lead and governance approach.","Vendors must quote against all applicable RFQ line items and call out exclusions clearly.","Vendors must state whether launch timelines are achievable with identified dependencies."],"line_items":[{"id":"li_1","product_name":"Strategy & Creative Development","category":"Services","description":"Launch strategy, audience segmentation, messaging framework, creative territory development and master campaign toolkit for a new kids health drink.","hsn_sac":"8471XX","uom":"Lot"},{"id":"li_2","product_name":"TVC Development","category":"Services","description":"Development of flagship TV commercial concept and all pre-production creative required for global launch approvals.","hsn_sac":"8471XX","uom":"Lot"},{"id":"li_3","product_name":"TVC Production","category":"Services","description":"End-to-end TVC shoot, post-production and delivery of master film and cutdowns for paid media use.","hsn_sac":"8471XX","uom":"Lot"},{"id":"li_4","product_name":"Social Organic Content","category":"Services","description":"Organic social content strategy, monthly content calendar and asset adaptation for Meta, YouTube and TikTok.","hsn_sac":"8471XX","uom":"Lot"},{"id":"li_5","product_name":"Social Paid Media Planning","category":"Services","description":"Paid social and video media planning across Meta, YouTube and TikTok for global launch period.","hsn_sac":"8471XX","uom":"Lot"},{"id":"li_6","product_name":"Social Paid Media Buying & Optimization","category":"Services","description":"Campaign trafficking, paid media activation, optimization and performance reporting across Meta, YouTube and TikTok.","hsn_sac":"8471XX","uom":"Lot"},{"id":"li_7","product_name":"Kids Advertising & Claims Compliance Review","category":"Services","description":"Legal and regulatory review of kids advertising content and product-related claims across launch assets and scripts.","hsn_sac":"8471XX","uom":"Lot"},{"id":"li_8","product_name":"Launch Program Management","category":"Services","description":"Program management, stakeholder coordination, asset trafficking and master launch governance across all workstreams.","hsn_sac":"8471XX","uom":"Lot"}]}
+{
+  "general_info": {
+    "subject": "RFQ for global launch marketing services for new kids health drink",
+    "rfq_code": "RFQ-MKT-KIDS-GL-2026-001",
+    "sourcing_type": "RFQ",
+    "round": "Round 1",
+    "status": "Draft",
+    "owner": "Ava Thompson",
+    "currency": "USD",
+    "requestor": "Global Brand Marketing Team",
+    "department": "Marketing Procurement",
+    "category": "Marketing Services"
+  },
+  "scope_overview": "Select an integrated agency partner for the global launch of a new kids health drink covering strategy, creative, TVC development and production, paid and organic social, claims compliance review, and launch governance.",
+  "timelines": {
+    "clarifications_deadline": "2026-05-12",
+    "technical_bid_deadline": "2026-05-19",
+    "commercial_bid_deadline": "2026-05-21",
+    "evaluation_start_date": "2026-05-22",
+    "negotiation_start_date": "2026-05-27",
+    "final_award_date": "2026-06-02"
+  },
+  "buyer_priorities": [
+    {
+      "id": "priority_compliance",
+      "title": "Kids advertising compliance",
+      "description": "The program must be safe for child-directed marketing and claims usage."
+    },
+    {
+      "id": "priority_speed",
+      "title": "Launch speed",
+      "description": "The buyer values partners who can manage approvals and hit the launch calendar."
+    },
+    {
+      "id": "priority_integration",
+      "title": "Integrated delivery",
+      "description": "The buyer prefers partners who can coordinate multiple launch workstreams cleanly."
+    }
+  ],
+  "mandatory_conditions": [
+    "Vendors must explicitly confirm capability to support child-directed advertising and claims review.",
+    "Vendors must provide a named engagement lead and governance approach.",
+    "Vendors must quote against all applicable RFQ line items and call out exclusions clearly.",
+    "Vendors must state whether launch timelines are achievable with identified dependencies."
+  ],
+  "line_items": [
+    {
+      "id": "li_1",
+      "product_name": "Strategy & Creative Development",
+      "category": "Services",
+      "description": "Launch strategy, audience segmentation, messaging framework, creative territory development and master campaign toolkit for a new kids health drink.",
+      "hsn_sac": "8471XX",
+      "uom": "Lot"
+    },
+    {
+      "id": "li_2",
+      "product_name": "TVC Development",
+      "category": "Services",
+      "description": "Development of flagship TV commercial concept and all pre-production creative required for global launch approvals.",
+      "hsn_sac": "8471XX",
+      "uom": "Lot"
+    },
+    {
+      "id": "li_3",
+      "product_name": "TVC Production",
+      "category": "Services",
+      "description": "End-to-end TVC shoot, post-production and delivery of master film and cutdowns for paid media use.",
+      "hsn_sac": "8471XX",
+      "uom": "Lot"
+    },
+    {
+      "id": "li_4",
+      "product_name": "Social Organic Content",
+      "category": "Services",
+      "description": "Organic social content strategy, monthly content calendar and asset adaptation for Meta, YouTube and TikTok.",
+      "hsn_sac": "8471XX",
+      "uom": "Lot"
+    },
+    {
+      "id": "li_5",
+      "product_name": "Social Paid Media Planning",
+      "category": "Services",
+      "description": "Paid social and video media planning across Meta, YouTube and TikTok for global launch period.",
+      "hsn_sac": "8471XX",
+      "uom": "Lot"
+    },
+    {
+      "id": "li_6",
+      "product_name": "Social Paid Media Buying & Optimization",
+      "category": "Services",
+      "description": "Campaign trafficking, paid media activation, optimization and performance reporting across Meta, YouTube and TikTok.",
+      "hsn_sac": "8471XX",
+      "uom": "Lot"
+    },
+    {
+      "id": "li_7",
+      "product_name": "Kids Advertising & Claims Compliance Review",
+      "category": "Services",
+      "description": "Legal and regulatory review of kids advertising content and product-related claims across launch assets and scripts.",
+      "hsn_sac": "8471XX",
+      "uom": "Lot"
+    },
+    {
+      "id": "li_8",
+      "product_name": "Launch Program Management",
+      "category": "Services",
+      "description": "Program management, stakeholder coordination, asset trafficking and master launch governance across all workstreams.",
+      "hsn_sac": "8471XX",
+      "uom": "Lot"
+    }
+  ]
+}

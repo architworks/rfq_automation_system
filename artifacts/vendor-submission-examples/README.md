@@ -1,10 +1,10 @@
 # Vendor Submission Examples
 
-This folder contains five manually-authored vendor response examples built from the sample RFQ and the live AI-generated questionnaire saved in `rfq-package/`.
+This folder contains five manually-authored vendor response examples built from the sample RFQ and the archived generated questionnaire saved in `rfq-package/`.
 
 ## Contents
 
-- `rfq-package/`: sample RFQ snapshot, generated questionnaire, and vendor-facing package reference
+- `rfq-package/`: sample RFQ snapshot, archived generated rubric, and vendor-facing package reference
 - `source/`: markdown or intermediate source used to create the final files
 - `submissions/`: uploadable vendor response files
 
