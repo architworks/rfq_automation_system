@@ -128,7 +128,62 @@ def test_vendor_extraction_payload_uses_docx_html_fallback(monkeypatch) -> None:
     assert "The original vendor file was a DOCX document." in payload
     assert "Converted vendor document HTML" in payload
     assert "<p>Answer block</p>" in payload
-    assert "DOCX conversion note: Unrecognized paragraph style." in payload
+    assert "Word conversion note: Unrecognized paragraph style." in payload
+
+
+def test_vendor_extraction_payload_uses_doc_html_fallback(monkeypatch) -> None:
+    artifact = LockedFrameworkArtifact(
+        locked_at=datetime.now(UTC),
+        rfq_snapshot=build_seed_rfq(),
+        rubric_snapshot=build_valid_rubric_proposal(),
+        governance=GovernanceInfo(
+            official_award_basis="QCBS 70/30",
+            technical_threshold_strategy="Test threshold strategy",
+            advisory_outputs=["LCS", "QBS", "RFQ-specific AI scenarios"],
+            persistence_scope="Test scope",
+        ),
+        download_metadata=DownloadMetadata(file_name="artifact.json"),
+    )
+    vendor = VendorRecord(id="vendor_doc", name="DOC Vendor")
+    document = VendorDocument(
+        file_name="vendor.doc",
+        mime_type="application/msword",
+        extension=".doc",
+        size_bytes=7,
+        uploaded_at=datetime.now(UTC),
+    )
+
+    def fake_convert_doc_to_docx_bytes(*, document: VendorDocument, document_bytes: bytes) -> bytes:
+        assert document.file_name == "vendor.doc"
+        assert document_bytes == b"docdata"
+        return b"converted-docx"
+
+    def fake_convert_docx_to_html(*, document_bytes: bytes) -> tuple[str, list[str]]:
+        assert document_bytes == b"converted-docx"
+        return "<p>Legacy Word content</p>", []
+
+    monkeypatch.setattr(
+        OpenAIResponsesClient,
+        "_convert_doc_to_docx_bytes",
+        staticmethod(fake_convert_doc_to_docx_bytes),
+    )
+    monkeypatch.setattr(
+        OpenAIResponsesClient,
+        "_convert_docx_to_html",
+        staticmethod(fake_convert_docx_to_html),
+    )
+
+    payload = OpenAIResponsesClient._build_vendor_extraction_input_payload(
+        artifact=artifact,
+        vendor=vendor,
+        document=document,
+        document_bytes=b"docdata",
+    )
+
+    assert isinstance(payload, str)
+    assert "The original vendor file was a DOC document." in payload
+    assert "Legacy .doc content was converted to .docx before HTML extraction." in payload
+    assert "<p>Legacy Word content</p>" in payload
 
 
 def test_compose_rubric_backfills_question_and_schedule_links() -> None:

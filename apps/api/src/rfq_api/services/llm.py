@@ -5,6 +5,10 @@ import base64
 from collections import defaultdict
 from collections.abc import Iterable
 import io
+from pathlib import Path
+import shutil
+import subprocess
+import tempfile
 from typing import Annotated, Literal, TypeVar, cast
 
 import mammoth
@@ -689,8 +693,8 @@ class OpenAIResponsesClient(LLMClient):
             f"{framework_brief}\n\n"
             "Return a single structured extraction for this vendor document."
         )
-        if document.extension == ".docx":
-            return cls._build_docx_extraction_text(
+        if document.extension in {".doc", ".docx"}:
+            return cls._build_word_extraction_text(
                 extraction_prompt=extraction_prompt,
                 document=document,
                 document_bytes=document_bytes,
@@ -715,35 +719,41 @@ class OpenAIResponsesClient(LLMClient):
         ]
 
     @classmethod
-    def _build_docx_extraction_text(
+    def _build_word_extraction_text(
         cls,
         *,
         extraction_prompt: str,
         document: VendorDocument,
         document_bytes: bytes,
     ) -> str:
-        html_output, conversion_messages = cls._convert_docx_to_html(document_bytes=document_bytes)
+        normalized_docx_bytes = document_bytes
+        conversion_notes: list[str] = []
+        original_file_type = document.extension.lstrip(".").upper()
+
+        if document.extension == ".doc":
+            normalized_docx_bytes = cls._convert_doc_to_docx_bytes(document=document, document_bytes=document_bytes)
+            conversion_notes.append("Legacy .doc content was converted to .docx before HTML extraction.")
+
+        html_output, mammoth_messages = cls._convert_docx_to_html(document_bytes=normalized_docx_bytes)
         if not html_output.strip():
             raise LLMTaskError(
-                f"Vendor extraction failed: DOCX conversion produced no readable content for {document.file_name}."
+                f"Vendor extraction failed: {original_file_type} conversion produced no readable content for {document.file_name}."
             )
 
-        conversion_notes = "None."
-        if conversion_messages:
-            conversion_notes = cls._numbered_lines(
-                f"DOCX conversion note: {message}"
-                for message in conversion_messages
-            )
+        conversion_notes.extend(f"Word conversion note: {message}" for message in mammoth_messages)
+        rendered_conversion_notes = "None."
+        if conversion_notes:
+            rendered_conversion_notes = cls._numbered_lines(conversion_notes)
 
         return (
             f"{extraction_prompt}\n\n"
             "Document ingestion mode\n"
-            "The original vendor file was a DOCX document. It was converted to HTML before extraction. "
+            f"The original vendor file was a {original_file_type} document. It was converted to HTML before extraction. "
             "Use only the converted HTML content below. Do not infer missing text from layout, images, comments, or tracked changes.\n\n"
             "Converted vendor document HTML\n"
             f"{html_output}\n\n"
-            "DOCX conversion notes\n"
-            f"{conversion_notes}"
+            "Word conversion notes\n"
+            f"{rendered_conversion_notes}"
         )
 
     @staticmethod
@@ -756,6 +766,62 @@ class OpenAIResponsesClient(LLMClient):
         result = mammoth.convert_to_html(io.BytesIO(document_bytes))
         messages = [message.message for message in result.messages]
         return result.value, messages
+
+    @staticmethod
+    def _convert_doc_to_docx_bytes(*, document: VendorDocument, document_bytes: bytes) -> bytes:
+        converter = shutil.which("textutil") or shutil.which("soffice") or shutil.which("libreoffice")
+        if not converter:
+            raise LLMTaskError(
+                f"Vendor extraction failed: no local converter is available to transform legacy .doc files for {document.file_name}."
+            )
+
+        with tempfile.TemporaryDirectory(prefix="rfq-doc-convert-") as temp_dir:
+            temp_path = Path(temp_dir)
+            input_path = temp_path / document.file_name
+            output_path = temp_path / f"{input_path.stem}.docx"
+            input_path.write_bytes(document_bytes)
+
+            try:
+                if Path(converter).name == "textutil":
+                    subprocess.run(
+                        [
+                            converter,
+                            "-convert",
+                            "docx",
+                            str(input_path),
+                            "-output",
+                            str(output_path),
+                        ],
+                        check=True,
+                        capture_output=True,
+                        text=True,
+                    )
+                else:
+                    subprocess.run(
+                        [
+                            converter,
+                            "--headless",
+                            "--convert-to",
+                            "docx",
+                            str(input_path),
+                            "--outdir",
+                            str(temp_path),
+                        ],
+                        check=True,
+                        capture_output=True,
+                        text=True,
+                    )
+            except subprocess.CalledProcessError as exc:
+                details = exc.stderr.strip() or exc.stdout.strip() or str(exc)
+                raise LLMTaskError(
+                    f"Vendor extraction failed: .doc conversion to .docx failed for {document.file_name}: {details}"
+                ) from exc
+
+            if not output_path.exists():
+                raise LLMTaskError(
+                    f"Vendor extraction failed: .doc conversion to .docx did not produce an output file for {document.file_name}."
+                )
+            return output_path.read_bytes()
 
     @staticmethod
     def _format_validation_feedback(issues: list[ValidationIssue]) -> str:
