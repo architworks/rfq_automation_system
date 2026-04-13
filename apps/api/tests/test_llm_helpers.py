@@ -1,7 +1,7 @@
 from datetime import UTC, datetime
 
 from rfq_api.seeds import build_blank_rfq, build_seed_rfq
-from rfq_api.models import DownloadMetadata, GovernanceInfo, LockedFrameworkArtifact
+from rfq_api.models import DownloadMetadata, GovernanceInfo, LockedFrameworkArtifact, VendorDocument, VendorRecord
 from rfq_api.services.llm import (
     AIScenarioDraft,
     AIScenarioRankingDraft,
@@ -45,6 +45,90 @@ def test_build_rfq_brief_marks_missing_priorities_and_conditions_for_inference()
     assert "[NOT PROVIDED]. ACTION: Infer 3 strategic technical priorities based on the RFQ details provided." in brief
     assert "Mandatory conditions" in brief
     assert "[NOT PROVIDED]. ACTION: Infer 3-5 pass/fail mandatory gates based on the RFQ details provided." in brief
+
+
+def test_vendor_extraction_payload_uses_input_file_for_pdf() -> None:
+    artifact = LockedFrameworkArtifact(
+        locked_at=datetime.now(UTC),
+        rfq_snapshot=build_seed_rfq(),
+        rubric_snapshot=build_valid_rubric_proposal(),
+        governance=GovernanceInfo(
+            official_award_basis="QCBS 70/30",
+            technical_threshold_strategy="Test threshold strategy",
+            advisory_outputs=["LCS", "QBS", "RFQ-specific AI scenarios"],
+            persistence_scope="Test scope",
+        ),
+        download_metadata=DownloadMetadata(file_name="artifact.json"),
+    )
+    vendor = VendorRecord(id="vendor_pdf", name="PDF Vendor")
+    document = VendorDocument(
+        file_name="vendor.pdf",
+        mime_type="application/pdf",
+        extension=".pdf",
+        size_bytes=7,
+        uploaded_at=datetime.now(UTC),
+    )
+
+    payload = OpenAIResponsesClient._build_vendor_extraction_input_payload(
+        artifact=artifact,
+        vendor=vendor,
+        document=document,
+        document_bytes=b"pdfdata",
+    )
+
+    assert isinstance(payload, list)
+    content = payload[0]["content"]
+    assert isinstance(content, list)
+    assert content[0]["type"] == "input_file"
+    assert content[0]["filename"] == "vendor.pdf"
+    assert str(content[0]["file_data"]).startswith("data:application/pdf;base64,")
+    assert content[1]["type"] == "input_text"
+
+
+def test_vendor_extraction_payload_uses_docx_html_fallback(monkeypatch) -> None:
+    artifact = LockedFrameworkArtifact(
+        locked_at=datetime.now(UTC),
+        rfq_snapshot=build_seed_rfq(),
+        rubric_snapshot=build_valid_rubric_proposal(),
+        governance=GovernanceInfo(
+            official_award_basis="QCBS 70/30",
+            technical_threshold_strategy="Test threshold strategy",
+            advisory_outputs=["LCS", "QBS", "RFQ-specific AI scenarios"],
+            persistence_scope="Test scope",
+        ),
+        download_metadata=DownloadMetadata(file_name="artifact.json"),
+    )
+    vendor = VendorRecord(id="vendor_docx", name="DOCX Vendor")
+    document = VendorDocument(
+        file_name="vendor.docx",
+        mime_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        extension=".docx",
+        size_bytes=8,
+        uploaded_at=datetime.now(UTC),
+    )
+
+    def fake_convert_docx_to_html(*, document_bytes: bytes) -> tuple[str, list[str]]:
+        assert document_bytes == b"docxdata"
+        return "<p>Answer block</p><table><tr><td>100</td></tr></table>", ["Unrecognized paragraph style."]
+
+    monkeypatch.setattr(
+        OpenAIResponsesClient,
+        "_convert_docx_to_html",
+        staticmethod(fake_convert_docx_to_html),
+    )
+
+    payload = OpenAIResponsesClient._build_vendor_extraction_input_payload(
+        artifact=artifact,
+        vendor=vendor,
+        document=document,
+        document_bytes=b"docxdata",
+    )
+
+    assert isinstance(payload, str)
+    assert "The original vendor file was a DOCX document." in payload
+    assert "Converted vendor document HTML" in payload
+    assert "<p>Answer block</p>" in payload
+    assert "DOCX conversion note: Unrecognized paragraph style." in payload
 
 
 def test_compose_rubric_backfills_question_and_schedule_links() -> None:

@@ -4,8 +4,10 @@ from abc import ABC, abstractmethod
 import base64
 from collections import defaultdict
 from collections.abc import Iterable
+import io
 from typing import Annotated, Literal, TypeVar, cast
 
+import mammoth
 from openai import OpenAI
 from pydantic import BaseModel, Field
 
@@ -375,7 +377,6 @@ class OpenAIResponsesClient(LLMClient):
         document_bytes: bytes,
         llm_settings: LLMSettings,
     ) -> RawExtraction:
-        framework_brief = self._build_locked_framework_brief(artifact)
         instructions = (
             "Extract only information that is explicitly grounded in the vendor document and relevant to the locked RFQ framework. "
             "Do not invent answers, prices, experience, or evidence. "
@@ -399,28 +400,12 @@ class OpenAIResponsesClient(LLMClient):
             f"When a currency is visible, prefer a standard code from this supported list when the document clearly supports it: {', '.join(supported_currency_codes())}."
         )
         try:
-            file_data = self._build_input_file_data(document=document, document_bytes=document_bytes)
-            input_payload = [
-                {
-                    "role": "user",
-                    "content": [
-                        {
-                            "type": "input_file",
-                            "filename": document.file_name,
-                            "file_data": file_data,
-                        },
-                        {
-                            "type": "input_text",
-                            "text": (
-                                f"Vendor: {vendor.name}\n\n"
-                                "Locked RFQ framework\n"
-                                f"{framework_brief}\n\n"
-                                "Return a single structured extraction for this vendor document."
-                            ),
-                        },
-                    ],
-                }
-            ]
+            input_payload = self._build_vendor_extraction_input_payload(
+                artifact=artifact,
+                vendor=vendor,
+                document=document,
+                document_bytes=document_bytes,
+            )
             extracted = self._parse_structured_input(
                 instructions=instructions,
                 input_payload=input_payload,
@@ -688,10 +673,89 @@ class OpenAIResponsesClient(LLMClient):
             raise LLMTaskError("Structured output call returned no parsed object.")
         return parsed, self._extract_reasoning_summary(response)
 
+    @classmethod
+    def _build_vendor_extraction_input_payload(
+        cls,
+        *,
+        artifact: LockedFrameworkArtifact,
+        vendor: VendorRecord,
+        document: VendorDocument,
+        document_bytes: bytes,
+    ) -> str | list[dict[str, object]]:
+        framework_brief = cls._build_locked_framework_brief(artifact)
+        extraction_prompt = (
+            f"Vendor: {vendor.name}\n\n"
+            "Locked RFQ framework\n"
+            f"{framework_brief}\n\n"
+            "Return a single structured extraction for this vendor document."
+        )
+        if document.extension == ".docx":
+            return cls._build_docx_extraction_text(
+                extraction_prompt=extraction_prompt,
+                document=document,
+                document_bytes=document_bytes,
+            )
+
+        file_data = cls._build_input_file_data(document=document, document_bytes=document_bytes)
+        return [
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "input_file",
+                        "filename": document.file_name,
+                        "file_data": file_data,
+                    },
+                    {
+                        "type": "input_text",
+                        "text": extraction_prompt,
+                    },
+                ],
+            }
+        ]
+
+    @classmethod
+    def _build_docx_extraction_text(
+        cls,
+        *,
+        extraction_prompt: str,
+        document: VendorDocument,
+        document_bytes: bytes,
+    ) -> str:
+        html_output, conversion_messages = cls._convert_docx_to_html(document_bytes=document_bytes)
+        if not html_output.strip():
+            raise LLMTaskError(
+                f"Vendor extraction failed: DOCX conversion produced no readable content for {document.file_name}."
+            )
+
+        conversion_notes = "None."
+        if conversion_messages:
+            conversion_notes = cls._numbered_lines(
+                f"DOCX conversion note: {message}"
+                for message in conversion_messages
+            )
+
+        return (
+            f"{extraction_prompt}\n\n"
+            "Document ingestion mode\n"
+            "The original vendor file was a DOCX document. It was converted to HTML before extraction. "
+            "Use only the converted HTML content below. Do not infer missing text from layout, images, comments, or tracked changes.\n\n"
+            "Converted vendor document HTML\n"
+            f"{html_output}\n\n"
+            "DOCX conversion notes\n"
+            f"{conversion_notes}"
+        )
+
     @staticmethod
     def _build_input_file_data(*, document: VendorDocument, document_bytes: bytes) -> str:
         base64_string = base64.b64encode(document_bytes).decode("utf-8")
         return f"data:{document.mime_type};base64,{base64_string}"
+
+    @staticmethod
+    def _convert_docx_to_html(*, document_bytes: bytes) -> tuple[str, list[str]]:
+        result = mammoth.convert_to_html(io.BytesIO(document_bytes))
+        messages = [message.message for message in result.messages]
+        return result.value, messages
 
     @staticmethod
     def _format_validation_feedback(issues: list[ValidationIssue]) -> str:
