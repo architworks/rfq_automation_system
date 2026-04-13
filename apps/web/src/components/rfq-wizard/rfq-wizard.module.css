@@ -176,6 +176,12 @@
   margin-bottom: 16px;
 }
 
+.cardHeaderStack {
+  display: grid;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
 .cardTitle {
   font-size: 1.15rem;
   font-weight: 700;
@@ -525,6 +531,13 @@
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
+}
+
+.packHeaderActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-start;
 }
 
 .primaryButton,
@@ -901,19 +914,22 @@
 .reviewLayout {
   display: grid;
   gap: 18px;
-  grid-template-columns: minmax(190px, 230px) minmax(0, 1fr);
+  grid-template-columns: 1fr;
 }
 
 .reviewSidebar {
-  display: grid;
-  gap: 10px;
-  align-content: start;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: stretch;
 }
 
 .reviewSidebarButton {
   display: grid;
   gap: 8px;
   text-align: left;
+  min-width: 180px;
+  flex: 0 0 180px;
   border-radius: 16px;
   border: 1px solid rgba(148, 163, 184, 0.24);
   background: rgba(248, 250, 252, 0.76);
@@ -933,6 +949,13 @@
 .reviewSidebarButtonActive {
   border-color: rgba(29, 78, 216, 0.48);
   background: rgba(239, 246, 255, 0.9);
+}
+
+.reviewSidebarButtonTitle {
+  font-size: 1rem;
+  font-weight: 750;
+  line-height: 1.35;
+  color: #0f172a;
 }
 
 .reviewContent {
@@ -972,6 +995,50 @@
   display: grid;
   gap: 16px;
   min-width: 0;
+}
+
+.sectionAccordion {
+  border-radius: 18px;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  background: rgba(255, 255, 255, 0.92);
+  overflow: hidden;
+}
+
+.sectionAccordion[open] {
+  border-color: rgba(29, 78, 216, 0.24);
+}
+
+.sectionAccordionSummary {
+  position: relative;
+  cursor: pointer;
+  list-style: none;
+  padding: 14px 48px 14px 14px;
+  background: rgba(248, 250, 252, 0.92);
+}
+
+.sectionAccordionSummary::-webkit-details-marker {
+  display: none;
+}
+
+.sectionAccordionSummary::after {
+  content: "▾";
+  position: absolute;
+  top: 18px;
+  right: 16px;
+  font-size: 0.95rem;
+  color: #1d4ed8;
+  transition: transform 160ms ease;
+}
+
+.sectionAccordion[open] .sectionAccordionSummary::after {
+  transform: rotate(180deg);
+}
+
+.sectionAccordionBody {
+  display: grid;
+  gap: 12px;
+  padding: 0 14px 14px;
+  border-top: 1px solid rgba(148, 163, 184, 0.18);
 }
 
 .resultAccordion {
@@ -1072,6 +1139,72 @@
   background:
     linear-gradient(180deg, rgba(248, 250, 252, 0.92), rgba(255, 255, 255, 0.96)),
     #fff;
+}
+
+.scenarioList {
+  display: grid;
+  gap: 16px;
+}
+
+.scenarioCard {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+  border-radius: 22px;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  background:
+    radial-gradient(circle at top right, rgba(255, 237, 213, 0.24), transparent 34%),
+    rgba(255, 255, 255, 0.92);
+}
+
+.scenarioHeader {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.scenarioTitle {
+  font-size: clamp(1.2rem, 2vw, 1.6rem);
+  font-weight: 800;
+  line-height: 1.2;
+  color: #0f172a;
+}
+
+.scenarioSubtitle {
+  margin-top: 6px;
+  font-size: 0.84rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #9a3412;
+}
+
+.scenarioWinnerBadge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 11px 16px;
+  border: 1px solid rgba(59, 130, 246, 0.22);
+  background: rgba(239, 246, 255, 0.92);
+  color: #1e3a8a;
+  font-size: 0.95rem;
+  font-weight: 750;
+}
+
+.scenarioSummary {
+  line-height: 1.6;
+  color: #0f172a;
+}
+
+.scenarioRuleBox {
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(251, 191, 36, 0.24);
+  background: rgba(255, 251, 235, 0.9);
 }
 
 .reviewAnswerCard {
@@ -1214,11 +1347,25 @@
     position: static;
   }
 
+  .reviewSidebar {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+
+  .reviewSidebarButton {
+    flex: 0 0 220px;
+  }
+
   .resultAccordionHeader {
     flex-direction: column;
   }
 
   .resultAccordionSummaryMetrics {
     justify-content: flex-start;
+  }
+
+  .scenarioHeader {
+    flex-direction: column;
   }
 }

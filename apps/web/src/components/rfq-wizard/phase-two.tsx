@@ -88,14 +88,14 @@ export function PackStep({
   return (
     <div className={styles.grid}>
       <section className={styles.card}>
-        <div className={styles.cardHeader}>
+        <div className={styles.cardHeaderStack}>
           <div>
             <h2 className={styles.cardTitle}>Vendor RFQ Pack Preview</h2>
             <p className={styles.cardSubtle}>
               This is the buyer-approved vendor-facing pack derived directly from the locked framework.
             </p>
           </div>
-          <div className={styles.buttonGroup}>
+          <div className={styles.packHeaderActions}>
             <button className={styles.secondaryButton} onClick={onDownloadVendorDocument} type="button">
               {vendorDocumentDownloadState === "done" ? "Download vendor RFQ again" : "Download vendor RFQ (.docx)"}
             </button>
@@ -534,11 +534,11 @@ export function ReviewStep({
     () => [
       { id: "review-document-summary", label: "Summary" },
       { id: "review-question-answers", label: "Question Answers" },
-      { id: "review-schedule-answers", label: "Schedule Answers" },
+      { id: "review-schedule-answers", label: "Pricing and Structured Tables" },
       { id: "review-technical-claims", label: "Technical Claims" },
-      { id: "review-commercial-notes", label: "Commercial Notes" },
-      { id: "review-normalized-fields", label: "Normalized Fields" },
       { id: "review-normalized-pricing", label: "Normalized Pricing" },
+      { id: "review-normalized-fields", label: "Normalized Fields" },
+      { id: "review-commercial-notes", label: "Commercial Notes" },
     ],
     [],
   );
@@ -580,7 +580,7 @@ export function ReviewStep({
             <div>
               <h2 className={styles.cardTitle}>Normalization Basis</h2>
               <p className={styles.cardSubtle}>
-                Commercial normalization is automatic. The RFQ base currency drives FX conversion, and only weight or volume UOMs convert mathematically.
+                Prices are compared in the RFQ currency, and only weight or volume UOMs convert mathematically.
               </p>
             </div>
             <div className={styles.buttonGroup}>
@@ -599,16 +599,16 @@ export function ReviewStep({
               <span className={styles.summaryLabel}>FX Effective Date</span>
               <span className={styles.summaryValue}>{comparisonSettings?.fx_effective_date ?? "Not available"}</span>
             </div>
-            <div className={styles.summaryItem}>
-              <span className={styles.summaryLabel}>FX Coverage</span>
+            <div className={styles.summaryNarrative}>
+              <span className={styles.summaryLabel}>Currency Normalization</span>
               <span className={styles.summaryValue}>
-                {comparisonSettings ? `${(comparisonSettings.fx_rates ?? []).length + 1} currencies` : "Not available"}
+                All vendor prices are converted into the RFQ currency using the stored ECB FX snapshot from the effective date above.
               </span>
             </div>
             <div className={styles.summaryNarrative}>
-              <span className={styles.summaryLabel}>Normalization Policy</span>
+              <span className={styles.summaryLabel}>Unit Normalization</span>
               <span className={styles.summaryValue}>
-                Currency conversion uses the stored ECB snapshot. Lot and Count do not convert. Only weight and volume units convert mathematically.
+                Only weight and volume units convert mathematically. Service-style Lot pricing and Count-based items remain in the RFQ structure and are not unit-converted.
               </span>
             </div>
           </div>
@@ -619,7 +619,7 @@ export function ReviewStep({
             <div>
               <h2 className={styles.cardTitle}>Extraction Review</h2>
               <p className={styles.cardSubtle}>
-                Raw extraction and normalized views remain separate here so the buyer can see what changed.
+                Review the extracted answers, structured commercial inputs, and normalized comparison values in buyer-readable order.
               </p>
             </div>
           </div>
@@ -634,7 +634,7 @@ export function ReviewStep({
                     onClick={() => onSelectVendor(vendor.id)}
                     type="button"
                   >
-                    <span>{vendor.name}</span>
+                    <span className={styles.reviewSidebarButtonTitle}>{vendor.name}</span>
                     <span className={`${styles.statusBadge} ${statusClassName(vendor.status)}`}>{vendor.status}</span>
                     <span className={styles.previewItemMeta}>{review ? "Review available" : "No review yet"}</span>
                   </button>
@@ -687,8 +687,11 @@ export function ReviewStep({
                         questionLookup={questionsById}
                       />
                       <FieldGroupList
+                        collapsible
+                        defaultOpen={false}
                         sectionId="review-schedule-answers"
-                        title="Schedule Answers"
+                        subtitle="Expanded view shows the extracted fields captured from pricing tables and other structured sections in the vendor document."
+                        title="Pricing and Structured Tables"
                         fields={selectedReview.raw_extraction.schedule_answers ?? []}
                       />
                       <FieldGroupList
@@ -696,10 +699,19 @@ export function ReviewStep({
                         title="Technical Claims"
                         fields={selectedReview.raw_extraction.technical_claims ?? []}
                       />
-                      <FieldGroupList
-                        sectionId="review-commercial-notes"
-                        title="Commercial Notes / Anomalies"
-                        fields={selectedReview.raw_extraction.commercial_claims ?? []}
+                    </section>
+
+                    <section className={styles.previewPanel}>
+                      <div className={styles.previewHeader}>
+                        <div>
+                          <div className={styles.previewEyebrow}>Normalized View</div>
+                          <div className={styles.previewTitle}>Commercial comparison values after currency and UOM normalization</div>
+                        </div>
+                      </div>
+                      <NormalizedPricingTable
+                        pricingLines={selectedReview.normalized_pricing ?? []}
+                        rfqCurrency={comparisonSettings?.base_currency ?? null}
+                        sectionId="review-normalized-pricing"
                       />
                     </section>
 
@@ -707,7 +719,7 @@ export function ReviewStep({
                       <div className={styles.previewHeader}>
                         <div>
                           <div className={styles.previewEyebrow}>Normalized View</div>
-                          <div className={styles.previewTitle}>Canonical values, comparability, and blockers</div>
+                          <div className={styles.previewTitle}>Canonical values, comparability notes, and blockers</div>
                         </div>
                       </div>
                       <NormalizedFieldList
@@ -715,10 +727,19 @@ export function ReviewStep({
                         rfqCurrency={comparisonSettings?.base_currency ?? null}
                         sectionId="review-normalized-fields"
                       />
-                      <NormalizedPricingTable
-                        pricingLines={selectedReview.normalized_pricing ?? []}
-                        rfqCurrency={comparisonSettings?.base_currency ?? null}
-                        sectionId="review-normalized-pricing"
+                    </section>
+
+                    <section className={styles.previewPanel}>
+                      <div className={styles.previewHeader}>
+                        <div>
+                          <div className={styles.previewEyebrow}>Commercial Notes</div>
+                          <div className={styles.previewTitle}>Commercial anomalies, exclusions, and raw commercial notes</div>
+                        </div>
+                      </div>
+                      <FieldGroupList
+                        sectionId="review-commercial-notes"
+                        title="Commercial Notes / Anomalies"
+                        fields={selectedReview.raw_extraction.commercial_claims ?? []}
                       />
                     </section>
                   </div>
@@ -807,6 +828,15 @@ export function ResultsStep({
         rankedScoreBreakdown,
         evaluationReport?.official_recommendation.winner_vendor_id ?? null,
       ),
+    [evaluationReport, rankedScoreBreakdown],
+  );
+  const vendorNameById = useMemo(
+    () =>
+      buildVendorNameLookup({
+        commercialResults: evaluationReport?.commercial_results ?? [],
+        scoreBreakdown: rankedScoreBreakdown,
+        technicalResults: evaluationReport?.technical_results ?? [],
+      }),
     [evaluationReport, rankedScoreBreakdown],
   );
   const resultsSections = useMemo(
@@ -1002,21 +1032,34 @@ export function ResultsStep({
               {(evaluationReport.advisory_scenarios ?? []).length === 0 ? (
                 <div className={styles.previewEmpty}>No advisory AI scenarios are available.</div>
               ) : (
-                <div className={styles.previewList}>
+                <div className={styles.scenarioList}>
                   {(evaluationReport.advisory_scenarios ?? []).map((scenario, index) => (
-                    <div className={styles.previewItem} key={`${scenario.scenario_name}-${index}`}>
-                      <div className={styles.previewItemHeader}>
+                    <div className={styles.scenarioCard} key={`${scenario.scenario_name}-${index}`}>
+                      <div className={styles.scenarioHeader}>
                         <div>
-                          <div className={styles.previewTitle}>{scenario.scenario_name}</div>
-                          <div className={styles.previewItemMeta}>{scenario.scenario_kind}</div>
+                          <div className={styles.scenarioTitle}>{scenario.scenario_name}</div>
+                          <div className={styles.scenarioSubtitle}>
+                            {getScenarioKindLabel(scenario.scenario_kind)}
+                          </div>
                         </div>
-                        <div className={styles.previewBadge}>Winner: {scenario.winner_vendor_id ?? "None"}</div>
+                        <div className={styles.scenarioWinnerBadge}>
+                          Winner: {getVendorDisplayName(scenario.winner_vendor_id, vendorNameById)}
+                        </div>
                       </div>
-                      <div className={styles.previewItemBody}>{scenario.explanation}</div>
-                      <div className={styles.previewItemMeta}>{scenario.weighting_or_rule_basis}</div>
+                      <div className={styles.scenarioSummary}>
+                        {getScenarioBuyerSummary(scenario, comparisonSettings?.base_currency ?? null)}
+                      </div>
+                      <div className={styles.scenarioRuleBox}>
+                        <span className={styles.summaryLabel}>How This Scenario Is Calculated</span>
+                        <span className={styles.summaryValue}>
+                          {getScenarioCalculationText(scenario, comparisonSettings?.base_currency ?? null)}
+                        </span>
+                      </div>
                       {(scenario.excluded_vendor_ids ?? []).length > 0 ? (
                         <div className={styles.previewItemMeta}>
-                          Excluded vendors: {(scenario.excluded_vendor_ids ?? []).join(", ")}
+                          Excluded vendors: {(scenario.excluded_vendor_ids ?? [])
+                            .map((vendorId) => getVendorDisplayName(vendorId, vendorNameById))
+                            .join(", ")}
                         </div>
                       ) : null}
                       <div className={styles.tableWrap}>
@@ -1024,14 +1067,19 @@ export function ResultsStep({
                           <thead>
                             <tr>
                               <th>Vendor</th>
-                              <th>Score</th>
+                              <th>{getScenarioMetricLabel(scenario.scenario_kind, comparisonSettings?.base_currency ?? null)}</th>
                               <th>Notes</th>
                             </tr>
                           </thead>
                           <tbody>
                             {(scenario.ranking ?? []).map((item) => (
-                              <tr key={`${scenario.scenario_name}-${item.vendor_id}`}>
-                                <td>{item.vendor_name}</td>
+                              <tr
+                                className={
+                                  item.vendor_id === scenario.winner_vendor_id ? styles.scoreRowWinner : undefined
+                                }
+                                key={`${scenario.scenario_name}-${item.vendor_id}`}
+                              >
+                                <td>{getVendorDisplayName(item.vendor_id, vendorNameById)}</td>
                                 <td>{formatOptionalNumber(item.score)}</td>
                                 <td>{(item.notes ?? []).join(" ") || "None"}</td>
                               </tr>
@@ -1719,14 +1767,20 @@ function FieldGroupList({
   title,
   fields,
   sectionId,
+  subtitle,
+  collapsible = false,
+  defaultOpen = true,
 }: {
   title: string;
   fields: ExtractedField[];
   sectionId?: string;
+  subtitle?: string;
+  collapsible?: boolean;
+  defaultOpen?: boolean;
 }) {
-  return (
-    <div className={styles.previewSection} id={sectionId}>
-      <div className={styles.previewSectionTitle}>{title}</div>
+  const content = (
+    <>
+      {subtitle ? <div className={styles.previewItemMeta}>{subtitle}</div> : null}
       {fields.length === 0 ? (
         <div className={styles.previewEmpty}>No fields captured.</div>
       ) : (
@@ -1753,6 +1807,28 @@ function FieldGroupList({
           ))}
         </div>
       )}
+    </>
+  );
+
+  if (collapsible) {
+    return (
+      <details
+        className={styles.sectionAccordion}
+        id={sectionId}
+        {...(defaultOpen ? { open: true } : {})}
+      >
+        <summary className={styles.sectionAccordionSummary}>
+          <span className={styles.previewSectionTitle}>{title}</span>
+        </summary>
+        <div className={styles.sectionAccordionBody}>{content}</div>
+      </details>
+    );
+  }
+
+  return (
+    <div className={styles.previewSection} id={sectionId}>
+      <div className={styles.previewSectionTitle}>{title}</div>
+      {content}
     </div>
   );
 }
@@ -1940,7 +2016,7 @@ function NormalizedPricingTable({
                 <td>{rfqCurrency ?? "N/A"}</td>
                 <td>{line.target_uom ?? "N/A"}</td>
                 <td>{formatOptionalNumber(line.base_currency_total)}</td>
-                <td>{line.comparability_status}</td>
+                <td>{formatComparabilityStatus(line.comparability_status)}</td>
                 <td>{(line.conversion_notes ?? []).join(" ") || "No currency or UOM conversion was applied."}</td>
                 <td>{[...(line.exclusions ?? []), ...(line.blockers ?? [])].join(" ") || "None"}</td>
               </tr>
@@ -2011,6 +2087,103 @@ function safeSortableNumber(value: number | null | undefined): number {
     return Number.NEGATIVE_INFINITY;
   }
   return value;
+}
+
+function buildVendorNameLookup({
+  commercialResults,
+  scoreBreakdown,
+  technicalResults,
+}: {
+  commercialResults: CommercialEvaluationResult[];
+  scoreBreakdown: VendorScoreBreakdownItem[];
+  technicalResults: TechnicalEvaluationResult[];
+}): Map<string, string> {
+  const lookup = new Map<string, string>();
+
+  for (const item of scoreBreakdown) {
+    lookup.set(item.vendor_id, item.vendor_name);
+  }
+
+  for (const item of technicalResults) {
+    lookup.set(item.vendor_id, item.vendor_name);
+  }
+
+  for (const item of commercialResults) {
+    lookup.set(item.vendor_id, item.vendor_name);
+  }
+
+  return lookup;
+}
+
+function getVendorDisplayName(vendorId: string | null | undefined, vendorNameById: Map<string, string>): string {
+  if (!vendorId) {
+    return "None";
+  }
+  return vendorNameById.get(vendorId) ?? vendorId;
+}
+
+function getScenarioKindLabel(scenarioKind: string): string {
+  switch (scenarioKind) {
+    case "advisory_lcs":
+      return "Advisory cost view";
+    case "advisory_qbs":
+      return "Advisory quality view";
+    case "advisory_ai":
+      return "AI-generated scenario";
+    case "official_qcbs":
+      return "Official QCBS view";
+    default:
+      return scenarioKind;
+  }
+}
+
+function getScenarioMetricLabel(scenarioKind: string, rfqCurrency: string | null): string {
+  switch (scenarioKind) {
+    case "advisory_lcs":
+      return `Total Cost in ${rfqCurrency ?? "RFQ Currency"}`;
+    case "advisory_qbs":
+      return "Technical Score";
+    case "official_qcbs":
+      return "QCBS Score";
+    default:
+      return "Scenario Score";
+  }
+}
+
+function getScenarioBuyerSummary(
+  scenario: NonNullable<EvaluationReport["advisory_scenarios"]>[number],
+  rfqCurrency: string | null,
+): string {
+  switch (scenario.scenario_kind) {
+    case "advisory_lcs":
+      return `This view answers a direct buyer question: among vendors that cleared the technical gate and can be compared on a like-for-like commercial basis, who offers the lowest total cost once every quote is converted into ${rfqCurrency ?? "the RFQ currency"}?`;
+    case "advisory_qbs":
+      return "This view ignores commercial pricing and asks which technically qualified vendor delivered the strongest overall technical quality score.";
+    case "advisory_ai":
+      return scenario.explanation;
+    case "official_qcbs":
+      return "This view uses the governed QCBS 70/30 weighting.";
+    default:
+      return scenario.explanation;
+  }
+}
+
+function getScenarioCalculationText(
+  scenario: NonNullable<EvaluationReport["advisory_scenarios"]>[number],
+  rfqCurrency: string | null,
+): string {
+  switch (scenario.scenario_kind) {
+    case "advisory_lcs":
+      return `Take only vendors that cleared the technical gate and whose quotes can be compared line by line. Convert each comparable quote into ${rfqCurrency ?? "the RFQ currency"}, total the RFQ line-item values, and rank vendors from lowest cost to highest cost.`;
+    case "advisory_qbs":
+      return "Take only vendors that passed the technical gate and rank them by aggregate technical score from highest to lowest. Commercial pricing is ignored in this advisory view.";
+    case "advisory_ai":
+      return scenario.weighting_or_rule_basis;
+    case "official_qcbs":
+      return "Combine technical and commercial scores using the governed QCBS 70/30 basis.";
+    default:
+      return scenario.weighting_or_rule_basis;
+  }
 }
 
 function splitReasoningSummary(text: string): { summaryText: string; reasoningText: string | null } {

@@ -51,10 +51,10 @@ export type WizardStep = "input" | "proposal" | "lock" | "pack" | "vendors" | "r
 
 const DEFAULT_AUTOSAVE_MS = 700;
 const REASONING_EFFORT_OPTIONS: Array<{ value: ReasoningEffort; label: string }> = [
-  { value: "low", label: "Low" },
-  { value: "medium", label: "Medium" },
-  { value: "high", label: "High" },
-  { value: "xhigh", label: "XHigh" },
+  { value: "low", label: "Low (~2 mins)" },
+  { value: "medium", label: "Medium (~5 mins)" },
+  { value: "high", label: "High (~9 mins)" },
+  { value: "xhigh", label: "XHigh (~13 mins)" },
 ];
 
 function parseNumber(value: string): number | null {
@@ -808,7 +808,7 @@ export function RfqWizard({
           </div>
           <div className={styles.heroControls}>
             <label className={styles.inlineField}>
-              <span>LLM reasoning effort</span>
+              <span>AI reasoning effort</span>
               <FormSelect
                 className={styles.select}
                 disabled={isSavingLlmSettings}
