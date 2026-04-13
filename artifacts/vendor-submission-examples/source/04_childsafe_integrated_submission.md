@@ -6,86 +6,88 @@ RFQ Reference: RFQ-MKT-KIDS-GL-2026-001 - RFQ for global launch marketing servic
 
 ## Executive Summary
 
-This response covers the archived generated questionnaire, the requested service line items, and the commercial pricing schedule expected in the RFQ package.
+ChildSafe Integrated is submitting a compliance-first integrated proposal covering the full scope. Our offer is designed to minimize delivery risk and create the most robust technical control environment, though it is priced above more commercially aggressive competitors.
 
 ## Agency Overview
 
-ChildSafe Integrated combines advisory, creative operations, and claims-review discipline with a compliance-first operating model. The proposed team is intentionally heavier on governance and risk control than on experimental creative exploration.
+ChildSafe Integrated combines launch strategy, regulated creative operations, production management, media activation, and specialist claims-review capability in one program architecture. We are typically chosen when the buyer wants strong governance, full auditability, and visible control over approvals and risk rather than the lightest operating footprint.
 
-## Strategic Point of View
+## Our Pitch
 
-We believe a kids-health launch succeeds when the creative system is designed around safety, reviewability, and controlled adaptation from the start, instead of treating compliance as a late-stage checkpoint.
+Our recommended platform, **Ready for Every Day**, is built to make the brand feel reassuring, modern, and consistently compliant across markets. The creative expression is designed to stay attractive while remaining highly reviewable and easy to adapt under regulatory scrutiny.
+
+## Delivery Team Snapshot
+
+- Michael Osei, Managing Program Lead: executive sponsor, escalation owner, and governance chair.
+- Helena Wu, Compliance and Claims Director: child-marketing and claims-review lead across all workstreams.
+- Sofia Mendes, Strategy Director: audience framework, message architecture, and creative territory alignment.
+- Bruno da Costa, Production Director: production-control lead across film, post, and cutdowns.
+- Leila Grant, Channel Integration Lead: organic social, paid social/video, and launch asset orchestration.
 
 ## Selected Relevant Work
 
 - Claims-sensitive pediatric nutrition campaign with embedded review gates from briefing through final release.
 - Multi-stakeholder launch program where legal, studio, and media teams worked from one control register and approval rhythm.
+- Family-health communications platform delivered across TV, digital, and paid social with strict approval sequencing.
 
 ## Questionnaire Responses
 
-### q_cr_mac_1
+### q_child_compliance | Child marketing compliance
 
-**Question:** Confirm whether your agency can support child-directed advertising for this launch. Answer Yes or No and identify the in-house team or partner capability that will perform this work.
+**Question:** Select one option for your capability to support child-directed advertising compliance across launch assets and approvals: (a) Yes - delivered by our organisation, (b) Yes - delivered through a named specialist partner, or (c) No. If you select (b), provide the partner name.
 
-**Response:** Yes. Support would be delivered by our child-directed communications compliance lead together with the creative governance office.
+**Response:** Option selected: (a) Yes - delivered by our organisation. Child-directed advertising compliance will be delivered by our ChildSafe Communications Compliance Office.
 
-### q_cr_mac_2
+### q_claims_review | Claims review capability
 
-**Question:** Confirm whether your agency can support claims review for launch assets and product-related claims. Answer Yes or No and identify the in-house team or partner capability that will perform this work.
+**Question:** Select one option for your capability to support product claims review for launch assets and related approvals: (a) Yes - delivered by our organisation, (b) Yes - delivered through a named specialist partner, or (c) No. If you select (b), provide the partner name.
 
-**Response:** Yes. Claims review would be handled by our nutrition claims counsel and market regulatory coordination team.
+**Response:** Option selected: (a) Yes - delivered by our organisation. Product claims review will be delivered by our in-house nutrition claims and regulatory advisory team.
 
-### q_cr_mac_3
+### q_launch_governance | Launch governance and speed
 
-**Question:** Provide the full name, role title, and email address of the named engagement lead who will own this launch program.
+**Question:** Provide your proposed launch governance and approval-management plan for this scope, including key milestones, critical path, approval routing, escalation approach, and the actions you will take to protect the stated launch calendar.
 
-**Response:** Michael Osei, Managing Program Lead, michael.osei@childsafeintegrated.com. Michael would own delivery governance, compliance quality, and executive issue resolution.
+**Response:** We would manage the launch through a controlled six-stage governance path: mobilization, strategic architecture, campaign territory approval, production authorization, adaptation and channel readiness, and final launch release. The critical path is visible at task, approver, and dependency level, with separate control points for claims wording, storyboard and script clearance, shoot readiness, rough-cut approval, final cut sign-off, and market release. Approval routing uses a pre-read and recommendation note before every formal gate so decision meetings stay short and decisive. Escalation runs from workstream lead to PMO director to Michael Osei and buyer sponsor within the same business day. To protect the launch calendar, we maintain pre-cleared backup content modules, reserve post-production capacity, and isolate non-critical local adaptation work from the master release stream whenever timing pressure appears.
 
-### q_cr_mac_4
+### q_integrated_delivery | Integrated delivery model
 
-**Question:** Confirm whether you are providing a launch governance approach. Answer Yes or No and submit a brief overview covering meeting cadence, decision ownership, and escalation.
+**Question:** Describe the operating model you will use to coordinate strategy, creative, TVC development and production, organic social, paid media planning and buying, compliance review, and launch program management as one integrated launch program.
 
-**Response:** Yes. We propose a disciplined governance model: weekly steering committee, twice-weekly approvals board during production peaks, written decision logs, and named escalation owners across buyer, legal, studio, and media teams.
+**Response:** ChildSafe uses one integrated program architecture rather than a chain of functional handoffs. Strategy, creative, production, social, media, claims review, and PMO all work from one governed workback schedule, one shared risk register, one decision log, and one launch dashboard. Every workstream has a named lead, but the client does not need to orchestrate the interfaces because all dependencies are coordinated through the program office. Compliance and claims review are embedded into briefing, territory selection, script development, production readiness, and release management, which reduces late-stage rework. Organic and paid activation are developed from the same campaign system so audience logic, creative asset planning, and measurement all connect cleanly.
 
-### q_cr_mac_5
+### q_campaign_solution | Campaign solution quality
 
-**Question:** State whether the buyer launch timelines are achievable. Select one option: Achievable as issued / Achievable with dependencies / Not achievable. Then list the key dependencies or constraints, or state None.
+**Question:** Describe your proposed global launch solution across strategy, messaging, creative territory, TVC, organic social, and paid social/video, showing how the workstreams connect into one launch campaign.
 
-**Response:** Achievable with dependencies. The calendar depends on timely buyer attendance at approval forums, stable claims language after concept freeze, and rapid local-market sign-off once the master assets are released.
-
-### q_cr_tech_1
-
-**Question:** Describe your end-to-end approach for ensuring child-directed marketing safety and claims usage compliance across strategy, creative, TVC, social, and launch approvals. Include where reviews occur, who owns them, how issues are escalated, and how rework is prevented.
-
-**Response:** Our compliance operating model is the strongest part of our offer. We embed claims counsel from briefing through final release, maintain a child-safety and claims control register, and require red-amber-green clearance before any strategy, creative, script, film, social, or media asset moves to the next stage. Exceptions cannot be closed informally; they require written owner sign-off and tracked closure before release.
-
-### q_cr_tech_2
-
-**Question:** Provide your proposed launch workplan from kickoff to launch, showing key stages for strategy, creative, TVC, social, compliance review, and program management. Explain how approvals will be managed, what the critical dependencies are, and how schedule risks will be controlled.
-
-**Response:** We protect launch speed through a gated but predictable operating rhythm. Each milestone has a pre-read, approval owner, fallback option, and recovery path, and the approval board is visible against the critical path from kickoff to launch. Where a task threatens timing, we separate non-critical local adaptations from the master release, deploy pre-cleared backup assets, and escalate within the same day so the campaign can still launch on time.
-
-### q_cr_tech_3
-
-**Question:** Describe your approach to launch strategy and creative development for the new kids health drink, including audience segmentation, messaging framework, creative territory development, and how the master campaign idea will be carried into launch assets.
-
-**Response:** Our strategic and creative approach is intentionally claims-safe first, then creatively expressive within those boundaries. The work would focus on a trust-building hero message, disciplined audience and message architecture, tightly controlled script language, and modular adaptation into social and paid media formats so the master idea stays usable across markets.
-
-### q_cr_tech_4
-
-**Question:** Describe your approach to TVC development and production for the global launch, covering concept development, pre-production, shoot management, post-production, and delivery of the master film and cutdowns for paid media use.
-
-**Response:** Our TVC approach uses close coupling between concept, script, production planning, shoot readiness, and post-production review. Regulatory and claims reviewers stay active through storyboard, shoot prep, rough cut, and final delivery so the master film and cutdowns remain launch-ready without late-stage rework or fragmented handoffs.
+**Response:** Our launch solution uses **Ready for Every Day** to position the new kids health drink as a trusted daily-support product grounded in family confidence and repeatable routine moments. The strategy starts with caregiver reassurance, then layers kid-positive energy and usability cues into a controlled message hierarchy. The TVC would establish the central campaign world and message tone, while organic social turns the same territory into practical routines, seasonal moments, and short-format content themes. Paid social and video then amplify the campaign through audience-fit edits and channel-appropriate storytelling built from the same core asset system. The workstreams connect through one message architecture, one visual world, and one compliant claims framework rather than separate channel ideas.
 
 ## Commercial Pricing Schedule
 
-| Line Item Ref | Line Item Name | Included in Quote | Currency | Total Price | Exclusions or Assumptions |
+| Line item ref | Line item name | Quote status | Included in line ref | Currency | Total price |
 | --- | --- | --- | --- | --- | --- |
-| li_1 | Strategy & Creative Development | Yes | USD | 395000 | Compliance-first strategic development. |
-| li_2 | TVC Development | Yes | USD | 270000 | Script and storyboard with regulatory review embedded. |
-| li_3 | TVC Production | Yes | USD | 835000 | Music rights, celebrity usage, and extraordinary travel excluded. |
-| li_4 | Social Organic Content | Yes | USD | 190000 | Organic adaptation pack included. |
-| li_5 | Social Paid Media Planning | Yes | USD | 168000 | Planning and phasing included. |
-| li_6 | Social Paid Media Buying & Optimization | Yes | USD | 295000 | Working media spend excluded. |
-| li_7 | Kids Advertising & Claims Compliance Review | Yes | USD | 248000 | Senior counsel and market alignment included. |
-| li_8 | Launch Program Management | Yes | USD | 245000 | Program controls and executive reporting included. |
+| li_1 | Strategy & Creative Development | Priced |  | USD | 395000 |
+| li_2 | TVC Development | Priced |  | USD | 270000 |
+| li_3 | TVC Production | Priced |  | USD | 835000 |
+| li_4 | Social Organic Content | Priced |  | USD | 190000 |
+| li_5 | Social Paid Media Planning | Priced |  | USD | 168000 |
+| li_6 | Social Paid Media Buying & Optimization | Priced |  | USD | 295000 |
+| li_7 | Kids Advertising & Claims Compliance Review | Priced |  | USD | 248000 |
+| li_8 | Launch Program Management | Priced |  | USD | 245000 |
+
+## Commercial Pricing Detail
+
+| Line item ref | Quantity | UOM | Exclusions or assumptions |
+| --- | --- | --- | --- |
+| li_1 | 1 | Lot | Compliance-first strategic development and campaign architecture included. |
+| li_2 | 1 | Lot | Includes concept, script, storyboard, and approval-prep materials. |
+| li_3 | 1 | Lot | Excludes celebrity talent, bespoke music rights, and extraordinary travel or location premiums. |
+| li_4 | 1 | Lot | Includes organic adaptation pack for launch-window channels. |
+| li_5 | 1 | Lot | Includes paid planning, audience logic, phasing, and reporting design. |
+| li_6 | 1 | Lot | Working media spend excluded; fee covers activation management and optimization. |
+| li_7 | 1 | Lot | Includes senior claims counsel and market alignment workflow. |
+| li_8 | 1 | Lot | Includes full PMO controls, reporting, and governance forum management. |
+
+## Closing Note
+
+ChildSafe believes this is the most secure technical route to launch, particularly where the buyer values auditability, approval control, and integrated compliance discipline. Our pricing reflects that heavier governance and specialist-review model.

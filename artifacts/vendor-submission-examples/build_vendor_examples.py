@@ -11,6 +11,7 @@ ROOT = Path(__file__).resolve().parent
 RFQ_DIR = ROOT / "rfq-package"
 SUBMISSIONS_DIR = ROOT / "submissions"
 SOURCE_DIR = ROOT / "source"
+CANONICAL_FRAMEWORK_PATH = ROOT.parents[1] / "apps" / "api" / "src" / "rfq_api" / "seed_data" / "sample_generated_framework.json"
 DEFAULT_CHROME_BINARY = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 
 
@@ -20,12 +21,12 @@ def main() -> None:
     SOURCE_DIR.mkdir(parents=True, exist_ok=True)
     clear_generated_outputs()
 
-    framework = json.loads((RFQ_DIR / "sample-generated-framework.json").read_text())
+    framework = json.loads(CANONICAL_FRAMEWORK_PATH.read_text())
     rfq = framework["rfq_draft"]
     rubric = framework["rubric_proposal"]
     vendor_pack = framework["vendor_pack"]
 
-    write_reference_files(rfq=rfq, rubric=rubric, vendor_pack=vendor_pack)
+    write_reference_files(framework=framework, rfq=rfq, rubric=rubric, vendor_pack=vendor_pack)
 
     vendors = build_vendor_profiles()
     for vendor in vendors:
@@ -56,7 +57,7 @@ def main() -> None:
     write_readme(vendors)
 
 
-def write_reference_files(*, rfq: dict, rubric: dict, vendor_pack: dict) -> None:
+def write_reference_files(*, framework: dict, rfq: dict, rubric: dict, vendor_pack: dict) -> None:
     questions = vendor_pack["questions"]
     schedules = vendor_pack["response_schedules"]
     criteria = vendor_pack["criteria"]
@@ -119,6 +120,20 @@ def write_reference_files(*, rfq: dict, rubric: dict, vendor_pack: dict) -> None
         )
     lines.append("")
 
+    (RFQ_DIR / "sample-generated-framework.json").write_text(
+        json.dumps(
+            {
+                "rfq_draft": rfq,
+                "rubric_proposal": rubric,
+                "locked_artifact": framework["locked_artifact"] if "locked_artifact" in framework else None,
+                "vendor_pack": vendor_pack,
+                "comparison_settings": framework.get("comparison_settings"),
+                "validation_issues": framework.get("validation_issues", []),
+                "generated_with": framework.get("generated_with"),
+            },
+            indent=2,
+        )
+    )
     (RFQ_DIR / "sample-rfq.json").write_text(json.dumps(rfq, indent=2))
     (RFQ_DIR / "generated-rubric-package.json").write_text(json.dumps(rubric, indent=2))
     (RFQ_DIR / "generated-questions.json").write_text(json.dumps(questions, indent=2))
@@ -141,171 +156,31 @@ def build_vendor_profiles() -> list[dict]:
             "slug": "01_sparkbridge_global_submission",
             "final_format": "pdf",
             "vendor_name": "SparkBridge Global",
-            "scenario": "Designed as the balanced benchmark vendor: strong technical quality, full line-item coverage, and the most competitive comparable pricing among technically qualified bidders.",
-            "contact_block": "Prepared by: SparkBridge Global Launch Practice | Contact: Sarah Lin | Currency: USD",
-            "agency_overview": "SparkBridge Global is an integrated launch partner combining brand strategy, creative development, production management, social activation, and launch PMO support across consumer health categories. The team proposed for this RFQ would be led from our global launch practice with embedded compliance and production specialists, and the submission intentionally covers all eight requested line items in one coordinated scope.",
-            "strategic_point_of_view": "Our point of view is that the strongest kids-health launch combines caregiver trust, disciplined claims-safe messaging, and one adaptable master idea that can travel cleanly from flagship film into social and paid activation.",
-            "selected_relevant_work": [
-                "Global nutrition beverage relaunch across 14 markets with one master film and modular social system.",
-                "Family wellness campaign requiring integrated legal and claims review across TV, digital, and shopper assets.",
-            ],
-            "answers": {
-                "q_cr_mac_1": "Yes. Support will be provided by our Kids Marketing Compliance Cell working alongside the global creative and channel leads.",
-                "q_cr_mac_2": "Yes. Claims review support will be provided by our in-house Health Claims and Regulatory Practice with escalation to market counsel where needed.",
-                "q_cr_mac_3": "Sarah Lin, Global Launch Director, sarah.lin@sparkbridgeglobal.com. Sarah would own executive delivery, decision coordination, and buyer-facing accountability across all workstreams.",
-                "q_cr_mac_4": "Yes. We would run a weekly steering committee, twice-weekly cross-functional operations review, and a 24-hour escalation path for claims, approvals, and production risks. Buyer sign-off would follow a defined approve/revise/escalate route.",
-                "q_cr_mac_5": "Achievable as issued. Standard buyer approvals within the agreed turnaround windows will be sufficient; no exceptional dependencies or scope caveats are required beyond normal launch governance inputs.",
-                "q_cr_tech_1": "Our compliance operating model places checkpoints at briefing, audience and message architecture approval, creative territory selection, storyboard approval, final script, pre-shoot legal lock, rough cut, final cut, and market adaptation release. One compliance lead owns the child-directed advertising and claims register, red-flags deviations immediately, and can hold release until written closure is recorded. This control log is shared across strategy, creative, production, social, and media teams so rework is prevented before assets progress.",
-                "q_cr_tech_2": "We would protect the launch calendar through parallel workstreams, pre-booked production and post capacity, a milestone tracker shared with the buyer, and clear approval SLAs by stage. Critical dependencies are buyer approvals, claims wording freeze, and market adaptation decisions; each has an owner, target turnaround, and recovery path. If a delay appears, we trigger same-day escalation and preserve launch dates by separating non-critical local adaptations from the master asset path while keeping film, social, and compliance reviews synchronized.",
-                "q_cr_tech_3": "Our strategy and creative approach starts with caregiver trust plus kid appeal, then builds one claims-safe master campaign idea that travels from flagship film into social, retail, and launch governance assets. We would define audience segments, message roles, and creative territories before development begins, then translate the chosen route into a modular toolkit so the same strategic spine carries into launch assets without resetting core approvals.",
-                "q_cr_tech_4": "We would handle TVC development and production through one integrated film workstream covering concept development, script and storyboard, production-board approval, shoot planning, post-production, and delivery of the master film with paid-media cutdowns. One lead producer owns schedule and handoffs, while compliance reviewers stay active before shoot lock, at rough cut, and at final release. This gives the buyer one controlled path from concept to delivered hero film and cutdowns without fragmented ownership.",
-            },
-            "pricing_rows": [
-                ("li_1", "Strategy & Creative Development", "Yes", "USD", "345000", "Includes audience segmentation, messaging framework, and global toolkit."),
-                ("li_2", "TVC Development", "Yes", "USD", "225000", "Includes concepting, script, storyboard, and pre-production creative."),
-                ("li_3", "TVC Production", "Yes", "USD", "705000", "Excludes celebrity talent, special music rights, and extraordinary travel."),
-                ("li_4", "Social Organic Content", "Yes", "USD", "165000", "Includes launch-window calendar plus asset adaptation."),
-                ("li_5", "Social Paid Media Planning", "Yes", "USD", "135000", "Includes audience, channel, and phasing plan."),
-                ("li_6", "Social Paid Media Buying & Optimization", "Yes", "USD", "275000", "Platform media spend excluded; fee covers activation and optimization."),
-                ("li_7", "Kids Advertising & Claims Compliance Review", "Yes", "USD", "155000", "Includes central review plus market counsel coordination."),
-                ("li_8", "Launch Program Management", "Yes", "USD", "210000", "Includes program office, reporting, and launch governance."),
-            ],
+            "scenario": "Official QCBS benchmark: passes both MACs, clears the technical gate comfortably, and wins on the best comparable pricing among technically qualified vendors.",
         },
         {
             "slug": "02_bluepeak_mediaworks_submission",
             "final_format": "docx",
             "vendor_name": "BluePeak MediaWorks",
-            "scenario": "Designed to stay technically neck-and-neck with SparkBridge while losing commercially because the normalized total is higher.",
-            "contact_block": "Prepared by: BluePeak MediaWorks Europe-APAC Team | Contact: Javier Mehra | Currency: EUR",
-            "agency_overview": "BluePeak MediaWorks operates as a regional network model with shared strategy, creative, media, and regulatory resources across Europe and APAC. For this launch, BluePeak is positioning itself as a cross-market coordination partner with strong adaptation discipline and media integration, but with a more premium commercial model than the benchmark vendor.",
-            "strategic_point_of_view": "We believe the launch should be built around one claims-safe family-health platform that can flex by market while preserving a single strategic spine across film, social, and activation.",
-            "selected_relevant_work": [
-                "Regional children’s dairy campaign rolled out with one central asset system and local market adaptation packs.",
-                "Consumer health launch using synchronized creative, media planning, and compliance review across EMEA and Asia.",
-            ],
-            "answers": {
-                "q_cr_mac_1": "Yes. Child-directed advertising support would be provided by our Youth Audience Strategy Lead and the regional policy reviewers assigned to the account.",
-                "q_cr_mac_2": "Yes. Claims review support would be provided through our central regulatory desk with local counsel review in India, the UK, and key launch markets.",
-                "q_cr_mac_3": "Javier Mehra, Client Partner, javier.mehra@bluepeakmediaworks.com. Javier would be the accountable engagement lead for scope, budget, and cross-market alignment.",
-                "q_cr_mac_4": "Yes. We propose a weekly client steering call, Monday delivery huddle, and a formal approval tracker owned by the PMO lead. Material risks move from workstream leads to the client partner and then to a joint escalation forum within one business day.",
-                "q_cr_mac_5": "Achievable as issued. Standard buyer approvals within the agreed turnaround windows will be sufficient; no exceptional dependencies or scope caveats are required beyond normal launch governance inputs.",
-                "q_cr_tech_1": "Our compliance operating model places checkpoints at briefing, audience and message architecture approval, creative territory selection, storyboard approval, final script, pre-shoot legal lock, rough cut, final cut, and market adaptation release. One compliance lead owns the child-directed advertising and claims register, red-flags deviations immediately, and can hold release until written closure is recorded. This control log is shared across strategy, creative, production, social, and media teams so rework is prevented before assets progress.",
-                "q_cr_tech_2": "We would protect the launch calendar through parallel workstreams, pre-booked production and post capacity, a milestone tracker shared with the buyer, and clear approval SLAs by stage. Critical dependencies are buyer approvals, claims wording freeze, and market adaptation decisions; each has an owner, target turnaround, and recovery path. If a delay appears, we trigger same-day escalation and preserve launch dates by separating non-critical local adaptations from the master asset path while keeping film, social, and compliance reviews synchronized.",
-                "q_cr_tech_3": "Our strategy and creative approach starts with caregiver trust plus kid appeal, then builds one claims-safe master campaign idea that travels from flagship film into social, retail, and launch governance assets. We would define audience segments, message roles, and creative territories before development begins, then translate the chosen route into a modular toolkit so the same strategic spine carries into launch assets without resetting core approvals.",
-                "q_cr_tech_4": "We would handle TVC development and production through one integrated film workstream covering concept development, script and storyboard, production-board approval, shoot planning, post-production, and delivery of the master film with paid-media cutdowns. One lead producer owns schedule and handoffs, while compliance reviewers stay active before shoot lock, at rough cut, and at final release. This gives the buyer one controlled path from concept to delivered hero film and cutdowns without fragmented ownership.",
-            },
-            "pricing_rows": [
-                ("li_1", "Strategy & Creative Development", "Yes", "EUR", "365000", "Regional adaptation planning included."),
-                ("li_2", "TVC Development", "Yes", "EUR", "238000", "Concept, script, and storyboard included."),
-                ("li_3", "TVC Production", "Yes", "EUR", "760000", "Production and post-production included."),
-                ("li_4", "Social Organic Content", "Yes", "EUR", "182000", "Regional transcreation priced for priority launch markets only."),
-                ("li_5", "Social Paid Media Planning", "Yes", "EUR", "150000", "Paid media strategy and phasing included."),
-                ("li_6", "Social Paid Media Buying & Optimization", "Yes", "EUR", "302000", "Media spend excluded from fee."),
-                ("li_7", "Kids Advertising & Claims Compliance Review", "Yes", "EUR", "176000", "Central plus local counsel review included."),
-                ("li_8", "Launch Program Management", "Yes", "EUR", "242000", "PMO and reporting included."),
-            ],
+            "scenario": "Technically strong vendor that passes both MACs and the technical gate, but loses on higher normalized price after FX conversion.",
         },
         {
             "slug": "03_nimblenest_creative_submission",
             "final_format": "pdf",
             "vendor_name": "NimbleNest Creative",
-            "scenario": "Designed to pass the MAC checks but fail the technical gate because the compliance and launch-control answers are too thin for the cutoff-backed criteria.",
-            "contact_block": "Prepared by: NimbleNest Creative Studio | Contact: Priya Nair | Currency: USD",
-            "agency_overview": "NimbleNest Creative is a smaller independent studio built for lean strategy, fast creative development, and tight production control. The proposal emphasizes agility, compact governance, and focused senior attention rather than broad network infrastructure.",
-            "strategic_point_of_view": "Our view is that the launch should use a clear, emotionally resonant idea that can be approved quickly, adapted efficiently, and executed without unnecessary process overhead.",
-            "selected_relevant_work": [
-                "Fast-turn youth beverage campaign developed with a lean internal team and external compliance counsel.",
-                "Compact digital-first launch for a family nutrition brand with one hero concept and rapid adaptation assets.",
-            ],
-            "answers": {
-                "q_cr_mac_1": "Yes. Support would come from our youth and family brand team.",
-                "q_cr_mac_2": "Yes. Claims review would be supported by external legal counsel retained by NimbleNest for this assignment.",
-                "q_cr_mac_3": "Priya Nair, Business Director, priya.nair@nimblenestcreative.com. Priya would act as the primary contact and delivery owner.",
-                "q_cr_mac_4": "Yes. We would hold a weekly buyer check-in, keep a shared action list, and escalate urgent issues to the business director and buyer lead as needed.",
-                "q_cr_mac_5": "Achievable with dependencies. The timeline depends on quick buyer feedback, one-round approval for the core concept, and legal inputs being consolidated rather than staggered.",
-                "q_cr_tech_1": "Our team would brief external counsel at concept stage, then review scripts and social copy before release. We would maintain a simple claims checklist and ask the buyer to confirm any new product statements before assets go live. The model is intentionally lightweight and does not rely on a full shared control register across all workstreams.",
-                "q_cr_tech_2": "We would move quickly by keeping a small decision team, daily internal stand-ups, and limited creative route exploration. If a delay occurs, we would prioritize the film and highest-impact social assets first, but we do not propose a formal multi-stage approval calendar, detailed recovery path, or separate escalation routine beyond the weekly buyer check-in.",
-                "q_cr_tech_3": "Our strategy and creative approach is built around a simple 'daily strength for growing kids' idea translated into fast-moving film and social content. We would keep the concept system compact so approvals and adaptations can happen with minimal process overhead.",
-                "q_cr_tech_4": "We would approach TVC delivery with a lean production model: one hero concept, one efficient pre-production cycle, a tightly managed shoot, and streamlined post-production for master film and paid cutdowns. The trade-off is less redundancy and less room for late-stage change than larger network agencies may offer.",
-            },
-            "pricing_rows": [
-                ("li_1", "Strategy & Creative Development", "Yes", "USD", "250000", "Lean strategy sprint and creative system."),
-                ("li_2", "TVC Development", "Yes", "USD", "150000", "Bundled with early pre-production creative."),
-                ("li_3", "TVC Production", "Yes", "USD", "520000", "Production and post-production to standard commercial quality."),
-                ("li_4", "Social Organic Content", "Yes", "USD", "110000", "Launch window organic content pack."),
-                ("li_5", "Social Paid Media Planning", "Yes", "USD", "85000", "Paid social planning."),
-                ("li_6", "Social Paid Media Buying & Optimization", "Yes", "USD", "165000", "Platform spend excluded from the activation fee."),
-                ("li_7", "Kids Advertising & Claims Compliance Review", "Yes", "USD", "70000", "External legal support limited to two review rounds."),
-                ("li_8", "Launch Program Management", "Yes", "USD", "130000", "Lean coordination layer."),
-            ],
+            "scenario": "Passes the two MAC checks, but the lighter governance and weaker integration answers are intended to miss the technical gate.",
         },
         {
             "slug": "04_childsafe_integrated_submission",
             "final_format": "docx",
             "vendor_name": "ChildSafe Integrated",
-            "scenario": "Designed to clear the technical gate strongly and compete as the quality-led option, but to lose official QCBS on a higher commercial total.",
-            "contact_block": "Prepared by: ChildSafe Integrated Advisory + Studio | Contact: Michael Osei | Currency: USD",
-            "agency_overview": "ChildSafe Integrated combines advisory, creative operations, and claims-review discipline with a compliance-first operating model. The proposed team is intentionally heavier on governance and risk control than on experimental creative exploration.",
-            "strategic_point_of_view": "We believe a kids-health launch succeeds when the creative system is designed around safety, reviewability, and controlled adaptation from the start, instead of treating compliance as a late-stage checkpoint.",
-            "selected_relevant_work": [
-                "Claims-sensitive pediatric nutrition campaign with embedded review gates from briefing through final release.",
-                "Multi-stakeholder launch program where legal, studio, and media teams worked from one control register and approval rhythm.",
-            ],
-            "answers": {
-                "q_cr_mac_1": "Yes. Support would be delivered by our child-directed communications compliance lead together with the creative governance office.",
-                "q_cr_mac_2": "Yes. Claims review would be handled by our nutrition claims counsel and market regulatory coordination team.",
-                "q_cr_mac_3": "Michael Osei, Managing Program Lead, michael.osei@childsafeintegrated.com. Michael would own delivery governance, compliance quality, and executive issue resolution.",
-                "q_cr_mac_4": "Yes. We propose a disciplined governance model: weekly steering committee, twice-weekly approvals board during production peaks, written decision logs, and named escalation owners across buyer, legal, studio, and media teams.",
-                "q_cr_mac_5": "Achievable with dependencies. The calendar depends on timely buyer attendance at approval forums, stable claims language after concept freeze, and rapid local-market sign-off once the master assets are released.",
-                "q_cr_tech_1": "Our compliance operating model is the strongest part of our offer. We embed claims counsel from briefing through final release, maintain a child-safety and claims control register, and require red-amber-green clearance before any strategy, creative, script, film, social, or media asset moves to the next stage. Exceptions cannot be closed informally; they require written owner sign-off and tracked closure before release.",
-                "q_cr_tech_2": "We protect launch speed through a gated but predictable operating rhythm. Each milestone has a pre-read, approval owner, fallback option, and recovery path, and the approval board is visible against the critical path from kickoff to launch. Where a task threatens timing, we separate non-critical local adaptations from the master release, deploy pre-cleared backup assets, and escalate within the same day so the campaign can still launch on time.",
-                "q_cr_tech_3": "Our strategic and creative approach is intentionally claims-safe first, then creatively expressive within those boundaries. The work would focus on a trust-building hero message, disciplined audience and message architecture, tightly controlled script language, and modular adaptation into social and paid media formats so the master idea stays usable across markets.",
-                "q_cr_tech_4": "Our TVC approach uses close coupling between concept, script, production planning, shoot readiness, and post-production review. Regulatory and claims reviewers stay active through storyboard, shoot prep, rough cut, and final delivery so the master film and cutdowns remain launch-ready without late-stage rework or fragmented handoffs.",
-            },
-            "pricing_rows": [
-                ("li_1", "Strategy & Creative Development", "Yes", "USD", "395000", "Compliance-first strategic development."),
-                ("li_2", "TVC Development", "Yes", "USD", "270000", "Script and storyboard with regulatory review embedded."),
-                ("li_3", "TVC Production", "Yes", "USD", "835000", "Music rights, celebrity usage, and extraordinary travel excluded."),
-                ("li_4", "Social Organic Content", "Yes", "USD", "190000", "Organic adaptation pack included."),
-                ("li_5", "Social Paid Media Planning", "Yes", "USD", "168000", "Planning and phasing included."),
-                ("li_6", "Social Paid Media Buying & Optimization", "Yes", "USD", "295000", "Working media spend excluded."),
-                ("li_7", "Kids Advertising & Claims Compliance Review", "Yes", "USD", "248000", "Senior counsel and market alignment included."),
-                ("li_8", "Launch Program Management", "Yes", "USD", "245000", "Program controls and executive reporting included."),
-            ],
+            "scenario": "Quality-led vendor: passes MAC and should score very strongly technically, but is priced high enough to lose the official QCBS recommendation.",
         },
         {
             "slug": "05_launchloop_collective_submission",
             "final_format": "pdf",
             "vendor_name": "LaunchLoop Collective",
-            "scenario": "Designed as the clear MAC failure: cheapest-looking bid, but rejected because claims-review capability is not included and the stated timeline is not achievable.",
-            "contact_block": "Prepared by: LaunchLoop Collective | Contact: Anita Rao | Currency: INR",
-            "agency_overview": "LaunchLoop Collective is a lean creative and activation shop designed for fast-moving campaigns with a small core team. The proposal is commercially aggressive and intentionally lighter on specialist governance infrastructure than larger competitors.",
-            "strategic_point_of_view": "Our view is that the launch should prioritize a sharp, digital-first campaign system that can be produced efficiently and scaled through focused deliverables rather than a broad, high-overhead rollout model.",
-            "selected_relevant_work": [
-                "Lean social-first campaign for a mass consumer brand delivered on compressed timelines with a small account team.",
-                "Mid-scale film and content launch optimized for cost efficiency and faster approval cycles.",
-            ],
-            "answers": {
-                "q_cr_mac_1": "Yes. Support for child-directed advertising would be coordinated by our campaign operations lead and creative supervisor.",
-                "q_cr_mac_2": "No. We do not maintain a dedicated claims review capability and would require the buyer to appoint external claims counsel for final approval.",
-                "q_cr_mac_3": "Anita Rao, Founder and Account Lead, anita.rao@launchloopcollective.in. Anita would oversee commercial coordination and buyer communication.",
-                "q_cr_mac_4": "Yes. Our governance approach is lightweight: a weekly update call, milestone tracker, and direct escalation to Anita for urgent decisions.",
-                "q_cr_mac_5": "Not achievable. The stated launch dates would require shortened approval rounds, simplified production scope, and direct buyer turnaround within 24 hours. Without those conditions, we would expect slippage against the current calendar.",
-                "q_cr_tech_1": "We would manage compliance by routing scripts and claims language to buyer-appointed counsel before release. Internally we can maintain a working checklist, but the formal review responsibility would sit outside our team. This keeps cost low but also means the buyer would need to manage final claim clearance more actively.",
-                "q_cr_tech_2": "Our speed plan depends on minimizing iterations and holding one decision-maker per milestone. If approvals expand or additional markets are added, we would recommend reducing launch deliverables or staggering the rollout because we do not have reserve capacity built into the base plan.",
-                "q_cr_tech_3": "Our strategy and creative approach is built around a bold, digital-first campaign platform that can be produced efficiently with a lean team. It is best suited to a narrower launch scope and faster-turn content model rather than a heavily governed multi-market program.",
-                "q_cr_tech_4": "Our TVC approach focuses on a compact production model with a single concept route, limited revision cycles, and a streamlined shoot and edit process. It can deliver efficient output, but it is less suited to complex multi-market governance and extensive rework requirements.",
-            },
-            "pricing_rows": [
-                ("li_1", "Strategy & Creative Development", "Yes", "INR", "18000000", "Lean strategic development."),
-                ("li_2", "TVC Development", "Yes", "INR", "9500000", "Concept and pre-production creative included."),
-                ("li_3", "TVC Production", "Yes", "INR", "34000000", "Production and edit included."),
-                ("li_4", "Social Organic Content", "Yes", "INR", "7200000", "Organic launch content included."),
-                ("li_5", "Social Paid Media Planning", "Yes", "INR", "4800000", "Paid planning included."),
-                ("li_6", "Social Paid Media Buying & Optimization", "Yes", "INR", "8900000", "Paid media spend, translation, and talent rights excluded."),
-                ("li_7", "Kids Advertising & Claims Compliance Review", "No", "INR", "0", "Not included; buyer-appointed counsel required."),
-                ("li_8", "Launch Program Management", "Yes", "INR", "6300000", "Lean PM support included."),
-            ],
+            "scenario": "Cheapest-looking bid, but designed to fail MAC because product claims review capability is explicitly unavailable.",
         },
     ]
 
@@ -360,46 +235,69 @@ def render_vendor_markdown(*, rfq: dict, vendor_pack: dict, vendor: dict) -> str
 
 def render_vendor_html(*, markdown: str, vendor: dict) -> str:
     paragraphs: list[str] = []
-    in_pricing_table = False
-    pricing_rows: list[list[str]] = []
+    list_items: list[str] = []
+    table_headers: list[str] | None = None
+    table_rows: list[list[str]] = []
+
+    def flush_list() -> None:
+        nonlocal list_items
+        if not list_items:
+            return
+        paragraphs.append(
+            "<ul>" + "".join(f"<li>{html.escape(item)}</li>" for item in list_items) + "</ul>"
+        )
+        list_items = []
+
+    def flush_table() -> None:
+        nonlocal table_headers, table_rows
+        if not table_headers:
+            table_headers = None
+            table_rows = []
+            return
+        paragraphs.append(build_html_table(headers=table_headers, rows=table_rows))
+        table_headers = None
+        table_rows = []
 
     for line in markdown.splitlines():
-        if line.startswith("| Line Item Ref "):
-            in_pricing_table = True
+        if line.startswith("|") and line.endswith("|"):
+            flush_list()
+            cells = [cell.strip() for cell in line.strip("|").split("|")]
+            if all(not cell or set(cell.replace(":", "")) <= {"-"} for cell in cells):
+                continue
+            if table_headers is None:
+                table_headers = cells
+            else:
+                table_rows.append(cells)
             continue
-        if line.startswith("| ---"):
-            continue
-        if in_pricing_table and line.startswith("|"):
-            pricing_rows.append([cell.strip() for cell in line.strip("|").split("|")])
-            continue
+        flush_table()
 
         if line.startswith("# "):
+            flush_list()
             paragraphs.append(f"<h1>{html.escape(line[2:])}</h1>")
         elif line.startswith("## "):
+            flush_list()
             paragraphs.append(f"<h2>{html.escape(line[3:])}</h2>")
         elif line.startswith("### "):
+            flush_list()
             paragraphs.append(f"<h3>{html.escape(line[4:])}</h3>")
         elif line.startswith("**Question:** "):
+            flush_list()
             paragraphs.append(f"<p><strong>Question:</strong> {html.escape(line[len('**Question:** '):])}</p>")
         elif line.startswith("**Response:** "):
+            flush_list()
             paragraphs.append(f"<p><strong>Response:</strong> {html.escape(line[len('**Response:** '):])}</p>")
+        elif line.startswith("- "):
+            list_items.append(line[2:])
         elif line.strip():
+            flush_list()
             paragraphs.append(f"<p>{html.escape(line)}</p>")
+        else:
+            flush_list()
 
-    pricing_table = build_html_table(
-        headers=[
-            "Line Item Ref",
-            "Line Item Name",
-            "Included in Quote",
-            "Currency",
-            "Total Price",
-            "Exclusions or Assumptions",
-        ],
-        rows=pricing_rows,
-    )
+    flush_list()
+    flush_table()
 
     body = "\n".join(paragraphs)
-    body = body.replace("<h2>Commercial Pricing Schedule</h2>", "<h2>Commercial Pricing Schedule</h2>\n" + pricing_table)
     return f"""<!doctype html>
 <html>
 <head>
@@ -412,6 +310,8 @@ def render_vendor_html(*, markdown: str, vendor: dict) -> str:
     h2 {{ font-size: 14pt; margin-top: 18px; margin-bottom: 8px; }}
     h3 {{ font-size: 11.5pt; margin-top: 12px; margin-bottom: 6px; }}
     p {{ margin: 4px 0 8px; }}
+    ul {{ margin: 4px 0 10px 18px; padding-left: 14px; }}
+    li {{ margin: 3px 0; }}
     table {{ width: 100%; border-collapse: collapse; font-size: 9.5pt; margin: 8px 0 14px; }}
     th, td {{ border: 1px solid #999; padding: 4px 6px; vertical-align: top; text-align: left; }}
     th {{ background: #efefef; }}

@@ -11,10 +11,10 @@ The final `submissions/` set is intentionally mixed across PDF and DOCX so the d
 
 ## Vendor Set
 
-- `01_sparkbridge_global_submission.pdf` - SparkBridge Global: Designed as the balanced benchmark vendor: strong technical quality, full line-item coverage, and the most competitive comparable pricing among technically qualified bidders.
-- `02_bluepeak_mediaworks_submission.docx` - BluePeak MediaWorks: Designed to stay technically neck-and-neck with SparkBridge while losing commercially because the normalized total is higher.
-- `03_nimblenest_creative_submission.pdf` - NimbleNest Creative: Designed to pass the MAC checks but fail the technical gate because the compliance and launch-control answers are too thin for the cutoff-backed criteria.
-- `04_childsafe_integrated_submission.docx` - ChildSafe Integrated: Designed to clear the technical gate strongly and compete as the quality-led option, but to lose official QCBS on a higher commercial total.
-- `05_launchloop_collective_submission.pdf` - LaunchLoop Collective: Designed as the clear MAC failure: cheapest-looking bid, but rejected because claims-review capability is not included and the stated timeline is not achievable.
+- `01_sparkbridge_global_submission.pdf` - SparkBridge Global: Official QCBS benchmark: passes both MACs, clears the technical gate comfortably, and wins on the best comparable pricing among technically qualified vendors.
+- `02_bluepeak_mediaworks_submission.docx` - BluePeak MediaWorks: Technically strong vendor that passes both MACs and the technical gate, but loses on higher normalized price after FX conversion.
+- `03_nimblenest_creative_submission.pdf` - NimbleNest Creative: Passes the two MAC checks, but the lighter governance and weaker integration answers are intended to miss the technical gate.
+- `04_childsafe_integrated_submission.docx` - ChildSafe Integrated: Quality-led vendor: passes MAC and should score very strongly technically, but is priced high enough to lose the official QCBS recommendation.
+- `05_launchloop_collective_submission.pdf` - LaunchLoop Collective: Cheapest-looking bid, but designed to fail MAC because product claims review capability is explicitly unavailable.
 
 The examples are intentionally varied in quality, pricing currency, assumptions, and compliance posture so they can be used to test technical gating, commercial normalization, and explainability flows.

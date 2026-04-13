@@ -6,86 +6,88 @@ RFQ Reference: RFQ-MKT-KIDS-GL-2026-001 - RFQ for global launch marketing servic
 
 ## Executive Summary
 
-This response covers the archived generated questionnaire, the requested service line items, and the commercial pricing schedule expected in the RFQ package.
+SparkBridge Global submits one integrated proposal covering all eight requested line items across strategy, creative, TVC development and production, social activation, compliance review, and launch program management. Our offer is designed to balance strong technical quality with disciplined, fully comparable commercial pricing.
 
 ## Agency Overview
 
-SparkBridge Global is an integrated launch partner combining brand strategy, creative development, production management, social activation, and launch PMO support across consumer health categories. The team proposed for this RFQ would be led from our global launch practice with embedded compliance and production specialists, and the submission intentionally covers all eight requested line items in one coordinated scope.
+SparkBridge Global is an international launch partner built for consumer-health and family-focused brands that need strategy, creative, production, media, and compliance to operate as one joined-up delivery model. For this assignment we would run one integrated program team rather than separate agency silos, with the buyer seeing one accountable launch lead and one consolidated decision rhythm.
 
-## Strategic Point of View
+## Our Pitch
 
-Our point of view is that the strongest kids-health launch combines caregiver trust, disciplined claims-safe messaging, and one adaptable master idea that can travel cleanly from flagship film into social and paid activation.
+We believe the launch should make caregivers feel informed and reassured while still giving the brand a lively, memorable campaign system. Our proposed platform, **Grow Strong Every Day**, is built to travel cleanly from strategy into film, social, and launch activation without reinterpreting the core message at every handoff.
+
+## Delivery Team Snapshot
+
+- Sarah Lin, Global Launch Director: overall accountability, senior client lead, escalation owner.
+- Meera Khanna, Strategy Lead: audience segmentation, launch message architecture, toolkit design.
+- Tom Alvarez, Integrated Producer: TVC and asset-production control across shoot, post, and cutdowns.
+- Nina Bower, Kids Marketing Compliance Lead: child-directed advertising controls, approval routing, and issue closure.
+- Elias Romero, PMO Lead: milestone tracker, steering materials, action log, and critical-path recovery actions.
 
 ## Selected Relevant Work
 
-- Global nutrition beverage relaunch across 14 markets with one master film and modular social system.
+- Global nutrition beverage relaunch across 14 markets using one master film, modular social system, and one approvals tracker.
 - Family wellness campaign requiring integrated legal and claims review across TV, digital, and shopper assets.
+- Multi-market consumer-health launch where strategy, production, and compliance teams worked from one shared decision log.
 
 ## Questionnaire Responses
 
-### q_cr_mac_1
+### q_child_compliance | Child marketing compliance
 
-**Question:** Confirm whether your agency can support child-directed advertising for this launch. Answer Yes or No and identify the in-house team or partner capability that will perform this work.
+**Question:** Select one option for your capability to support child-directed advertising compliance across launch assets and approvals: (a) Yes - delivered by our organisation, (b) Yes - delivered through a named specialist partner, or (c) No. If you select (b), provide the partner name.
 
-**Response:** Yes. Support will be provided by our Kids Marketing Compliance Cell working alongside the global creative and channel leads.
+**Response:** Option selected: (a) Yes - delivered by our organisation. SparkBridge will deliver this capability through our Kids Marketing Compliance Cell, embedded from briefing through final adaptation release.
 
-### q_cr_mac_2
+### q_claims_review | Claims review capability
 
-**Question:** Confirm whether your agency can support claims review for launch assets and product-related claims. Answer Yes or No and identify the in-house team or partner capability that will perform this work.
+**Question:** Select one option for your capability to support product claims review for launch assets and related approvals: (a) Yes - delivered by our organisation, (b) Yes - delivered through a named specialist partner, or (c) No. If you select (b), provide the partner name.
 
-**Response:** Yes. Claims review support will be provided by our in-house Health Claims and Regulatory Practice with escalation to market counsel where needed.
+**Response:** Option selected: (a) Yes - delivered by our organisation. Product claims review will be delivered through our Health Claims and Regulatory Practice with market-counsel escalation where needed.
 
-### q_cr_mac_3
+### q_launch_governance | Launch governance and speed
 
-**Question:** Provide the full name, role title, and email address of the named engagement lead who will own this launch program.
+**Question:** Provide your proposed launch governance and approval-management plan for this scope, including key milestones, critical path, approval routing, escalation approach, and the actions you will take to protect the stated launch calendar.
 
-**Response:** Sarah Lin, Global Launch Director, sarah.lin@sparkbridgeglobal.com. Sarah would own executive delivery, decision coordination, and buyer-facing accountability across all workstreams.
+**Response:** We would run the program through five governed stages: kickoff and discovery, strategy and message architecture, creative territory and script approval, production and post-production, and launch activation readiness. Each stage has one defined approval gate, one buyer approver group, and one accountable SparkBridge owner. The critical path runs through strategy lock, claims wording freeze, storyboard approval, pre-shoot clearance, rough-cut review, and final adaptation release. Approval routing follows a fixed path of workstream review, integrated team check, buyer decision forum, and same-day logging into the launch tracker. Escalation sits with Sarah Lin and the buyer sponsor, and any risk to calendar is addressed within 24 hours by moving non-critical local adaptations off the master path, pulling forward pre-cleared backup assets, or adding production and post capacity without breaking approval integrity.
 
-### q_cr_mac_4
+### q_integrated_delivery | Integrated delivery model
 
-**Question:** Confirm whether you are providing a launch governance approach. Answer Yes or No and submit a brief overview covering meeting cadence, decision ownership, and escalation.
+**Question:** Describe the operating model you will use to coordinate strategy, creative, TVC development and production, organic social, paid media planning and buying, compliance review, and launch program management as one integrated launch program.
 
-**Response:** Yes. We would run a weekly steering committee, twice-weekly cross-functional operations review, and a 24-hour escalation path for claims, approvals, and production risks. Buyer sign-off would follow a defined approve/revise/escalate route.
+**Response:** Our operating model uses one core launch squad supported by discipline leads rather than separate agency teams working in sequence. Strategy, creative, production, media, compliance, and PMO all work from one integrated weekly workplan, one decision log, and one launch dashboard. The compliance lead is not a downstream reviewer; she is part of working sessions on message architecture, script development, social adaptation, and media-asset release so rework is prevented upstream. Paid and organic social are developed from the same campaign system and hand over into media planning and buying through shared asset packs and a common content calendar. The buyer interacts with one accountable program lead and sees one combined status view instead of multiple fragmented updates.
 
-### q_cr_mac_5
+### q_campaign_solution | Campaign solution quality
 
-**Question:** State whether the buyer launch timelines are achievable. Select one option: Achievable as issued / Achievable with dependencies / Not achievable. Then list the key dependencies or constraints, or state None.
+**Question:** Describe your proposed global launch solution across strategy, messaging, creative territory, TVC, organic social, and paid social/video, showing how the workstreams connect into one launch campaign.
 
-**Response:** Achievable as issued. Standard buyer approvals within the agreed turnaround windows will be sufficient; no exceptional dependencies or scope caveats are required beyond normal launch governance inputs.
-
-### q_cr_tech_1
-
-**Question:** Describe your end-to-end approach for ensuring child-directed marketing safety and claims usage compliance across strategy, creative, TVC, social, and launch approvals. Include where reviews occur, who owns them, how issues are escalated, and how rework is prevented.
-
-**Response:** Our compliance operating model places checkpoints at briefing, audience and message architecture approval, creative territory selection, storyboard approval, final script, pre-shoot legal lock, rough cut, final cut, and market adaptation release. One compliance lead owns the child-directed advertising and claims register, red-flags deviations immediately, and can hold release until written closure is recorded. This control log is shared across strategy, creative, production, social, and media teams so rework is prevented before assets progress.
-
-### q_cr_tech_2
-
-**Question:** Provide your proposed launch workplan from kickoff to launch, showing key stages for strategy, creative, TVC, social, compliance review, and program management. Explain how approvals will be managed, what the critical dependencies are, and how schedule risks will be controlled.
-
-**Response:** We would protect the launch calendar through parallel workstreams, pre-booked production and post capacity, a milestone tracker shared with the buyer, and clear approval SLAs by stage. Critical dependencies are buyer approvals, claims wording freeze, and market adaptation decisions; each has an owner, target turnaround, and recovery path. If a delay appears, we trigger same-day escalation and preserve launch dates by separating non-critical local adaptations from the master asset path while keeping film, social, and compliance reviews synchronized.
-
-### q_cr_tech_3
-
-**Question:** Describe your approach to launch strategy and creative development for the new kids health drink, including audience segmentation, messaging framework, creative territory development, and how the master campaign idea will be carried into launch assets.
-
-**Response:** Our strategy and creative approach starts with caregiver trust plus kid appeal, then builds one claims-safe master campaign idea that travels from flagship film into social, retail, and launch governance assets. We would define audience segments, message roles, and creative territories before development begins, then translate the chosen route into a modular toolkit so the same strategic spine carries into launch assets without resetting core approvals.
-
-### q_cr_tech_4
-
-**Question:** Describe your approach to TVC development and production for the global launch, covering concept development, pre-production, shoot management, post-production, and delivery of the master film and cutdowns for paid media use.
-
-**Response:** We would handle TVC development and production through one integrated film workstream covering concept development, script and storyboard, production-board approval, shoot planning, post-production, and delivery of the master film with paid-media cutdowns. One lead producer owns schedule and handoffs, while compliance reviewers stay active before shoot lock, at rough cut, and at final release. This gives the buyer one controlled path from concept to delivered hero film and cutdowns without fragmented ownership.
+**Response:** Our proposed solution is built around **Grow Strong Every Day**, a campaign idea that frames the product as a practical partner in everyday family routines rather than a one-time health claim. Strategy starts with two audience lenses, caregiver reassurance and kid-positive participation, then translates them into a simple message hierarchy: everyday nutrition support, trust through compliant claims, and joyful daily use-cases. The TVC would introduce the master campaign territory through one hero story supported by short-form social moments showing real launch occasions across breakfast, after-school, and active play. Organic social would carry practical, repeatable content themes while paid video and social extend reach through audience-specific edits and channel-fit cutdowns. All channels would use the same message spine, visual code, and claims-safe language so the launch feels like one coordinated system rather than disconnected workstreams.
 
 ## Commercial Pricing Schedule
 
-| Line Item Ref | Line Item Name | Included in Quote | Currency | Total Price | Exclusions or Assumptions |
+| Line item ref | Line item name | Quote status | Included in line ref | Currency | Total price |
 | --- | --- | --- | --- | --- | --- |
-| li_1 | Strategy & Creative Development | Yes | USD | 345000 | Includes audience segmentation, messaging framework, and global toolkit. |
-| li_2 | TVC Development | Yes | USD | 225000 | Includes concepting, script, storyboard, and pre-production creative. |
-| li_3 | TVC Production | Yes | USD | 705000 | Excludes celebrity talent, special music rights, and extraordinary travel. |
-| li_4 | Social Organic Content | Yes | USD | 165000 | Includes launch-window calendar plus asset adaptation. |
-| li_5 | Social Paid Media Planning | Yes | USD | 135000 | Includes audience, channel, and phasing plan. |
-| li_6 | Social Paid Media Buying & Optimization | Yes | USD | 275000 | Platform media spend excluded; fee covers activation and optimization. |
-| li_7 | Kids Advertising & Claims Compliance Review | Yes | USD | 155000 | Includes central review plus market counsel coordination. |
-| li_8 | Launch Program Management | Yes | USD | 210000 | Includes program office, reporting, and launch governance. |
+| li_1 | Strategy & Creative Development | Priced |  | USD | 345000 |
+| li_2 | TVC Development | Priced |  | USD | 225000 |
+| li_3 | TVC Production | Priced |  | USD | 705000 |
+| li_4 | Social Organic Content | Priced |  | USD | 165000 |
+| li_5 | Social Paid Media Planning | Priced |  | USD | 135000 |
+| li_6 | Social Paid Media Buying & Optimization | Priced |  | USD | 275000 |
+| li_7 | Kids Advertising & Claims Compliance Review | Priced |  | USD | 155000 |
+| li_8 | Launch Program Management | Priced |  | USD | 210000 |
+
+## Commercial Pricing Detail
+
+| Line item ref | Quantity | UOM | Exclusions or assumptions |
+| --- | --- | --- | --- |
+| li_1 | 1 | Lot | Includes audience segmentation, messaging framework, creative territories, and master campaign toolkit. |
+| li_2 | 1 | Lot | Includes concepting, script development, storyboard, and pre-production creative. |
+| li_3 | 1 | Lot | Excludes celebrity talent, special music rights, and extraordinary travel outside the agreed production plan. |
+| li_4 | 1 | Lot | Includes launch-window organic calendar plus adaptation into platform-specific asset variants. |
+| li_5 | 1 | Lot | Includes audience, channel, and phasing plan for the launch window. |
+| li_6 | 1 | Lot | Working media spend is excluded; fee covers activation, optimization, and reporting only. |
+| li_7 | 1 | Lot | Includes central claims review and market-counsel coordination. |
+| li_8 | 1 | Lot | Includes PMO governance, reporting, steering materials, and launch-control routines. |
+
+## Closing Note
+
+SparkBridge is prepared to contract for the full integrated scope and begin discovery immediately after award. We believe this proposal offers the strongest balance of launch control, integrated quality, and commercially disciplined delivery.

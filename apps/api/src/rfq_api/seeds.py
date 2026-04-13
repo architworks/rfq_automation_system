@@ -90,10 +90,8 @@ def build_sample_rfq() -> RFQDraft:
             ),
         ],
         mandatory_conditions=[
-            "Vendors must explicitly confirm capability to support child-directed advertising and claims review.",
-            "Vendors must provide a named engagement lead and governance approach.",
-            "Vendors must quote against all applicable RFQ line items and call out exclusions clearly.",
-            "Vendors must state whether launch timelines are achievable with identified dependencies.",
+            "Vendors must explicitly confirm capability to support child-directed advertising compliance for this launch.",
+            "Vendors must explicitly confirm capability to support product claims review for launch assets and product-related claims.",
         ],
         line_items=[
             LineItem(

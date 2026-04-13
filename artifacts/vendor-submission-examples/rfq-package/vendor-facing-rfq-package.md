@@ -40,48 +40,39 @@ Select an integrated agency partner for the global launch of a new kids health d
 
 ## Archived Generated Questionnaire
 
-1. **q_cr_mac_1** - Confirm whether your agency can support child-directed advertising for this launch. Answer Yes or No and identify the in-house team or partner capability that will perform this work.
-   - Purpose: Tests the mandatory requirement for child-directed advertising support capability.
-2. **q_cr_mac_2** - Confirm whether your agency can support claims review for launch assets and product-related claims. Answer Yes or No and identify the in-house team or partner capability that will perform this work.
-   - Purpose: Tests the mandatory requirement for claims review support capability.
-3. **q_cr_mac_3** - Provide the full name, role title, and email address of the named engagement lead who will own this launch program.
-   - Purpose: Tests the mandatory requirement to provide a named engagement lead.
-4. **q_cr_mac_4** - Confirm whether you are providing a launch governance approach. Answer Yes or No and submit a brief overview covering meeting cadence, decision ownership, and escalation.
-   - Purpose: Tests the mandatory requirement to provide a governance approach.
-5. **q_cr_mac_5** - State whether the buyer launch timelines are achievable. Select one option: Achievable as issued / Achievable with dependencies / Not achievable. Then list the key dependencies or constraints, or state None.
-   - Purpose: Tests the mandatory requirement to state timeline achievability with dependencies.
-6. **q_cr_tech_1** - Describe your end-to-end approach for ensuring child-directed marketing safety and claims usage compliance across strategy, creative, TVC, social, and launch approvals. Include where reviews occur, who owns them, how issues are escalated, and how rework is prevented.
-   - Purpose: Assesses the critical technical risk around kids advertising compliance and claims usage safety.
-7. **q_cr_tech_2** - Provide your proposed launch workplan from kickoff to launch, showing key stages for strategy, creative, TVC, social, compliance review, and program management. Explain how approvals will be managed, what the critical dependencies are, and how schedule risks will be controlled.
-   - Purpose: Assesses the critical technical risk around launch speed and approval management.
-8. **q_cr_tech_3** - Describe your approach to launch strategy and creative development for the new kids health drink, including audience segmentation, messaging framework, creative territory development, and how the master campaign idea will be carried into launch assets.
-   - Purpose: Assesses the quality of the proposed strategy and creative development method.
-9. **q_cr_tech_4** - Describe your approach to TVC development and production for the global launch, covering concept development, pre-production, shoot management, post-production, and delivery of the master film and cutdowns for paid media use.
-   - Purpose: Assesses the quality of the proposed TVC development and production capability.
+1. **q_child_compliance** - Select one option for your capability to support child-directed advertising compliance across launch assets and approvals: (a) Yes - delivered by our organisation, (b) Yes - delivered through a named specialist partner, or (c) No. If you select (b), provide the partner name.
+   - Purpose: Tests the explicit mandatory confirmation for child-directed advertising compliance capability.
+2. **q_claims_review** - Select one option for your capability to support product claims review for launch assets and related approvals: (a) Yes - delivered by our organisation, (b) Yes - delivered through a named specialist partner, or (c) No. If you select (b), provide the partner name.
+   - Purpose: Tests the explicit mandatory confirmation for product claims review capability.
+3. **q_launch_governance** - Provide your proposed launch governance and approval-management plan for this scope, including key milestones, critical path, approval routing, escalation approach, and the actions you will take to protect the stated launch calendar.
+   - Purpose: Assesses the bidder's ability to manage approvals and maintain launch speed.
+4. **q_integrated_delivery** - Describe the operating model you will use to coordinate strategy, creative, TVC development and production, organic social, paid media planning and buying, compliance review, and launch program management as one integrated launch program.
+   - Purpose: Assesses the bidder's ability to coordinate multiple launch workstreams cleanly.
+5. **q_campaign_solution** - Describe your proposed global launch solution across strategy, messaging, creative territory, TVC, organic social, and paid social/video, showing how the workstreams connect into one launch campaign.
+   - Purpose: Assesses the strength and coherence of the bidder's proposed launch approach.
 
 ## Structured Commercial Schedules
 
-### Commercial line-item pricing schedule (sched_comm_1)
+### Commercial pricing schedule (sched_pricing)
 
-- Line item reference (Required): Reference number for the requested RFQ line item.
+- Line item ref (Required): Reference number of the requested line item.
+- Line item name (Required): Name of the requested service lot.
+- Quote status (Required): State whether the line is priced, included elsewhere, or excluded.
+- Included in line ref (Optional): If included elsewhere, identify the line item reference containing the price.
+- Currency (Required): Quoted currency for the line item; expected currency is USD.
+- Total price (Optional): Total quoted amount for the line item where priced.
 
-### Commercial line-item pricing schedule (col_line_name)
+### Commercial pricing detail (sched_pricing_detail)
 
-- Line item reference (Required): Reference number for the requested RFQ line item.
-- Line item name (Required): Name of the requested RFQ service lot.
-- Included in quote (Required): State Yes or No for whether the line item is included in the commercial quote.
-- Currency (Required): Currency used for the quoted line item price.
-- Total price (Required): Total quoted price for the line item.
-- Exclusions or assumptions (Required): List exclusions or assumptions for the line item, or state None.
+- Quantity (Optional): Quantity if applicable to the pricing basis.
+- UOM (Optional): Unit of measure if applicable.
+- Exclusions or assumptions (Required): State exclusions, dependencies, or assumptions affecting the quote.
 
 ## Internal Rubric Traceability Snapshot
 
-- cr_mac_1: Child advertising capability [mac] -> questions q_cr_mac_1
-- cr_mac_2: Claims review capability [mac] -> questions q_cr_mac_2
-- cr_mac_3: Named engagement lead [mac] -> questions q_cr_mac_3
-- cr_mac_4: Governance approach submitted [mac] -> questions q_cr_mac_4
-- cr_mac_5: Timeline statement submitted [mac] -> questions q_cr_mac_5
-- cr_tech_1: Compliance delivery approach [technical_cutoff_backed] -> questions q_cr_tech_1
-- cr_tech_2: Launch plan and approvals [technical_cutoff_backed] -> questions q_cr_tech_2
-- cr_tech_3: Strategy and creative approach [technical_scored_only] -> questions q_cr_tech_3
-- cr_tech_4: TVC delivery capability [technical_scored_only] -> questions q_cr_tech_4
+- crit_mac_child_compliance: Child marketing compliance [mac] -> questions q_child_compliance
+- crit_mac_claims_review: Claims review capability [mac] -> questions q_claims_review
+- crit_launch_governance_speed: Launch governance and speed [technical_cutoff_backed] -> questions q_launch_governance
+- crit_integrated_delivery: Integrated delivery model [technical_scored_only] -> questions q_integrated_delivery
+- crit_campaign_solution: Campaign solution quality [technical_scored_only] -> questions q_campaign_solution
+- crit_commercial_completeness: Pricing completeness [commercial] -> questions none

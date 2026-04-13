@@ -6,86 +6,87 @@ RFQ Reference: RFQ-MKT-KIDS-GL-2026-001 - RFQ for global launch marketing servic
 
 ## Executive Summary
 
-This response covers the archived generated questionnaire, the requested service line items, and the commercial pricing schedule expected in the RFQ package.
+NimbleNest Creative is submitting a lean, senior-led proposal covering the full service scope. Our model is intentionally compact and cost-conscious, with a strong emphasis on speed, but it does not rely on the same depth of integrated infrastructure as larger network agencies.
 
 ## Agency Overview
 
-NimbleNest Creative is a smaller independent studio built for lean strategy, fast creative development, and tight production control. The proposal emphasizes agility, compact governance, and focused senior attention rather than broad network infrastructure.
+NimbleNest is an independent strategy and creative studio built for fast-turn launches where a small senior team stays close to the work. We collaborate with specialist production, media, and regulatory partners when needed, and the client typically works with a compact leadership group rather than a large program office.
 
-## Strategic Point of View
+## Our Pitch
 
-Our view is that the launch should use a clear, emotionally resonant idea that can be approved quickly, adapted efficiently, and executed without unnecessary process overhead.
+Our proposed campaign territory, **Small Wins, Strong Days**, is designed to be emotionally warm, easy to explain, and flexible across film and short-form content. We would prioritize clarity, fast decision cycles, and a practical level of production ambition.
+
+## Delivery Team Snapshot
+
+- Priya Nair, Business Director: lead contact, commercial owner, and client escalation point.
+- Aakash Bedi, Strategy and Creative Lead: campaign territory, messaging, and creative supervision.
+- Tara Joseph, Producer: film and content delivery coordination.
+- LexBridge Regulatory Advisors: external specialist partner for product claims review.
 
 ## Selected Relevant Work
 
 - Fast-turn youth beverage campaign developed with a lean internal team and external compliance counsel.
 - Compact digital-first launch for a family nutrition brand with one hero concept and rapid adaptation assets.
+- Mid-size content system for a wellness brand delivered with a small senior team and partner network.
 
 ## Questionnaire Responses
 
-### q_cr_mac_1
+### q_child_compliance | Child marketing compliance
 
-**Question:** Confirm whether your agency can support child-directed advertising for this launch. Answer Yes or No and identify the in-house team or partner capability that will perform this work.
+**Question:** Select one option for your capability to support child-directed advertising compliance across launch assets and approvals: (a) Yes - delivered by our organisation, (b) Yes - delivered through a named specialist partner, or (c) No. If you select (b), provide the partner name.
 
-**Response:** Yes. Support would come from our youth and family brand team.
+**Response:** Option selected: (a) Yes - delivered by our organisation. NimbleNest will handle child-directed advertising review through our internal strategy and creative leadership with a simple review checklist.
 
-### q_cr_mac_2
+### q_claims_review | Claims review capability
 
-**Question:** Confirm whether your agency can support claims review for launch assets and product-related claims. Answer Yes or No and identify the in-house team or partner capability that will perform this work.
+**Question:** Select one option for your capability to support product claims review for launch assets and related approvals: (a) Yes - delivered by our organisation, (b) Yes - delivered through a named specialist partner, or (c) No. If you select (b), provide the partner name.
 
-**Response:** Yes. Claims review would be supported by external legal counsel retained by NimbleNest for this assignment.
+**Response:** Option selected: (b) Yes - delivered through a named specialist partner. Named specialist partner: LexBridge Regulatory Advisors.
 
-### q_cr_mac_3
+### q_launch_governance | Launch governance and speed
 
-**Question:** Provide the full name, role title, and email address of the named engagement lead who will own this launch program.
+**Question:** Provide your proposed launch governance and approval-management plan for this scope, including key milestones, critical path, approval routing, escalation approach, and the actions you will take to protect the stated launch calendar.
 
-**Response:** Priya Nair, Business Director, priya.nair@nimblenestcreative.com. Priya would act as the primary contact and delivery owner.
+**Response:** Our governance approach would stay intentionally light. We would hold one weekly buyer check-in, keep a shared action spreadsheet, and move work forward through direct communication between Priya Nair and the buyer marketing lead. We would expect the team to align quickly on one preferred creative route so that approvals remain efficient. While we would note the main milestones in a working plan, we are not proposing a formal approval board, a detailed critical-path tracker, or separate escalation forums by workstream. If timing comes under pressure, our main recovery action would be to reduce rounds and simplify the content package rather than add governance layers.
 
-### q_cr_mac_4
+### q_integrated_delivery | Integrated delivery model
 
-**Question:** Confirm whether you are providing a launch governance approach. Answer Yes or No and submit a brief overview covering meeting cadence, decision ownership, and escalation.
+**Question:** Describe the operating model you will use to coordinate strategy, creative, TVC development and production, organic social, paid media planning and buying, compliance review, and launch program management as one integrated launch program.
 
-**Response:** Yes. We would hold a weekly buyer check-in, keep a shared action list, and escalate urgent issues to the business director and buyer lead as needed.
+**Response:** NimbleNest would run the assignment through a small core team supported by specialist partners. Strategy and creative would sit with our internal studio, production would be coordinated by one producer, paid media would be managed by a buying partner, and claims review would sit with LexBridge. The model is straightforward and senior-led, but the buyer would likely interact with more than one specialist stream over the course of the assignment because we are not proposing a full central PMO layer. Our strength is agility rather than a heavily integrated operational structure.
 
-### q_cr_mac_5
+### q_campaign_solution | Campaign solution quality
 
-**Question:** State whether the buyer launch timelines are achievable. Select one option: Achievable as issued / Achievable with dependencies / Not achievable. Then list the key dependencies or constraints, or state None.
+**Question:** Describe your proposed global launch solution across strategy, messaging, creative territory, TVC, organic social, and paid social/video, showing how the workstreams connect into one launch campaign.
 
-**Response:** Achievable with dependencies. The timeline depends on quick buyer feedback, one-round approval for the core concept, and legal inputs being consolidated rather than staggered.
-
-### q_cr_tech_1
-
-**Question:** Describe your end-to-end approach for ensuring child-directed marketing safety and claims usage compliance across strategy, creative, TVC, social, and launch approvals. Include where reviews occur, who owns them, how issues are escalated, and how rework is prevented.
-
-**Response:** Our team would brief external counsel at concept stage, then review scripts and social copy before release. We would maintain a simple claims checklist and ask the buyer to confirm any new product statements before assets go live. The model is intentionally lightweight and does not rely on a full shared control register across all workstreams.
-
-### q_cr_tech_2
-
-**Question:** Provide your proposed launch workplan from kickoff to launch, showing key stages for strategy, creative, TVC, social, compliance review, and program management. Explain how approvals will be managed, what the critical dependencies are, and how schedule risks will be controlled.
-
-**Response:** We would move quickly by keeping a small decision team, daily internal stand-ups, and limited creative route exploration. If a delay occurs, we would prioritize the film and highest-impact social assets first, but we do not propose a formal multi-stage approval calendar, detailed recovery path, or separate escalation routine beyond the weekly buyer check-in.
-
-### q_cr_tech_3
-
-**Question:** Describe your approach to launch strategy and creative development for the new kids health drink, including audience segmentation, messaging framework, creative territory development, and how the master campaign idea will be carried into launch assets.
-
-**Response:** Our strategy and creative approach is built around a simple 'daily strength for growing kids' idea translated into fast-moving film and social content. We would keep the concept system compact so approvals and adaptations can happen with minimal process overhead.
-
-### q_cr_tech_4
-
-**Question:** Describe your approach to TVC development and production for the global launch, covering concept development, pre-production, shoot management, post-production, and delivery of the master film and cutdowns for paid media use.
-
-**Response:** We would approach TVC delivery with a lean production model: one hero concept, one efficient pre-production cycle, a tightly managed shoot, and streamlined post-production for master film and paid cutdowns. The trade-off is less redundancy and less room for late-stage change than larger network agencies may offer.
+**Response:** Our proposed solution uses **Small Wins, Strong Days** as a simple, uplifting idea showing the product as part of ordinary family routines. We would focus the TVC on one warm, easy-to-understand story and then extend it into a compact social toolkit. The message system would stay fairly high level rather than highly segmented because we believe the launch should feel accessible and easy to approve. Paid and organic activation would share the same central creative route, but we are not proposing an especially detailed cross-channel architecture beyond that common idea.
 
 ## Commercial Pricing Schedule
 
-| Line Item Ref | Line Item Name | Included in Quote | Currency | Total Price | Exclusions or Assumptions |
+| Line item ref | Line item name | Quote status | Included in line ref | Currency | Total price |
 | --- | --- | --- | --- | --- | --- |
-| li_1 | Strategy & Creative Development | Yes | USD | 250000 | Lean strategy sprint and creative system. |
-| li_2 | TVC Development | Yes | USD | 150000 | Bundled with early pre-production creative. |
-| li_3 | TVC Production | Yes | USD | 520000 | Production and post-production to standard commercial quality. |
-| li_4 | Social Organic Content | Yes | USD | 110000 | Launch window organic content pack. |
-| li_5 | Social Paid Media Planning | Yes | USD | 85000 | Paid social planning. |
-| li_6 | Social Paid Media Buying & Optimization | Yes | USD | 165000 | Platform spend excluded from the activation fee. |
-| li_7 | Kids Advertising & Claims Compliance Review | Yes | USD | 70000 | External legal support limited to two review rounds. |
-| li_8 | Launch Program Management | Yes | USD | 130000 | Lean coordination layer. |
+| li_1 | Strategy & Creative Development | Priced |  | USD | 250000 |
+| li_2 | TVC Development | Priced |  | USD | 150000 |
+| li_3 | TVC Production | Priced |  | USD | 520000 |
+| li_4 | Social Organic Content | Priced |  | USD | 110000 |
+| li_5 | Social Paid Media Planning | Priced |  | USD | 85000 |
+| li_6 | Social Paid Media Buying & Optimization | Priced |  | USD | 165000 |
+| li_7 | Kids Advertising & Claims Compliance Review | Priced |  | USD | 70000 |
+| li_8 | Launch Program Management | Priced |  | USD | 130000 |
+
+## Commercial Pricing Detail
+
+| Line item ref | Quantity | UOM | Exclusions or assumptions |
+| --- | --- | --- | --- |
+| li_1 | 1 | Lot | Lean strategy sprint and compact creative system. |
+| li_2 | 1 | Lot | Bundled with early pre-production creative. |
+| li_3 | 1 | Lot | Production scope assumes one main film route and limited revision cycles. |
+| li_4 | 1 | Lot | Launch-window organic content pack only. |
+| li_5 | 1 | Lot | Paid planning scope assumes one central launch geography plan with light localization. |
+| li_6 | 1 | Lot | Working media spend excluded; fee covers buying partner management and optimization. |
+| li_7 | 1 | Lot | Limited external claims-review support included through LexBridge Regulatory Advisors. |
+| li_8 | 1 | Lot | Lean coordination layer only; no full PMO office included. |
+
+## Closing Note
+
+NimbleNest offers a compact and efficient route to market, best suited to a buyer looking for speed and lower cost. Our proposal deliberately avoids the overhead of a larger integrated operating model.

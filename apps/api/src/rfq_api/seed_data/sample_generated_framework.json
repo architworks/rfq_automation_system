@@ -39,10 +39,8 @@
       }
     ],
     "mandatory_conditions": [
-      "Vendors must explicitly confirm capability to support child-directed advertising and claims review.",
-      "Vendors must provide a named engagement lead and governance approach.",
-      "Vendors must quote against all applicable RFQ line items and call out exclusions clearly.",
-      "Vendors must state whether launch timelines are achievable with identified dependencies."
+      "Vendors must explicitly confirm capability to support child-directed advertising compliance for this launch.",
+      "Vendors must explicitly confirm capability to support product claims review for launch assets and product-related claims."
     ],
     "line_items": [
       {
@@ -116,62 +114,68 @@
       {
         "id": "sec_mac",
         "title": "Mandatory gates",
-        "description": "Pass/fail submission and capability gates that must be satisfied before full evaluation."
+        "description": "Pass/fail eligibility checks for critical compliance capabilities."
       },
       {
         "id": "sec_tech",
         "title": "Technical evaluation",
-        "description": "Technical assessment of compliance safety, launch delivery, and integrated marketing execution."
+        "description": "Assessment of launch delivery quality, integration, and solution strength."
       },
       {
-        "id": "sec_comm",
+        "id": "sec_commercial",
         "title": "Commercial evaluation",
-        "description": "Commercial quote completeness, exclusions clarity, and price capture for QCBS commercial assessment."
+        "description": "Structured pricing submission and quote completeness review."
       }
     ],
     "criteria": [
       {
-        "id": "cr_mac_1",
+        "id": "crit_mac_child_compliance",
         "section_id": "sec_mac",
-        "title": "Child advertising capability",
-        "description": "Explicit confirmation of capability to support child-directed advertising for this launch.",
+        "title": "Child marketing compliance",
+        "description": "Confirm capability to support child-directed advertising compliance for the launch.",
         "criterion_type": "mac",
         "weight": null,
         "min_cutoff": null,
         "max_score": null,
         "evidence_checks": [
           {
-            "id": "ev_cr_mac_1",
-            "label": "Capability confirmation",
-            "description": "Explicit Yes confirmation plus identification of the capability owner for child-directed advertising support."
+            "id": "ec_child_compliance",
+            "label": "Compliance capability confirmation",
+            "description": "Check that the bidder explicitly confirms a delivery route for child-directed advertising compliance support."
           }
         ],
         "vendor_question": {
-          "id": "q_cr_mac_1",
-          "text": "Confirm whether your agency can support child-directed advertising for this launch. Answer Yes or No and identify the in-house team or partner capability that will perform this work.",
-          "purpose": "Tests the mandatory requirement for child-directed advertising support capability.",
+          "id": "q_child_compliance",
+          "text": "Select one option for your capability to support child-directed advertising compliance across launch assets and approvals: (a) Yes - delivered by our organisation, (b) Yes - delivered through a named specialist partner, or (c) No. If you select (b), provide the partner name.",
+          "purpose": "Tests the explicit mandatory confirmation for child-directed advertising compliance capability.",
           "linked_criteria": [
-            "cr_mac_1"
+            "crit_mac_child_compliance"
           ]
         },
         "linked_question_ids": [
-          "q_cr_mac_1"
+          "q_child_compliance"
         ],
         "linked_schedule_fields": [],
         "deterministic_scoring": {
           "guide_type": "pass_fail",
-          "answer_format": "Yes/No plus named capability owner",
-          "summary": "Pass only where the vendor explicitly confirms capability and identifies who will perform it.",
+          "answer_format": "Single discrete selection with partner name required only if partner route is selected.",
+          "summary": "Pass if the bidder confirms capability directly or through a named specialist partner; fail otherwise.",
           "rules": [
             {
-              "id": "r_cr_mac_1_pass",
-              "condition": "Answer is Yes and a specific in-house team or partner capability is identified.",
+              "id": "r_child_pass_inhouse",
+              "condition": "Response is 'Yes - delivered by our organisation'.",
               "score": null,
               "outcome": "pass"
             },
             {
-              "id": "r_cr_mac_1_fail",
-              "condition": "Answer is No, or no specific capability owner is identified.",
+              "id": "r_child_pass_partner",
+              "condition": "Response is 'Yes - delivered through a named specialist partner' and a partner name is provided.",
+              "score": null,
+              "outcome": "pass"
+            },
+            {
+              "id": "r_child_fail",
+              "condition": "Response is 'No', blank, or selects partner delivery without naming the partner.",
               "score": null,
               "outcome": "fail"
             }
@@ -180,47 +184,53 @@
         "qualitative_scoring_guidance": null
       },
       {
-        "id": "cr_mac_2",
+        "id": "crit_mac_claims_review",
         "section_id": "sec_mac",
         "title": "Claims review capability",
-        "description": "Explicit confirmation of capability to support claims review for launch assets.",
+        "description": "Confirm capability to support product claims review for launch assets and approvals.",
         "criterion_type": "mac",
         "weight": null,
         "min_cutoff": null,
         "max_score": null,
         "evidence_checks": [
           {
-            "id": "ev_cr_mac_2",
+            "id": "ec_claims_review",
             "label": "Claims review confirmation",
-            "description": "Explicit Yes confirmation plus identification of the capability owner for claims review support."
+            "description": "Check that the bidder explicitly confirms a delivery route for product claims review support."
           }
         ],
         "vendor_question": {
-          "id": "q_cr_mac_2",
-          "text": "Confirm whether your agency can support claims review for launch assets and product-related claims. Answer Yes or No and identify the in-house team or partner capability that will perform this work.",
-          "purpose": "Tests the mandatory requirement for claims review support capability.",
+          "id": "q_claims_review",
+          "text": "Select one option for your capability to support product claims review for launch assets and related approvals: (a) Yes - delivered by our organisation, (b) Yes - delivered through a named specialist partner, or (c) No. If you select (b), provide the partner name.",
+          "purpose": "Tests the explicit mandatory confirmation for product claims review capability.",
           "linked_criteria": [
-            "cr_mac_2"
+            "crit_mac_claims_review"
           ]
         },
         "linked_question_ids": [
-          "q_cr_mac_2"
+          "q_claims_review"
         ],
         "linked_schedule_fields": [],
         "deterministic_scoring": {
           "guide_type": "pass_fail",
-          "answer_format": "Yes/No plus named capability owner",
-          "summary": "Pass only where the vendor explicitly confirms claims review capability and identifies who will perform it.",
+          "answer_format": "Single discrete selection with partner name required only if partner route is selected.",
+          "summary": "Pass if the bidder confirms capability directly or through a named specialist partner; fail otherwise.",
           "rules": [
             {
-              "id": "r_cr_mac_2_pass",
-              "condition": "Answer is Yes and a specific in-house team or partner capability is identified.",
+              "id": "r_claims_pass_inhouse",
+              "condition": "Response is 'Yes - delivered by our organisation'.",
               "score": null,
               "outcome": "pass"
             },
             {
-              "id": "r_cr_mac_2_fail",
-              "condition": "Answer is No, or no specific capability owner is identified.",
+              "id": "r_claims_pass_partner",
+              "condition": "Response is 'Yes - delivered through a named specialist partner' and a partner name is provided.",
+              "score": null,
+              "outcome": "pass"
+            },
+            {
+              "id": "r_claims_fail",
+              "condition": "Response is 'No', blank, or selects partner delivery without naming the partner.",
               "score": null,
               "outcome": "fail"
             }
@@ -229,423 +239,279 @@
         "qualitative_scoring_guidance": null
       },
       {
-        "id": "cr_mac_3",
-        "section_id": "sec_mac",
-        "title": "Named engagement lead",
-        "description": "Submission of a named engagement lead for the launch program.",
-        "criterion_type": "mac",
-        "weight": null,
-        "min_cutoff": null,
-        "max_score": null,
-        "evidence_checks": [
-          {
-            "id": "ev_cr_mac_3",
-            "label": "Lead details provided",
-            "description": "Named engagement lead is provided with role title and contact details."
-          }
-        ],
-        "vendor_question": {
-          "id": "q_cr_mac_3",
-          "text": "Provide the full name, role title, and email address of the named engagement lead who will own this launch program.",
-          "purpose": "Tests the mandatory requirement to provide a named engagement lead.",
-          "linked_criteria": [
-            "cr_mac_3"
-          ]
-        },
-        "linked_question_ids": [
-          "q_cr_mac_3"
-        ],
-        "linked_schedule_fields": [],
-        "deterministic_scoring": {
-          "guide_type": "pass_fail",
-          "answer_format": "Text fields: full name, role title, email address",
-          "summary": "Pass only where a complete named engagement lead record is submitted.",
-          "rules": [
-            {
-              "id": "r_cr_mac_3_pass",
-              "condition": "A full name, role title, and email address are all provided for one named engagement lead.",
-              "score": null,
-              "outcome": "pass"
-            },
-            {
-              "id": "r_cr_mac_3_fail",
-              "condition": "Any of the required lead details are missing, or no named engagement lead is provided.",
-              "score": null,
-              "outcome": "fail"
-            }
-          ]
-        },
-        "qualitative_scoring_guidance": null
-      },
-      {
-        "id": "cr_mac_4",
-        "section_id": "sec_mac",
-        "title": "Governance approach submitted",
-        "description": "Submission of a governance approach for managing the launch program.",
-        "criterion_type": "mac",
-        "weight": null,
-        "min_cutoff": null,
-        "max_score": null,
-        "evidence_checks": [
-          {
-            "id": "ev_cr_mac_4",
-            "label": "Governance overview submitted",
-            "description": "A governance approach is explicitly provided and includes at least cadence, decision ownership, and escalation."
-          }
-        ],
-        "vendor_question": {
-          "id": "q_cr_mac_4",
-          "text": "Confirm whether you are providing a launch governance approach. Answer Yes or No and submit a brief overview covering meeting cadence, decision ownership, and escalation.",
-          "purpose": "Tests the mandatory requirement to provide a governance approach.",
-          "linked_criteria": [
-            "cr_mac_4"
-          ]
-        },
-        "linked_question_ids": [
-          "q_cr_mac_4"
-        ],
-        "linked_schedule_fields": [],
-        "deterministic_scoring": {
-          "guide_type": "pass_fail",
-          "answer_format": "Yes/No plus brief governance overview",
-          "summary": "Pass only where the vendor confirms submission and provides the required governance overview.",
-          "rules": [
-            {
-              "id": "r_cr_mac_4_pass",
-              "condition": "Answer is Yes and a governance overview covering cadence, decision ownership, and escalation is provided.",
-              "score": null,
-              "outcome": "pass"
-            },
-            {
-              "id": "r_cr_mac_4_fail",
-              "condition": "Answer is No, or the required governance overview is not provided.",
-              "score": null,
-              "outcome": "fail"
-            }
-          ]
-        },
-        "qualitative_scoring_guidance": null
-      },
-      {
-        "id": "cr_mac_5",
-        "section_id": "sec_mac",
-        "title": "Timeline statement submitted",
-        "description": "Submission of a clear statement on whether the buyer launch timelines are achievable, with dependencies identified.",
-        "criterion_type": "mac",
-        "weight": null,
-        "min_cutoff": null,
-        "max_score": null,
-        "evidence_checks": [
-          {
-            "id": "ev_cr_mac_5",
-            "label": "Timeline status declared",
-            "description": "A launch timeline status is selected and dependencies or constraints are listed."
-          }
-        ],
-        "vendor_question": {
-          "id": "q_cr_mac_5",
-          "text": "State whether the buyer launch timelines are achievable. Select one option: Achievable as issued / Achievable with dependencies / Not achievable. Then list the key dependencies or constraints, or state None.",
-          "purpose": "Tests the mandatory requirement to state timeline achievability with dependencies.",
-          "linked_criteria": [
-            "cr_mac_5"
-          ]
-        },
-        "linked_question_ids": [
-          "q_cr_mac_5"
-        ],
-        "linked_schedule_fields": [],
-        "deterministic_scoring": {
-          "guide_type": "pass_fail",
-          "answer_format": "Discrete choice plus dependency list",
-          "summary": "Pass only where the vendor states timeline status and identifies dependencies or explicitly states none.",
-          "rules": [
-            {
-              "id": "r_cr_mac_5_pass",
-              "condition": "One timeline status option is selected and dependencies or constraints are listed, or the response explicitly states None.",
-              "score": null,
-              "outcome": "pass"
-            },
-            {
-              "id": "r_cr_mac_5_fail",
-              "condition": "No valid timeline status is selected, or no dependency or constraint statement is provided.",
-              "score": null,
-              "outcome": "fail"
-            }
-          ]
-        },
-        "qualitative_scoring_guidance": null
-      },
-      {
-        "id": "cr_tech_1",
+        "id": "crit_launch_governance_speed",
         "section_id": "sec_tech",
-        "title": "Compliance delivery approach",
-        "description": "Approach for keeping child-directed marketing and claims usage safe across launch asset creation, review, and approval.",
+        "title": "Launch governance and speed",
+        "description": "Quality of the proposed governance, approvals, and timeline protection approach.",
         "criterion_type": "technical_cutoff_backed",
-        "weight": 30.0,
-        "min_cutoff": 18.0,
-        "max_score": 30.0,
+        "weight": 35.0,
+        "min_cutoff": 20.0,
+        "max_score": 35.0,
         "evidence_checks": [
           {
-            "id": "ev_cr_tech_1",
-            "label": "End-to-end compliance method",
-            "description": "A clear end-to-end method for child-directed advertising and claims compliance is described across asset development and approvals."
+            "id": "ec_launch_governance",
+            "label": "Launch plan evidence",
+            "description": "Check for a concrete launch plan covering milestones, approval flow, critical path, and escalation."
           }
         ],
         "vendor_question": {
-          "id": "q_cr_tech_1",
-          "text": "Describe your end-to-end approach for ensuring child-directed marketing safety and claims usage compliance across strategy, creative, TVC, social, and launch approvals. Include where reviews occur, who owns them, how issues are escalated, and how rework is prevented.",
-          "purpose": "Assesses the critical technical risk around kids advertising compliance and claims usage safety.",
+          "id": "q_launch_governance",
+          "text": "Provide your proposed launch governance and approval-management plan for this scope, including key milestones, critical path, approval routing, escalation approach, and the actions you will take to protect the stated launch calendar.",
+          "purpose": "Assesses the bidder's ability to manage approvals and maintain launch speed.",
           "linked_criteria": [
-            "cr_tech_1"
+            "crit_launch_governance_speed"
           ]
         },
         "linked_question_ids": [
-          "q_cr_tech_1"
+          "q_launch_governance"
         ],
         "linked_schedule_fields": [],
         "deterministic_scoring": null,
-        "qualitative_scoring_guidance": "Score strongly where the response shows embedded compliance checkpoints throughout development, clear ownership, timely review sequencing, and practical escalation and rework control across all asset types. Score weakly where compliance is treated as a late legal sign-off, reviewer roles are unclear, or the method does not cover both child-directed advertising and claims usage."
+        "qualitative_scoring_guidance": "Score highly where the response gives a realistic end-to-end plan across the requested workstreams, clear milestones and approval gates, identifiable owners and dependencies, practical escalation paths, and credible mitigations for timeline risk. Score weakly where the plan is generic, misses approval complexity, lacks critical-path thinking, or relies on optimistic sequencing without mitigation."
       },
       {
-        "id": "cr_tech_2",
+        "id": "crit_integrated_delivery",
         "section_id": "sec_tech",
-        "title": "Launch plan and approvals",
-        "description": "Ability to manage approvals and deliver to the buyer launch calendar with visible dependencies and controls.",
-        "criterion_type": "technical_cutoff_backed",
-        "weight": 25.0,
-        "min_cutoff": 15.0,
-        "max_score": 25.0,
+        "title": "Integrated delivery model",
+        "description": "Strength of the operating model for coordinating all launch workstreams.",
+        "criterion_type": "technical_scored_only",
+        "weight": 40.0,
+        "min_cutoff": null,
+        "max_score": 40.0,
         "evidence_checks": [
           {
-            "id": "ev_cr_tech_2",
-            "label": "Realistic launch workplan",
-            "description": "A realistic launch workplan is provided with dependencies, approval points, and actions to control schedule risk."
+            "id": "ec_integrated_delivery",
+            "label": "Operating model evidence",
+            "description": "Check for a clear integrated operating model spanning all requested service areas and governance interfaces."
           }
         ],
         "vendor_question": {
-          "id": "q_cr_tech_2",
-          "text": "Provide your proposed launch workplan from kickoff to launch, showing key stages for strategy, creative, TVC, social, compliance review, and program management. Explain how approvals will be managed, what the critical dependencies are, and how schedule risks will be controlled.",
-          "purpose": "Assesses the critical technical risk around launch speed and approval management.",
+          "id": "q_integrated_delivery",
+          "text": "Describe the operating model you will use to coordinate strategy, creative, TVC development and production, organic social, paid media planning and buying, compliance review, and launch program management as one integrated launch program.",
+          "purpose": "Assesses the bidder's ability to coordinate multiple launch workstreams cleanly.",
           "linked_criteria": [
-            "cr_tech_2"
+            "crit_integrated_delivery"
           ]
         },
         "linked_question_ids": [
-          "q_cr_tech_2"
+          "q_integrated_delivery"
         ],
         "linked_schedule_fields": [],
         "deterministic_scoring": null,
-        "qualitative_scoring_guidance": "Score strongly where the plan is realistic, sequences major workstreams coherently, makes approval handling explicit, identifies critical dependencies, and includes credible actions for keeping dates on track. Score weakly where the plan is generic, omits approval management, ignores interdependencies, or relies on optimistic assumptions without controls."
+        "qualitative_scoring_guidance": "Score highly where the response shows one coherent delivery model with clear accountability, role clarity, handoffs, cross-workstream coordination, integration of compliance review into delivery, and efficient stakeholder management. Score weakly where execution appears siloed, interfaces are unclear, scope coverage is incomplete, or the client would need to coordinate major dependencies."
       },
       {
-        "id": "cr_tech_3",
+        "id": "crit_campaign_solution",
         "section_id": "sec_tech",
-        "title": "Strategy and creative approach",
-        "description": "Approach to launch strategy, audience segmentation, messaging framework, and creative territory development.",
+        "title": "Campaign solution quality",
+        "description": "Coherence and completeness of the proposed launch solution across strategy, creative, TVC, and social/media channels.",
         "criterion_type": "technical_scored_only",
         "weight": 25.0,
         "min_cutoff": null,
         "max_score": 25.0,
         "evidence_checks": [
           {
-            "id": "ev_cr_tech_3",
-            "label": "Strategic and creative method",
-            "description": "A structured approach is provided for audience segmentation, messaging, and development of launch creative territories."
+            "id": "ec_campaign_solution",
+            "label": "Campaign approach evidence",
+            "description": "Check for a joined-up launch approach across strategy, creative development, TVC, social, and paid media."
           }
         ],
         "vendor_question": {
-          "id": "q_cr_tech_3",
-          "text": "Describe your approach to launch strategy and creative development for the new kids health drink, including audience segmentation, messaging framework, creative territory development, and how the master campaign idea will be carried into launch assets.",
-          "purpose": "Assesses the quality of the proposed strategy and creative development method.",
+          "id": "q_campaign_solution",
+          "text": "Describe your proposed global launch solution across strategy, messaging, creative territory, TVC, organic social, and paid social/video, showing how the workstreams connect into one launch campaign.",
+          "purpose": "Assesses the strength and coherence of the bidder's proposed launch approach.",
           "linked_criteria": [
-            "cr_tech_3"
+            "crit_campaign_solution"
           ]
         },
         "linked_question_ids": [
-          "q_cr_tech_3"
+          "q_campaign_solution"
         ],
         "linked_schedule_fields": [],
         "deterministic_scoring": null,
-        "qualitative_scoring_guidance": "Score strongly where the response shows a clear strategic path from audience understanding to messaging and creative territories, with a coherent master campaign idea suitable for global launch. Score weakly where the response is generic, disconnected across stages, or does not show how strategy will translate into usable creative outputs."
+        "qualitative_scoring_guidance": "Score highly where the response presents a coherent launch idea with clear strategic logic, strong message and creative linkage, practical adaptation across TVC and social channels, and alignment between organic and paid activation. Score weakly where channel plans feel disconnected, the strategic rationale is thin, or the proposed outputs do not form a consistent launch campaign."
       },
       {
-        "id": "cr_tech_4",
-        "section_id": "sec_tech",
-        "title": "TVC delivery capability",
-        "description": "Approach to TVC concept development, production, post-production, and delivery of master film and cutdowns.",
-        "criterion_type": "technical_scored_only",
-        "weight": 20.0,
+        "id": "crit_commercial_completeness",
+        "section_id": "sec_commercial",
+        "title": "Pricing completeness",
+        "description": "Check that the commercial submission fully covers the requested lots in a structured format.",
+        "criterion_type": "commercial",
+        "weight": null,
         "min_cutoff": null,
-        "max_score": 20.0,
+        "max_score": null,
         "evidence_checks": [
           {
-            "id": "ev_cr_tech_4",
-            "label": "TVC execution plan",
-            "description": "A coherent TVC execution approach is provided from concept through final film and cutdown delivery."
+            "id": "ec_pricing_completeness",
+            "label": "Completed pricing schedule",
+            "description": "Check that all requested line items are addressed with quote status, pricing fields, and exclusions or assumptions."
           }
         ],
-        "vendor_question": {
-          "id": "q_cr_tech_4",
-          "text": "Describe your approach to TVC development and production for the global launch, covering concept development, pre-production, shoot management, post-production, and delivery of the master film and cutdowns for paid media use.",
-          "purpose": "Assesses the quality of the proposed TVC development and production capability.",
-          "linked_criteria": [
-            "cr_tech_4"
+        "vendor_question": null,
+        "linked_question_ids": [],
+        "linked_schedule_fields": [
+          "sched_pricing.col_line_ref",
+          "sched_pricing.col_line_name",
+          "sched_pricing.col_quote_status",
+          "sched_pricing.col_included_ref",
+          "sched_pricing.col_currency",
+          "sched_pricing.col_total_price",
+          "sched_pricing_detail.col_quantity",
+          "sched_pricing_detail.col_uom",
+          "sched_pricing_detail.col_exclusions"
+        ],
+        "deterministic_scoring": {
+          "guide_type": "pass_fail",
+          "answer_format": "Completed commercial pricing schedule.",
+          "summary": "Pass if the pricing schedule is complete and usable for evaluation; fail if key commercial fields are missing.",
+          "rules": [
+            {
+              "id": "r_price_pass",
+              "condition": "All requested line items are present in the pricing schedule and each row includes quote status, currency, total price when priced, and exclusions or assumptions.",
+              "score": null,
+              "outcome": "pass"
+            },
+            {
+              "id": "r_price_fail",
+              "condition": "Any requested line item is missing, or pricing status/price/currency/exclusions data is materially incomplete for evaluation.",
+              "score": null,
+              "outcome": "fail"
+            }
           ]
         },
-        "linked_question_ids": [
-          "q_cr_tech_4"
-        ],
-        "linked_schedule_fields": [],
-        "deterministic_scoring": null,
-        "qualitative_scoring_guidance": "Score strongly where the response shows joined-up thinking from concept to production delivery, practical control of production stages, and readiness to deliver master film and cutdowns for launch use. Score weakly where major production stages are glossed over, handoffs are unclear, or delivery outputs are not well addressed."
+        "qualitative_scoring_guidance": null
       }
     ],
     "aggregate_technical_threshold": 60.0,
     "questions": [
       {
-        "id": "q_cr_mac_1",
-        "text": "Confirm whether your agency can support child-directed advertising for this launch. Answer Yes or No and identify the in-house team or partner capability that will perform this work.",
-        "purpose": "Tests the mandatory requirement for child-directed advertising support capability.",
+        "id": "q_child_compliance",
+        "text": "Select one option for your capability to support child-directed advertising compliance across launch assets and approvals: (a) Yes - delivered by our organisation, (b) Yes - delivered through a named specialist partner, or (c) No. If you select (b), provide the partner name.",
+        "purpose": "Tests the explicit mandatory confirmation for child-directed advertising compliance capability.",
         "linked_criteria": [
-          "cr_mac_1"
+          "crit_mac_child_compliance"
         ]
       },
       {
-        "id": "q_cr_mac_2",
-        "text": "Confirm whether your agency can support claims review for launch assets and product-related claims. Answer Yes or No and identify the in-house team or partner capability that will perform this work.",
-        "purpose": "Tests the mandatory requirement for claims review support capability.",
+        "id": "q_claims_review",
+        "text": "Select one option for your capability to support product claims review for launch assets and related approvals: (a) Yes - delivered by our organisation, (b) Yes - delivered through a named specialist partner, or (c) No. If you select (b), provide the partner name.",
+        "purpose": "Tests the explicit mandatory confirmation for product claims review capability.",
         "linked_criteria": [
-          "cr_mac_2"
+          "crit_mac_claims_review"
         ]
       },
       {
-        "id": "q_cr_mac_3",
-        "text": "Provide the full name, role title, and email address of the named engagement lead who will own this launch program.",
-        "purpose": "Tests the mandatory requirement to provide a named engagement lead.",
+        "id": "q_launch_governance",
+        "text": "Provide your proposed launch governance and approval-management plan for this scope, including key milestones, critical path, approval routing, escalation approach, and the actions you will take to protect the stated launch calendar.",
+        "purpose": "Assesses the bidder's ability to manage approvals and maintain launch speed.",
         "linked_criteria": [
-          "cr_mac_3"
+          "crit_launch_governance_speed"
         ]
       },
       {
-        "id": "q_cr_mac_4",
-        "text": "Confirm whether you are providing a launch governance approach. Answer Yes or No and submit a brief overview covering meeting cadence, decision ownership, and escalation.",
-        "purpose": "Tests the mandatory requirement to provide a governance approach.",
+        "id": "q_integrated_delivery",
+        "text": "Describe the operating model you will use to coordinate strategy, creative, TVC development and production, organic social, paid media planning and buying, compliance review, and launch program management as one integrated launch program.",
+        "purpose": "Assesses the bidder's ability to coordinate multiple launch workstreams cleanly.",
         "linked_criteria": [
-          "cr_mac_4"
+          "crit_integrated_delivery"
         ]
       },
       {
-        "id": "q_cr_mac_5",
-        "text": "State whether the buyer launch timelines are achievable. Select one option: Achievable as issued / Achievable with dependencies / Not achievable. Then list the key dependencies or constraints, or state None.",
-        "purpose": "Tests the mandatory requirement to state timeline achievability with dependencies.",
+        "id": "q_campaign_solution",
+        "text": "Describe your proposed global launch solution across strategy, messaging, creative territory, TVC, organic social, and paid social/video, showing how the workstreams connect into one launch campaign.",
+        "purpose": "Assesses the strength and coherence of the bidder's proposed launch approach.",
         "linked_criteria": [
-          "cr_mac_5"
-        ]
-      },
-      {
-        "id": "q_cr_tech_1",
-        "text": "Describe your end-to-end approach for ensuring child-directed marketing safety and claims usage compliance across strategy, creative, TVC, social, and launch approvals. Include where reviews occur, who owns them, how issues are escalated, and how rework is prevented.",
-        "purpose": "Assesses the critical technical risk around kids advertising compliance and claims usage safety.",
-        "linked_criteria": [
-          "cr_tech_1"
-        ]
-      },
-      {
-        "id": "q_cr_tech_2",
-        "text": "Provide your proposed launch workplan from kickoff to launch, showing key stages for strategy, creative, TVC, social, compliance review, and program management. Explain how approvals will be managed, what the critical dependencies are, and how schedule risks will be controlled.",
-        "purpose": "Assesses the critical technical risk around launch speed and approval management.",
-        "linked_criteria": [
-          "cr_tech_2"
-        ]
-      },
-      {
-        "id": "q_cr_tech_3",
-        "text": "Describe your approach to launch strategy and creative development for the new kids health drink, including audience segmentation, messaging framework, creative territory development, and how the master campaign idea will be carried into launch assets.",
-        "purpose": "Assesses the quality of the proposed strategy and creative development method.",
-        "linked_criteria": [
-          "cr_tech_3"
-        ]
-      },
-      {
-        "id": "q_cr_tech_4",
-        "text": "Describe your approach to TVC development and production for the global launch, covering concept development, pre-production, shoot management, post-production, and delivery of the master film and cutdowns for paid media use.",
-        "purpose": "Assesses the quality of the proposed TVC development and production capability.",
-        "linked_criteria": [
-          "cr_tech_4"
+          "crit_campaign_solution"
         ]
       }
     ],
     "response_schedules": [
       {
-        "id": "sched_comm_1",
-        "name": "Commercial line-item pricing schedule",
-        "purpose": "Capture comparable line-item pricing, quote coverage, and exclusions for all requested service lots.",
+        "id": "sched_pricing",
+        "name": "Commercial pricing schedule",
+        "purpose": "Capture structured pricing for all requested service lots so total evaluated price can be derived consistently.",
         "columns": [
           {
             "id": "col_line_ref",
-            "label": "Line item reference",
-            "description": "Reference number for the requested RFQ line item.",
-            "required": true
-          }
-        ],
-        "linked_criteria": []
-      },
-      {
-        "id": "col_line_name",
-        "name": "Commercial line-item pricing schedule",
-        "purpose": "Capture comparable line-item pricing, quote coverage, and exclusions for all requested service lots.",
-        "columns": [
-          {
-            "id": "col_line_ref",
-            "label": "Line item reference",
-            "description": "Reference number for the requested RFQ line item.",
+            "label": "Line item ref",
+            "description": "Reference number of the requested line item.",
             "required": true
           },
           {
             "id": "col_line_name",
             "label": "Line item name",
-            "description": "Name of the requested RFQ service lot.",
+            "description": "Name of the requested service lot.",
             "required": true
           },
           {
-            "id": "col_included",
-            "label": "Included in quote",
-            "description": "State Yes or No for whether the line item is included in the commercial quote.",
+            "id": "col_quote_status",
+            "label": "Quote status",
+            "description": "State whether the line is priced, included elsewhere, or excluded.",
             "required": true
+          },
+          {
+            "id": "col_included_ref",
+            "label": "Included in line ref",
+            "description": "If included elsewhere, identify the line item reference containing the price.",
+            "required": false
           },
           {
             "id": "col_currency",
             "label": "Currency",
-            "description": "Currency used for the quoted line item price.",
+            "description": "Quoted currency for the line item; expected currency is USD.",
             "required": true
           },
           {
             "id": "col_total_price",
             "label": "Total price",
-            "description": "Total quoted price for the line item.",
-            "required": true
+            "description": "Total quoted amount for the line item where priced.",
+            "required": false
+          }
+        ],
+        "linked_criteria": [
+          "crit_commercial_completeness"
+        ]
+      },
+      {
+        "id": "sched_pricing_detail",
+        "name": "Commercial pricing detail",
+        "purpose": "Capture additional structured commercial data for evaluation reliability.",
+        "columns": [
+          {
+            "id": "col_quantity",
+            "label": "Quantity",
+            "description": "Quantity if applicable to the pricing basis.",
+            "required": false
+          },
+          {
+            "id": "col_uom",
+            "label": "UOM",
+            "description": "Unit of measure if applicable.",
+            "required": false
           },
           {
             "id": "col_exclusions",
             "label": "Exclusions or assumptions",
-            "description": "List exclusions or assumptions for the line item, or state None.",
+            "description": "State exclusions, dependencies, or assumptions affecting the quote.",
             "required": true
           }
         ],
-        "linked_criteria": []
+        "linked_criteria": [
+          "crit_commercial_completeness"
+        ]
       }
     ],
     "official_award_basis": "QCBS 70/30",
     "generation_rationale": [
-      "Mandatory conditions were split into separate pass/fail gates for child-directed advertising capability, claims review capability, named engagement lead, governance submission, and timeline status submission.",
-      "Two critical buyer priorities were treated as cutoff-backed technical risks: compliance safety for child-directed marketing and launch speed through approval and dependency management.",
-      "Technical scored and cutoff-backed criteria total exactly 100 points, with equal weight and max_score on each scored technical criterion.",
-      "Commercial quote coverage and exclusions clarity were kept as commercial criteria and supported by a structured line-item pricing schedule rather than technical scoring logic."
+      "The two buyer-entered mandatory conditions were preserved as separate MAC gates because they concern child-directed advertising compliance and product claims review, both of which are critical compliance capabilities for this scope.",
+      "Launch speed was translated into a cutoff-backed technical criterion rather than a MAC, because delivery readiness is better judged on the strength and credibility of the proposed governance and approval plan than by a simple yes/no confirmation.",
+      "Integrated delivery and campaign solution quality were separated to avoid overlap: one assesses the operating model across workstreams, while the other assesses the coherence of the proposed launch work itself.",
+      "Technical scored and cutoff-backed criteria total 100 points, and the aggregate technical threshold is set at 60 to reflect a moderate services procurement risk profile once the compliance gates are passed."
     ]
   },
   "locked_artifact": {
     "version": "1.0",
-    "locked_at": "2026-04-13T01:55:08.486447Z",
+    "locked_at": "2026-04-13T17:14:19.259944Z",
     "rfq_snapshot": {
       "general_info": {
         "subject": "RFQ for global launch marketing services for new kids health drink",
@@ -686,10 +552,8 @@
         }
       ],
       "mandatory_conditions": [
-        "Vendors must explicitly confirm capability to support child-directed advertising and claims review.",
-        "Vendors must provide a named engagement lead and governance approach.",
-        "Vendors must quote against all applicable RFQ line items and call out exclusions clearly.",
-        "Vendors must state whether launch timelines are achievable with identified dependencies."
+        "Vendors must explicitly confirm capability to support child-directed advertising compliance for this launch.",
+        "Vendors must explicitly confirm capability to support product claims review for launch assets and product-related claims."
       ],
       "line_items": [
         {
@@ -763,62 +627,68 @@
         {
           "id": "sec_mac",
           "title": "Mandatory gates",
-          "description": "Pass/fail submission and capability gates that must be satisfied before full evaluation."
+          "description": "Pass/fail eligibility checks for critical compliance capabilities."
         },
         {
           "id": "sec_tech",
           "title": "Technical evaluation",
-          "description": "Technical assessment of compliance safety, launch delivery, and integrated marketing execution."
+          "description": "Assessment of launch delivery quality, integration, and solution strength."
         },
         {
-          "id": "sec_comm",
+          "id": "sec_commercial",
           "title": "Commercial evaluation",
-          "description": "Commercial quote completeness, exclusions clarity, and price capture for QCBS commercial assessment."
+          "description": "Structured pricing submission and quote completeness review."
         }
       ],
       "criteria": [
         {
-          "id": "cr_mac_1",
+          "id": "crit_mac_child_compliance",
           "section_id": "sec_mac",
-          "title": "Child advertising capability",
-          "description": "Explicit confirmation of capability to support child-directed advertising for this launch.",
+          "title": "Child marketing compliance",
+          "description": "Confirm capability to support child-directed advertising compliance for the launch.",
           "criterion_type": "mac",
           "weight": null,
           "min_cutoff": null,
           "max_score": null,
           "evidence_checks": [
             {
-              "id": "ev_cr_mac_1",
-              "label": "Capability confirmation",
-              "description": "Explicit Yes confirmation plus identification of the capability owner for child-directed advertising support."
+              "id": "ec_child_compliance",
+              "label": "Compliance capability confirmation",
+              "description": "Check that the bidder explicitly confirms a delivery route for child-directed advertising compliance support."
             }
           ],
           "vendor_question": {
-            "id": "q_cr_mac_1",
-            "text": "Confirm whether your agency can support child-directed advertising for this launch. Answer Yes or No and identify the in-house team or partner capability that will perform this work.",
-            "purpose": "Tests the mandatory requirement for child-directed advertising support capability.",
+            "id": "q_child_compliance",
+            "text": "Select one option for your capability to support child-directed advertising compliance across launch assets and approvals: (a) Yes - delivered by our organisation, (b) Yes - delivered through a named specialist partner, or (c) No. If you select (b), provide the partner name.",
+            "purpose": "Tests the explicit mandatory confirmation for child-directed advertising compliance capability.",
             "linked_criteria": [
-              "cr_mac_1"
+              "crit_mac_child_compliance"
             ]
           },
           "linked_question_ids": [
-            "q_cr_mac_1"
+            "q_child_compliance"
           ],
           "linked_schedule_fields": [],
           "deterministic_scoring": {
             "guide_type": "pass_fail",
-            "answer_format": "Yes/No plus named capability owner",
-            "summary": "Pass only where the vendor explicitly confirms capability and identifies who will perform it.",
+            "answer_format": "Single discrete selection with partner name required only if partner route is selected.",
+            "summary": "Pass if the bidder confirms capability directly or through a named specialist partner; fail otherwise.",
             "rules": [
               {
-                "id": "r_cr_mac_1_pass",
-                "condition": "Answer is Yes and a specific in-house team or partner capability is identified.",
+                "id": "r_child_pass_inhouse",
+                "condition": "Response is 'Yes - delivered by our organisation'.",
                 "score": null,
                 "outcome": "pass"
               },
               {
-                "id": "r_cr_mac_1_fail",
-                "condition": "Answer is No, or no specific capability owner is identified.",
+                "id": "r_child_pass_partner",
+                "condition": "Response is 'Yes - delivered through a named specialist partner' and a partner name is provided.",
+                "score": null,
+                "outcome": "pass"
+              },
+              {
+                "id": "r_child_fail",
+                "condition": "Response is 'No', blank, or selects partner delivery without naming the partner.",
                 "score": null,
                 "outcome": "fail"
               }
@@ -827,47 +697,53 @@
           "qualitative_scoring_guidance": null
         },
         {
-          "id": "cr_mac_2",
+          "id": "crit_mac_claims_review",
           "section_id": "sec_mac",
           "title": "Claims review capability",
-          "description": "Explicit confirmation of capability to support claims review for launch assets.",
+          "description": "Confirm capability to support product claims review for launch assets and approvals.",
           "criterion_type": "mac",
           "weight": null,
           "min_cutoff": null,
           "max_score": null,
           "evidence_checks": [
             {
-              "id": "ev_cr_mac_2",
+              "id": "ec_claims_review",
               "label": "Claims review confirmation",
-              "description": "Explicit Yes confirmation plus identification of the capability owner for claims review support."
+              "description": "Check that the bidder explicitly confirms a delivery route for product claims review support."
             }
           ],
           "vendor_question": {
-            "id": "q_cr_mac_2",
-            "text": "Confirm whether your agency can support claims review for launch assets and product-related claims. Answer Yes or No and identify the in-house team or partner capability that will perform this work.",
-            "purpose": "Tests the mandatory requirement for claims review support capability.",
+            "id": "q_claims_review",
+            "text": "Select one option for your capability to support product claims review for launch assets and related approvals: (a) Yes - delivered by our organisation, (b) Yes - delivered through a named specialist partner, or (c) No. If you select (b), provide the partner name.",
+            "purpose": "Tests the explicit mandatory confirmation for product claims review capability.",
             "linked_criteria": [
-              "cr_mac_2"
+              "crit_mac_claims_review"
             ]
           },
           "linked_question_ids": [
-            "q_cr_mac_2"
+            "q_claims_review"
           ],
           "linked_schedule_fields": [],
           "deterministic_scoring": {
             "guide_type": "pass_fail",
-            "answer_format": "Yes/No plus named capability owner",
-            "summary": "Pass only where the vendor explicitly confirms claims review capability and identifies who will perform it.",
+            "answer_format": "Single discrete selection with partner name required only if partner route is selected.",
+            "summary": "Pass if the bidder confirms capability directly or through a named specialist partner; fail otherwise.",
             "rules": [
               {
-                "id": "r_cr_mac_2_pass",
-                "condition": "Answer is Yes and a specific in-house team or partner capability is identified.",
+                "id": "r_claims_pass_inhouse",
+                "condition": "Response is 'Yes - delivered by our organisation'.",
                 "score": null,
                 "outcome": "pass"
               },
               {
-                "id": "r_cr_mac_2_fail",
-                "condition": "Answer is No, or no specific capability owner is identified.",
+                "id": "r_claims_pass_partner",
+                "condition": "Response is 'Yes - delivered through a named specialist partner' and a partner name is provided.",
+                "score": null,
+                "outcome": "pass"
+              },
+              {
+                "id": "r_claims_fail",
+                "condition": "Response is 'No', blank, or selects partner delivery without naming the partner.",
                 "score": null,
                 "outcome": "fail"
               }
@@ -876,418 +752,274 @@
           "qualitative_scoring_guidance": null
         },
         {
-          "id": "cr_mac_3",
-          "section_id": "sec_mac",
-          "title": "Named engagement lead",
-          "description": "Submission of a named engagement lead for the launch program.",
-          "criterion_type": "mac",
-          "weight": null,
-          "min_cutoff": null,
-          "max_score": null,
-          "evidence_checks": [
-            {
-              "id": "ev_cr_mac_3",
-              "label": "Lead details provided",
-              "description": "Named engagement lead is provided with role title and contact details."
-            }
-          ],
-          "vendor_question": {
-            "id": "q_cr_mac_3",
-            "text": "Provide the full name, role title, and email address of the named engagement lead who will own this launch program.",
-            "purpose": "Tests the mandatory requirement to provide a named engagement lead.",
-            "linked_criteria": [
-              "cr_mac_3"
-            ]
-          },
-          "linked_question_ids": [
-            "q_cr_mac_3"
-          ],
-          "linked_schedule_fields": [],
-          "deterministic_scoring": {
-            "guide_type": "pass_fail",
-            "answer_format": "Text fields: full name, role title, email address",
-            "summary": "Pass only where a complete named engagement lead record is submitted.",
-            "rules": [
-              {
-                "id": "r_cr_mac_3_pass",
-                "condition": "A full name, role title, and email address are all provided for one named engagement lead.",
-                "score": null,
-                "outcome": "pass"
-              },
-              {
-                "id": "r_cr_mac_3_fail",
-                "condition": "Any of the required lead details are missing, or no named engagement lead is provided.",
-                "score": null,
-                "outcome": "fail"
-              }
-            ]
-          },
-          "qualitative_scoring_guidance": null
-        },
-        {
-          "id": "cr_mac_4",
-          "section_id": "sec_mac",
-          "title": "Governance approach submitted",
-          "description": "Submission of a governance approach for managing the launch program.",
-          "criterion_type": "mac",
-          "weight": null,
-          "min_cutoff": null,
-          "max_score": null,
-          "evidence_checks": [
-            {
-              "id": "ev_cr_mac_4",
-              "label": "Governance overview submitted",
-              "description": "A governance approach is explicitly provided and includes at least cadence, decision ownership, and escalation."
-            }
-          ],
-          "vendor_question": {
-            "id": "q_cr_mac_4",
-            "text": "Confirm whether you are providing a launch governance approach. Answer Yes or No and submit a brief overview covering meeting cadence, decision ownership, and escalation.",
-            "purpose": "Tests the mandatory requirement to provide a governance approach.",
-            "linked_criteria": [
-              "cr_mac_4"
-            ]
-          },
-          "linked_question_ids": [
-            "q_cr_mac_4"
-          ],
-          "linked_schedule_fields": [],
-          "deterministic_scoring": {
-            "guide_type": "pass_fail",
-            "answer_format": "Yes/No plus brief governance overview",
-            "summary": "Pass only where the vendor confirms submission and provides the required governance overview.",
-            "rules": [
-              {
-                "id": "r_cr_mac_4_pass",
-                "condition": "Answer is Yes and a governance overview covering cadence, decision ownership, and escalation is provided.",
-                "score": null,
-                "outcome": "pass"
-              },
-              {
-                "id": "r_cr_mac_4_fail",
-                "condition": "Answer is No, or the required governance overview is not provided.",
-                "score": null,
-                "outcome": "fail"
-              }
-            ]
-          },
-          "qualitative_scoring_guidance": null
-        },
-        {
-          "id": "cr_mac_5",
-          "section_id": "sec_mac",
-          "title": "Timeline statement submitted",
-          "description": "Submission of a clear statement on whether the buyer launch timelines are achievable, with dependencies identified.",
-          "criterion_type": "mac",
-          "weight": null,
-          "min_cutoff": null,
-          "max_score": null,
-          "evidence_checks": [
-            {
-              "id": "ev_cr_mac_5",
-              "label": "Timeline status declared",
-              "description": "A launch timeline status is selected and dependencies or constraints are listed."
-            }
-          ],
-          "vendor_question": {
-            "id": "q_cr_mac_5",
-            "text": "State whether the buyer launch timelines are achievable. Select one option: Achievable as issued / Achievable with dependencies / Not achievable. Then list the key dependencies or constraints, or state None.",
-            "purpose": "Tests the mandatory requirement to state timeline achievability with dependencies.",
-            "linked_criteria": [
-              "cr_mac_5"
-            ]
-          },
-          "linked_question_ids": [
-            "q_cr_mac_5"
-          ],
-          "linked_schedule_fields": [],
-          "deterministic_scoring": {
-            "guide_type": "pass_fail",
-            "answer_format": "Discrete choice plus dependency list",
-            "summary": "Pass only where the vendor states timeline status and identifies dependencies or explicitly states none.",
-            "rules": [
-              {
-                "id": "r_cr_mac_5_pass",
-                "condition": "One timeline status option is selected and dependencies or constraints are listed, or the response explicitly states None.",
-                "score": null,
-                "outcome": "pass"
-              },
-              {
-                "id": "r_cr_mac_5_fail",
-                "condition": "No valid timeline status is selected, or no dependency or constraint statement is provided.",
-                "score": null,
-                "outcome": "fail"
-              }
-            ]
-          },
-          "qualitative_scoring_guidance": null
-        },
-        {
-          "id": "cr_tech_1",
+          "id": "crit_launch_governance_speed",
           "section_id": "sec_tech",
-          "title": "Compliance delivery approach",
-          "description": "Approach for keeping child-directed marketing and claims usage safe across launch asset creation, review, and approval.",
+          "title": "Launch governance and speed",
+          "description": "Quality of the proposed governance, approvals, and timeline protection approach.",
           "criterion_type": "technical_cutoff_backed",
-          "weight": 30.0,
-          "min_cutoff": 18.0,
-          "max_score": 30.0,
+          "weight": 35.0,
+          "min_cutoff": 20.0,
+          "max_score": 35.0,
           "evidence_checks": [
             {
-              "id": "ev_cr_tech_1",
-              "label": "End-to-end compliance method",
-              "description": "A clear end-to-end method for child-directed advertising and claims compliance is described across asset development and approvals."
+              "id": "ec_launch_governance",
+              "label": "Launch plan evidence",
+              "description": "Check for a concrete launch plan covering milestones, approval flow, critical path, and escalation."
             }
           ],
           "vendor_question": {
-            "id": "q_cr_tech_1",
-            "text": "Describe your end-to-end approach for ensuring child-directed marketing safety and claims usage compliance across strategy, creative, TVC, social, and launch approvals. Include where reviews occur, who owns them, how issues are escalated, and how rework is prevented.",
-            "purpose": "Assesses the critical technical risk around kids advertising compliance and claims usage safety.",
+            "id": "q_launch_governance",
+            "text": "Provide your proposed launch governance and approval-management plan for this scope, including key milestones, critical path, approval routing, escalation approach, and the actions you will take to protect the stated launch calendar.",
+            "purpose": "Assesses the bidder's ability to manage approvals and maintain launch speed.",
             "linked_criteria": [
-              "cr_tech_1"
+              "crit_launch_governance_speed"
             ]
           },
           "linked_question_ids": [
-            "q_cr_tech_1"
+            "q_launch_governance"
           ],
           "linked_schedule_fields": [],
           "deterministic_scoring": null,
-          "qualitative_scoring_guidance": "Score strongly where the response shows embedded compliance checkpoints throughout development, clear ownership, timely review sequencing, and practical escalation and rework control across all asset types. Score weakly where compliance is treated as a late legal sign-off, reviewer roles are unclear, or the method does not cover both child-directed advertising and claims usage."
+          "qualitative_scoring_guidance": "Score highly where the response gives a realistic end-to-end plan across the requested workstreams, clear milestones and approval gates, identifiable owners and dependencies, practical escalation paths, and credible mitigations for timeline risk. Score weakly where the plan is generic, misses approval complexity, lacks critical-path thinking, or relies on optimistic sequencing without mitigation."
         },
         {
-          "id": "cr_tech_2",
+          "id": "crit_integrated_delivery",
           "section_id": "sec_tech",
-          "title": "Launch plan and approvals",
-          "description": "Ability to manage approvals and deliver to the buyer launch calendar with visible dependencies and controls.",
-          "criterion_type": "technical_cutoff_backed",
-          "weight": 25.0,
-          "min_cutoff": 15.0,
-          "max_score": 25.0,
+          "title": "Integrated delivery model",
+          "description": "Strength of the operating model for coordinating all launch workstreams.",
+          "criterion_type": "technical_scored_only",
+          "weight": 40.0,
+          "min_cutoff": null,
+          "max_score": 40.0,
           "evidence_checks": [
             {
-              "id": "ev_cr_tech_2",
-              "label": "Realistic launch workplan",
-              "description": "A realistic launch workplan is provided with dependencies, approval points, and actions to control schedule risk."
+              "id": "ec_integrated_delivery",
+              "label": "Operating model evidence",
+              "description": "Check for a clear integrated operating model spanning all requested service areas and governance interfaces."
             }
           ],
           "vendor_question": {
-            "id": "q_cr_tech_2",
-            "text": "Provide your proposed launch workplan from kickoff to launch, showing key stages for strategy, creative, TVC, social, compliance review, and program management. Explain how approvals will be managed, what the critical dependencies are, and how schedule risks will be controlled.",
-            "purpose": "Assesses the critical technical risk around launch speed and approval management.",
+            "id": "q_integrated_delivery",
+            "text": "Describe the operating model you will use to coordinate strategy, creative, TVC development and production, organic social, paid media planning and buying, compliance review, and launch program management as one integrated launch program.",
+            "purpose": "Assesses the bidder's ability to coordinate multiple launch workstreams cleanly.",
             "linked_criteria": [
-              "cr_tech_2"
+              "crit_integrated_delivery"
             ]
           },
           "linked_question_ids": [
-            "q_cr_tech_2"
+            "q_integrated_delivery"
           ],
           "linked_schedule_fields": [],
           "deterministic_scoring": null,
-          "qualitative_scoring_guidance": "Score strongly where the plan is realistic, sequences major workstreams coherently, makes approval handling explicit, identifies critical dependencies, and includes credible actions for keeping dates on track. Score weakly where the plan is generic, omits approval management, ignores interdependencies, or relies on optimistic assumptions without controls."
+          "qualitative_scoring_guidance": "Score highly where the response shows one coherent delivery model with clear accountability, role clarity, handoffs, cross-workstream coordination, integration of compliance review into delivery, and efficient stakeholder management. Score weakly where execution appears siloed, interfaces are unclear, scope coverage is incomplete, or the client would need to coordinate major dependencies."
         },
         {
-          "id": "cr_tech_3",
+          "id": "crit_campaign_solution",
           "section_id": "sec_tech",
-          "title": "Strategy and creative approach",
-          "description": "Approach to launch strategy, audience segmentation, messaging framework, and creative territory development.",
+          "title": "Campaign solution quality",
+          "description": "Coherence and completeness of the proposed launch solution across strategy, creative, TVC, and social/media channels.",
           "criterion_type": "technical_scored_only",
           "weight": 25.0,
           "min_cutoff": null,
           "max_score": 25.0,
           "evidence_checks": [
             {
-              "id": "ev_cr_tech_3",
-              "label": "Strategic and creative method",
-              "description": "A structured approach is provided for audience segmentation, messaging, and development of launch creative territories."
+              "id": "ec_campaign_solution",
+              "label": "Campaign approach evidence",
+              "description": "Check for a joined-up launch approach across strategy, creative development, TVC, social, and paid media."
             }
           ],
           "vendor_question": {
-            "id": "q_cr_tech_3",
-            "text": "Describe your approach to launch strategy and creative development for the new kids health drink, including audience segmentation, messaging framework, creative territory development, and how the master campaign idea will be carried into launch assets.",
-            "purpose": "Assesses the quality of the proposed strategy and creative development method.",
+            "id": "q_campaign_solution",
+            "text": "Describe your proposed global launch solution across strategy, messaging, creative territory, TVC, organic social, and paid social/video, showing how the workstreams connect into one launch campaign.",
+            "purpose": "Assesses the strength and coherence of the bidder's proposed launch approach.",
             "linked_criteria": [
-              "cr_tech_3"
+              "crit_campaign_solution"
             ]
           },
           "linked_question_ids": [
-            "q_cr_tech_3"
+            "q_campaign_solution"
           ],
           "linked_schedule_fields": [],
           "deterministic_scoring": null,
-          "qualitative_scoring_guidance": "Score strongly where the response shows a clear strategic path from audience understanding to messaging and creative territories, with a coherent master campaign idea suitable for global launch. Score weakly where the response is generic, disconnected across stages, or does not show how strategy will translate into usable creative outputs."
+          "qualitative_scoring_guidance": "Score highly where the response presents a coherent launch idea with clear strategic logic, strong message and creative linkage, practical adaptation across TVC and social channels, and alignment between organic and paid activation. Score weakly where channel plans feel disconnected, the strategic rationale is thin, or the proposed outputs do not form a consistent launch campaign."
         },
         {
-          "id": "cr_tech_4",
-          "section_id": "sec_tech",
-          "title": "TVC delivery capability",
-          "description": "Approach to TVC concept development, production, post-production, and delivery of master film and cutdowns.",
-          "criterion_type": "technical_scored_only",
-          "weight": 20.0,
+          "id": "crit_commercial_completeness",
+          "section_id": "sec_commercial",
+          "title": "Pricing completeness",
+          "description": "Check that the commercial submission fully covers the requested lots in a structured format.",
+          "criterion_type": "commercial",
+          "weight": null,
           "min_cutoff": null,
-          "max_score": 20.0,
+          "max_score": null,
           "evidence_checks": [
             {
-              "id": "ev_cr_tech_4",
-              "label": "TVC execution plan",
-              "description": "A coherent TVC execution approach is provided from concept through final film and cutdown delivery."
+              "id": "ec_pricing_completeness",
+              "label": "Completed pricing schedule",
+              "description": "Check that all requested line items are addressed with quote status, pricing fields, and exclusions or assumptions."
             }
           ],
-          "vendor_question": {
-            "id": "q_cr_tech_4",
-            "text": "Describe your approach to TVC development and production for the global launch, covering concept development, pre-production, shoot management, post-production, and delivery of the master film and cutdowns for paid media use.",
-            "purpose": "Assesses the quality of the proposed TVC development and production capability.",
-            "linked_criteria": [
-              "cr_tech_4"
+          "vendor_question": null,
+          "linked_question_ids": [],
+          "linked_schedule_fields": [
+            "sched_pricing.col_line_ref",
+            "sched_pricing.col_line_name",
+            "sched_pricing.col_quote_status",
+            "sched_pricing.col_included_ref",
+            "sched_pricing.col_currency",
+            "sched_pricing.col_total_price",
+            "sched_pricing_detail.col_quantity",
+            "sched_pricing_detail.col_uom",
+            "sched_pricing_detail.col_exclusions"
+          ],
+          "deterministic_scoring": {
+            "guide_type": "pass_fail",
+            "answer_format": "Completed commercial pricing schedule.",
+            "summary": "Pass if the pricing schedule is complete and usable for evaluation; fail if key commercial fields are missing.",
+            "rules": [
+              {
+                "id": "r_price_pass",
+                "condition": "All requested line items are present in the pricing schedule and each row includes quote status, currency, total price when priced, and exclusions or assumptions.",
+                "score": null,
+                "outcome": "pass"
+              },
+              {
+                "id": "r_price_fail",
+                "condition": "Any requested line item is missing, or pricing status/price/currency/exclusions data is materially incomplete for evaluation.",
+                "score": null,
+                "outcome": "fail"
+              }
             ]
           },
-          "linked_question_ids": [
-            "q_cr_tech_4"
-          ],
-          "linked_schedule_fields": [],
-          "deterministic_scoring": null,
-          "qualitative_scoring_guidance": "Score strongly where the response shows joined-up thinking from concept to production delivery, practical control of production stages, and readiness to deliver master film and cutdowns for launch use. Score weakly where major production stages are glossed over, handoffs are unclear, or delivery outputs are not well addressed."
+          "qualitative_scoring_guidance": null
         }
       ],
       "aggregate_technical_threshold": 60.0,
       "questions": [
         {
-          "id": "q_cr_mac_1",
-          "text": "Confirm whether your agency can support child-directed advertising for this launch. Answer Yes or No and identify the in-house team or partner capability that will perform this work.",
-          "purpose": "Tests the mandatory requirement for child-directed advertising support capability.",
+          "id": "q_child_compliance",
+          "text": "Select one option for your capability to support child-directed advertising compliance across launch assets and approvals: (a) Yes - delivered by our organisation, (b) Yes - delivered through a named specialist partner, or (c) No. If you select (b), provide the partner name.",
+          "purpose": "Tests the explicit mandatory confirmation for child-directed advertising compliance capability.",
           "linked_criteria": [
-            "cr_mac_1"
+            "crit_mac_child_compliance"
           ]
         },
         {
-          "id": "q_cr_mac_2",
-          "text": "Confirm whether your agency can support claims review for launch assets and product-related claims. Answer Yes or No and identify the in-house team or partner capability that will perform this work.",
-          "purpose": "Tests the mandatory requirement for claims review support capability.",
+          "id": "q_claims_review",
+          "text": "Select one option for your capability to support product claims review for launch assets and related approvals: (a) Yes - delivered by our organisation, (b) Yes - delivered through a named specialist partner, or (c) No. If you select (b), provide the partner name.",
+          "purpose": "Tests the explicit mandatory confirmation for product claims review capability.",
           "linked_criteria": [
-            "cr_mac_2"
+            "crit_mac_claims_review"
           ]
         },
         {
-          "id": "q_cr_mac_3",
-          "text": "Provide the full name, role title, and email address of the named engagement lead who will own this launch program.",
-          "purpose": "Tests the mandatory requirement to provide a named engagement lead.",
+          "id": "q_launch_governance",
+          "text": "Provide your proposed launch governance and approval-management plan for this scope, including key milestones, critical path, approval routing, escalation approach, and the actions you will take to protect the stated launch calendar.",
+          "purpose": "Assesses the bidder's ability to manage approvals and maintain launch speed.",
           "linked_criteria": [
-            "cr_mac_3"
+            "crit_launch_governance_speed"
           ]
         },
         {
-          "id": "q_cr_mac_4",
-          "text": "Confirm whether you are providing a launch governance approach. Answer Yes or No and submit a brief overview covering meeting cadence, decision ownership, and escalation.",
-          "purpose": "Tests the mandatory requirement to provide a governance approach.",
+          "id": "q_integrated_delivery",
+          "text": "Describe the operating model you will use to coordinate strategy, creative, TVC development and production, organic social, paid media planning and buying, compliance review, and launch program management as one integrated launch program.",
+          "purpose": "Assesses the bidder's ability to coordinate multiple launch workstreams cleanly.",
           "linked_criteria": [
-            "cr_mac_4"
+            "crit_integrated_delivery"
           ]
         },
         {
-          "id": "q_cr_mac_5",
-          "text": "State whether the buyer launch timelines are achievable. Select one option: Achievable as issued / Achievable with dependencies / Not achievable. Then list the key dependencies or constraints, or state None.",
-          "purpose": "Tests the mandatory requirement to state timeline achievability with dependencies.",
+          "id": "q_campaign_solution",
+          "text": "Describe your proposed global launch solution across strategy, messaging, creative territory, TVC, organic social, and paid social/video, showing how the workstreams connect into one launch campaign.",
+          "purpose": "Assesses the strength and coherence of the bidder's proposed launch approach.",
           "linked_criteria": [
-            "cr_mac_5"
-          ]
-        },
-        {
-          "id": "q_cr_tech_1",
-          "text": "Describe your end-to-end approach for ensuring child-directed marketing safety and claims usage compliance across strategy, creative, TVC, social, and launch approvals. Include where reviews occur, who owns them, how issues are escalated, and how rework is prevented.",
-          "purpose": "Assesses the critical technical risk around kids advertising compliance and claims usage safety.",
-          "linked_criteria": [
-            "cr_tech_1"
-          ]
-        },
-        {
-          "id": "q_cr_tech_2",
-          "text": "Provide your proposed launch workplan from kickoff to launch, showing key stages for strategy, creative, TVC, social, compliance review, and program management. Explain how approvals will be managed, what the critical dependencies are, and how schedule risks will be controlled.",
-          "purpose": "Assesses the critical technical risk around launch speed and approval management.",
-          "linked_criteria": [
-            "cr_tech_2"
-          ]
-        },
-        {
-          "id": "q_cr_tech_3",
-          "text": "Describe your approach to launch strategy and creative development for the new kids health drink, including audience segmentation, messaging framework, creative territory development, and how the master campaign idea will be carried into launch assets.",
-          "purpose": "Assesses the quality of the proposed strategy and creative development method.",
-          "linked_criteria": [
-            "cr_tech_3"
-          ]
-        },
-        {
-          "id": "q_cr_tech_4",
-          "text": "Describe your approach to TVC development and production for the global launch, covering concept development, pre-production, shoot management, post-production, and delivery of the master film and cutdowns for paid media use.",
-          "purpose": "Assesses the quality of the proposed TVC development and production capability.",
-          "linked_criteria": [
-            "cr_tech_4"
+            "crit_campaign_solution"
           ]
         }
       ],
       "response_schedules": [
         {
-          "id": "sched_comm_1",
-          "name": "Commercial line-item pricing schedule",
-          "purpose": "Capture comparable line-item pricing, quote coverage, and exclusions for all requested service lots.",
+          "id": "sched_pricing",
+          "name": "Commercial pricing schedule",
+          "purpose": "Capture structured pricing for all requested service lots so total evaluated price can be derived consistently.",
           "columns": [
             {
               "id": "col_line_ref",
-              "label": "Line item reference",
-              "description": "Reference number for the requested RFQ line item.",
-              "required": true
-            }
-          ],
-          "linked_criteria": []
-        },
-        {
-          "id": "col_line_name",
-          "name": "Commercial line-item pricing schedule",
-          "purpose": "Capture comparable line-item pricing, quote coverage, and exclusions for all requested service lots.",
-          "columns": [
-            {
-              "id": "col_line_ref",
-              "label": "Line item reference",
-              "description": "Reference number for the requested RFQ line item.",
+              "label": "Line item ref",
+              "description": "Reference number of the requested line item.",
               "required": true
             },
             {
               "id": "col_line_name",
               "label": "Line item name",
-              "description": "Name of the requested RFQ service lot.",
+              "description": "Name of the requested service lot.",
               "required": true
             },
             {
-              "id": "col_included",
-              "label": "Included in quote",
-              "description": "State Yes or No for whether the line item is included in the commercial quote.",
+              "id": "col_quote_status",
+              "label": "Quote status",
+              "description": "State whether the line is priced, included elsewhere, or excluded.",
               "required": true
+            },
+            {
+              "id": "col_included_ref",
+              "label": "Included in line ref",
+              "description": "If included elsewhere, identify the line item reference containing the price.",
+              "required": false
             },
             {
               "id": "col_currency",
               "label": "Currency",
-              "description": "Currency used for the quoted line item price.",
+              "description": "Quoted currency for the line item; expected currency is USD.",
               "required": true
             },
             {
               "id": "col_total_price",
               "label": "Total price",
-              "description": "Total quoted price for the line item.",
-              "required": true
+              "description": "Total quoted amount for the line item where priced.",
+              "required": false
+            }
+          ],
+          "linked_criteria": [
+            "crit_commercial_completeness"
+          ]
+        },
+        {
+          "id": "sched_pricing_detail",
+          "name": "Commercial pricing detail",
+          "purpose": "Capture additional structured commercial data for evaluation reliability.",
+          "columns": [
+            {
+              "id": "col_quantity",
+              "label": "Quantity",
+              "description": "Quantity if applicable to the pricing basis.",
+              "required": false
+            },
+            {
+              "id": "col_uom",
+              "label": "UOM",
+              "description": "Unit of measure if applicable.",
+              "required": false
             },
             {
               "id": "col_exclusions",
               "label": "Exclusions or assumptions",
-              "description": "List exclusions or assumptions for the line item, or state None.",
+              "description": "State exclusions, dependencies, or assumptions affecting the quote.",
               "required": true
             }
           ],
-          "linked_criteria": []
+          "linked_criteria": [
+            "crit_commercial_completeness"
+          ]
         }
       ],
       "official_award_basis": "QCBS 70/30",
       "generation_rationale": [
-        "Mandatory conditions were split into separate pass/fail gates for child-directed advertising capability, claims review capability, named engagement lead, governance submission, and timeline status submission.",
-        "Two critical buyer priorities were treated as cutoff-backed technical risks: compliance safety for child-directed marketing and launch speed through approval and dependency management.",
-        "Technical scored and cutoff-backed criteria total exactly 100 points, with equal weight and max_score on each scored technical criterion.",
-        "Commercial quote coverage and exclusions clarity were kept as commercial criteria and supported by a structured line-item pricing schedule rather than technical scoring logic."
+        "The two buyer-entered mandatory conditions were preserved as separate MAC gates because they concern child-directed advertising compliance and product claims review, both of which are critical compliance capabilities for this scope.",
+        "Launch speed was translated into a cutoff-backed technical criterion rather than a MAC, because delivery readiness is better judged on the strength and credibility of the proposed governance and approval plan than by a simple yes/no confirmation.",
+        "Integrated delivery and campaign solution quality were separated to avoid overlap: one assesses the operating model across workstreams, while the other assesses the coherence of the proposed launch work itself.",
+        "Technical scored and cutoff-backed criteria total 100 points, and the aggregate technical threshold is set at 60 to reflect a moderate services procurement risk profile once the compliance gates are passed."
       ]
     },
     "governance": {
@@ -1299,15 +1031,10 @@
         "RFQ-specific AI scenarios"
       ],
       "persistence_scope": "Browser session plus in-memory backend session state with TTL-managed temp files.",
-      "rubric_warnings": [
-        {
-          "field": "criteria",
-          "message": "Technical scored and cutoff-backed criteria must total 100 points."
-        }
-      ]
+      "rubric_warnings": []
     },
     "download_metadata": {
-      "file_name": "sample-locked-framework.json",
+      "file_name": "locked-framework-sample-generated.json",
       "content_type": "application/json"
     }
   },
@@ -1322,256 +1049,244 @@
     ],
     "questions": [
       {
-        "id": "q_cr_mac_1",
-        "text": "Confirm whether your agency can support child-directed advertising for this launch. Answer Yes or No and identify the in-house team or partner capability that will perform this work.",
-        "purpose": "Tests the mandatory requirement for child-directed advertising support capability.",
+        "id": "q_child_compliance",
+        "text": "Select one option for your capability to support child-directed advertising compliance across launch assets and approvals: (a) Yes - delivered by our organisation, (b) Yes - delivered through a named specialist partner, or (c) No. If you select (b), provide the partner name.",
+        "purpose": "Tests the explicit mandatory confirmation for child-directed advertising compliance capability.",
         "linked_criteria": [
-          "cr_mac_1"
+          "crit_mac_child_compliance"
         ]
       },
       {
-        "id": "q_cr_mac_2",
-        "text": "Confirm whether your agency can support claims review for launch assets and product-related claims. Answer Yes or No and identify the in-house team or partner capability that will perform this work.",
-        "purpose": "Tests the mandatory requirement for claims review support capability.",
+        "id": "q_claims_review",
+        "text": "Select one option for your capability to support product claims review for launch assets and related approvals: (a) Yes - delivered by our organisation, (b) Yes - delivered through a named specialist partner, or (c) No. If you select (b), provide the partner name.",
+        "purpose": "Tests the explicit mandatory confirmation for product claims review capability.",
         "linked_criteria": [
-          "cr_mac_2"
+          "crit_mac_claims_review"
         ]
       },
       {
-        "id": "q_cr_mac_3",
-        "text": "Provide the full name, role title, and email address of the named engagement lead who will own this launch program.",
-        "purpose": "Tests the mandatory requirement to provide a named engagement lead.",
+        "id": "q_launch_governance",
+        "text": "Provide your proposed launch governance and approval-management plan for this scope, including key milestones, critical path, approval routing, escalation approach, and the actions you will take to protect the stated launch calendar.",
+        "purpose": "Assesses the bidder's ability to manage approvals and maintain launch speed.",
         "linked_criteria": [
-          "cr_mac_3"
+          "crit_launch_governance_speed"
         ]
       },
       {
-        "id": "q_cr_mac_4",
-        "text": "Confirm whether you are providing a launch governance approach. Answer Yes or No and submit a brief overview covering meeting cadence, decision ownership, and escalation.",
-        "purpose": "Tests the mandatory requirement to provide a governance approach.",
+        "id": "q_integrated_delivery",
+        "text": "Describe the operating model you will use to coordinate strategy, creative, TVC development and production, organic social, paid media planning and buying, compliance review, and launch program management as one integrated launch program.",
+        "purpose": "Assesses the bidder's ability to coordinate multiple launch workstreams cleanly.",
         "linked_criteria": [
-          "cr_mac_4"
+          "crit_integrated_delivery"
         ]
       },
       {
-        "id": "q_cr_mac_5",
-        "text": "State whether the buyer launch timelines are achievable. Select one option: Achievable as issued / Achievable with dependencies / Not achievable. Then list the key dependencies or constraints, or state None.",
-        "purpose": "Tests the mandatory requirement to state timeline achievability with dependencies.",
+        "id": "q_campaign_solution",
+        "text": "Describe your proposed global launch solution across strategy, messaging, creative territory, TVC, organic social, and paid social/video, showing how the workstreams connect into one launch campaign.",
+        "purpose": "Assesses the strength and coherence of the bidder's proposed launch approach.",
         "linked_criteria": [
-          "cr_mac_5"
-        ]
-      },
-      {
-        "id": "q_cr_tech_1",
-        "text": "Describe your end-to-end approach for ensuring child-directed marketing safety and claims usage compliance across strategy, creative, TVC, social, and launch approvals. Include where reviews occur, who owns them, how issues are escalated, and how rework is prevented.",
-        "purpose": "Assesses the critical technical risk around kids advertising compliance and claims usage safety.",
-        "linked_criteria": [
-          "cr_tech_1"
-        ]
-      },
-      {
-        "id": "q_cr_tech_2",
-        "text": "Provide your proposed launch workplan from kickoff to launch, showing key stages for strategy, creative, TVC, social, compliance review, and program management. Explain how approvals will be managed, what the critical dependencies are, and how schedule risks will be controlled.",
-        "purpose": "Assesses the critical technical risk around launch speed and approval management.",
-        "linked_criteria": [
-          "cr_tech_2"
-        ]
-      },
-      {
-        "id": "q_cr_tech_3",
-        "text": "Describe your approach to launch strategy and creative development for the new kids health drink, including audience segmentation, messaging framework, creative territory development, and how the master campaign idea will be carried into launch assets.",
-        "purpose": "Assesses the quality of the proposed strategy and creative development method.",
-        "linked_criteria": [
-          "cr_tech_3"
-        ]
-      },
-      {
-        "id": "q_cr_tech_4",
-        "text": "Describe your approach to TVC development and production for the global launch, covering concept development, pre-production, shoot management, post-production, and delivery of the master film and cutdowns for paid media use.",
-        "purpose": "Assesses the quality of the proposed TVC development and production capability.",
-        "linked_criteria": [
-          "cr_tech_4"
+          "crit_campaign_solution"
         ]
       }
     ],
     "response_schedules": [
       {
-        "id": "sched_comm_1",
-        "name": "Commercial line-item pricing schedule",
-        "purpose": "Capture comparable line-item pricing, quote coverage, and exclusions for all requested service lots.",
-        "linked_criteria": [],
+        "id": "sched_pricing",
+        "name": "Commercial pricing schedule",
+        "purpose": "Capture structured pricing for all requested service lots so total evaluated price can be derived consistently.",
+        "linked_criteria": [
+          "crit_commercial_completeness"
+        ],
         "columns": [
           {
-            "field_id": "sched_comm_1.col_line_ref",
-            "schedule_id": "sched_comm_1",
-            "schedule_name": "Commercial line-item pricing schedule",
+            "field_id": "sched_pricing.col_line_ref",
+            "schedule_id": "sched_pricing",
+            "schedule_name": "Commercial pricing schedule",
             "column_id": "col_line_ref",
-            "label": "Line item reference",
-            "description": "Reference number for the requested RFQ line item.",
+            "label": "Line item ref",
+            "description": "Reference number of the requested line item.",
             "required": true,
-            "linked_criteria": []
+            "linked_criteria": [
+              "crit_commercial_completeness"
+            ]
+          },
+          {
+            "field_id": "sched_pricing.col_line_name",
+            "schedule_id": "sched_pricing",
+            "schedule_name": "Commercial pricing schedule",
+            "column_id": "col_line_name",
+            "label": "Line item name",
+            "description": "Name of the requested service lot.",
+            "required": true,
+            "linked_criteria": [
+              "crit_commercial_completeness"
+            ]
+          },
+          {
+            "field_id": "sched_pricing.col_quote_status",
+            "schedule_id": "sched_pricing",
+            "schedule_name": "Commercial pricing schedule",
+            "column_id": "col_quote_status",
+            "label": "Quote status",
+            "description": "State whether the line is priced, included elsewhere, or excluded.",
+            "required": true,
+            "linked_criteria": [
+              "crit_commercial_completeness"
+            ]
+          },
+          {
+            "field_id": "sched_pricing.col_included_ref",
+            "schedule_id": "sched_pricing",
+            "schedule_name": "Commercial pricing schedule",
+            "column_id": "col_included_ref",
+            "label": "Included in line ref",
+            "description": "If included elsewhere, identify the line item reference containing the price.",
+            "required": false,
+            "linked_criteria": [
+              "crit_commercial_completeness"
+            ]
+          },
+          {
+            "field_id": "sched_pricing.col_currency",
+            "schedule_id": "sched_pricing",
+            "schedule_name": "Commercial pricing schedule",
+            "column_id": "col_currency",
+            "label": "Currency",
+            "description": "Quoted currency for the line item; expected currency is USD.",
+            "required": true,
+            "linked_criteria": [
+              "crit_commercial_completeness"
+            ]
+          },
+          {
+            "field_id": "sched_pricing.col_total_price",
+            "schedule_id": "sched_pricing",
+            "schedule_name": "Commercial pricing schedule",
+            "column_id": "col_total_price",
+            "label": "Total price",
+            "description": "Total quoted amount for the line item where priced.",
+            "required": false,
+            "linked_criteria": [
+              "crit_commercial_completeness"
+            ]
           }
         ]
       },
       {
-        "id": "col_line_name",
-        "name": "Commercial line-item pricing schedule",
-        "purpose": "Capture comparable line-item pricing, quote coverage, and exclusions for all requested service lots.",
-        "linked_criteria": [],
+        "id": "sched_pricing_detail",
+        "name": "Commercial pricing detail",
+        "purpose": "Capture additional structured commercial data for evaluation reliability.",
+        "linked_criteria": [
+          "crit_commercial_completeness"
+        ],
         "columns": [
           {
-            "field_id": "col_line_name.col_line_ref",
-            "schedule_id": "col_line_name",
-            "schedule_name": "Commercial line-item pricing schedule",
-            "column_id": "col_line_ref",
-            "label": "Line item reference",
-            "description": "Reference number for the requested RFQ line item.",
-            "required": true,
-            "linked_criteria": []
+            "field_id": "sched_pricing_detail.col_quantity",
+            "schedule_id": "sched_pricing_detail",
+            "schedule_name": "Commercial pricing detail",
+            "column_id": "col_quantity",
+            "label": "Quantity",
+            "description": "Quantity if applicable to the pricing basis.",
+            "required": false,
+            "linked_criteria": [
+              "crit_commercial_completeness"
+            ]
           },
           {
-            "field_id": "col_line_name.col_line_name",
-            "schedule_id": "col_line_name",
-            "schedule_name": "Commercial line-item pricing schedule",
-            "column_id": "col_line_name",
-            "label": "Line item name",
-            "description": "Name of the requested RFQ service lot.",
-            "required": true,
-            "linked_criteria": []
+            "field_id": "sched_pricing_detail.col_uom",
+            "schedule_id": "sched_pricing_detail",
+            "schedule_name": "Commercial pricing detail",
+            "column_id": "col_uom",
+            "label": "UOM",
+            "description": "Unit of measure if applicable.",
+            "required": false,
+            "linked_criteria": [
+              "crit_commercial_completeness"
+            ]
           },
           {
-            "field_id": "col_line_name.col_included",
-            "schedule_id": "col_line_name",
-            "schedule_name": "Commercial line-item pricing schedule",
-            "column_id": "col_included",
-            "label": "Included in quote",
-            "description": "State Yes or No for whether the line item is included in the commercial quote.",
-            "required": true,
-            "linked_criteria": []
-          },
-          {
-            "field_id": "col_line_name.col_currency",
-            "schedule_id": "col_line_name",
-            "schedule_name": "Commercial line-item pricing schedule",
-            "column_id": "col_currency",
-            "label": "Currency",
-            "description": "Currency used for the quoted line item price.",
-            "required": true,
-            "linked_criteria": []
-          },
-          {
-            "field_id": "col_line_name.col_total_price",
-            "schedule_id": "col_line_name",
-            "schedule_name": "Commercial line-item pricing schedule",
-            "column_id": "col_total_price",
-            "label": "Total price",
-            "description": "Total quoted price for the line item.",
-            "required": true,
-            "linked_criteria": []
-          },
-          {
-            "field_id": "col_line_name.col_exclusions",
-            "schedule_id": "col_line_name",
-            "schedule_name": "Commercial line-item pricing schedule",
+            "field_id": "sched_pricing_detail.col_exclusions",
+            "schedule_id": "sched_pricing_detail",
+            "schedule_name": "Commercial pricing detail",
             "column_id": "col_exclusions",
             "label": "Exclusions or assumptions",
-            "description": "List exclusions or assumptions for the line item, or state None.",
+            "description": "State exclusions, dependencies, or assumptions affecting the quote.",
             "required": true,
-            "linked_criteria": []
+            "linked_criteria": [
+              "crit_commercial_completeness"
+            ]
           }
         ]
       }
     ],
     "criteria": [
       {
-        "criterion_id": "cr_mac_1",
-        "title": "Child advertising capability",
+        "criterion_id": "crit_mac_child_compliance",
+        "title": "Child marketing compliance",
         "criterion_type": "mac",
-        "description": "Explicit confirmation of capability to support child-directed advertising for this launch.",
+        "description": "Confirm capability to support child-directed advertising compliance for the launch.",
         "linked_question_ids": [
-          "q_cr_mac_1"
+          "q_child_compliance"
         ],
         "linked_schedule_fields": []
       },
       {
-        "criterion_id": "cr_mac_2",
+        "criterion_id": "crit_mac_claims_review",
         "title": "Claims review capability",
         "criterion_type": "mac",
-        "description": "Explicit confirmation of capability to support claims review for launch assets.",
+        "description": "Confirm capability to support product claims review for launch assets and approvals.",
         "linked_question_ids": [
-          "q_cr_mac_2"
+          "q_claims_review"
         ],
         "linked_schedule_fields": []
       },
       {
-        "criterion_id": "cr_mac_3",
-        "title": "Named engagement lead",
-        "criterion_type": "mac",
-        "description": "Submission of a named engagement lead for the launch program.",
-        "linked_question_ids": [
-          "q_cr_mac_3"
-        ],
-        "linked_schedule_fields": []
-      },
-      {
-        "criterion_id": "cr_mac_4",
-        "title": "Governance approach submitted",
-        "criterion_type": "mac",
-        "description": "Submission of a governance approach for managing the launch program.",
-        "linked_question_ids": [
-          "q_cr_mac_4"
-        ],
-        "linked_schedule_fields": []
-      },
-      {
-        "criterion_id": "cr_mac_5",
-        "title": "Timeline statement submitted",
-        "criterion_type": "mac",
-        "description": "Submission of a clear statement on whether the buyer launch timelines are achievable, with dependencies identified.",
-        "linked_question_ids": [
-          "q_cr_mac_5"
-        ],
-        "linked_schedule_fields": []
-      },
-      {
-        "criterion_id": "cr_tech_1",
-        "title": "Compliance delivery approach",
+        "criterion_id": "crit_launch_governance_speed",
+        "title": "Launch governance and speed",
         "criterion_type": "technical_cutoff_backed",
-        "description": "Approach for keeping child-directed marketing and claims usage safe across launch asset creation, review, and approval.",
+        "description": "Quality of the proposed governance, approvals, and timeline protection approach.",
         "linked_question_ids": [
-          "q_cr_tech_1"
+          "q_launch_governance"
         ],
         "linked_schedule_fields": []
       },
       {
-        "criterion_id": "cr_tech_2",
-        "title": "Launch plan and approvals",
-        "criterion_type": "technical_cutoff_backed",
-        "description": "Ability to manage approvals and deliver to the buyer launch calendar with visible dependencies and controls.",
-        "linked_question_ids": [
-          "q_cr_tech_2"
-        ],
-        "linked_schedule_fields": []
-      },
-      {
-        "criterion_id": "cr_tech_3",
-        "title": "Strategy and creative approach",
+        "criterion_id": "crit_integrated_delivery",
+        "title": "Integrated delivery model",
         "criterion_type": "technical_scored_only",
-        "description": "Approach to launch strategy, audience segmentation, messaging framework, and creative territory development.",
+        "description": "Strength of the operating model for coordinating all launch workstreams.",
         "linked_question_ids": [
-          "q_cr_tech_3"
+          "q_integrated_delivery"
         ],
         "linked_schedule_fields": []
       },
       {
-        "criterion_id": "cr_tech_4",
-        "title": "TVC delivery capability",
+        "criterion_id": "crit_campaign_solution",
+        "title": "Campaign solution quality",
         "criterion_type": "technical_scored_only",
-        "description": "Approach to TVC concept development, production, post-production, and delivery of master film and cutdowns.",
+        "description": "Coherence and completeness of the proposed launch solution across strategy, creative, TVC, and social/media channels.",
         "linked_question_ids": [
-          "q_cr_tech_4"
+          "q_campaign_solution"
         ],
         "linked_schedule_fields": []
+      },
+      {
+        "criterion_id": "crit_commercial_completeness",
+        "title": "Pricing completeness",
+        "criterion_type": "commercial",
+        "description": "Check that the commercial submission fully covers the requested lots in a structured format.",
+        "linked_question_ids": [],
+        "linked_schedule_fields": [
+          "sched_pricing.col_line_ref",
+          "sched_pricing.col_line_name",
+          "sched_pricing.col_quote_status",
+          "sched_pricing.col_included_ref",
+          "sched_pricing.col_currency",
+          "sched_pricing.col_total_price",
+          "sched_pricing_detail.col_quantity",
+          "sched_pricing_detail.col_uom",
+          "sched_pricing_detail.col_exclusions"
+        ]
       }
     ]
   },
@@ -1698,14 +1413,9 @@
     ],
     "uom_overrides": []
   },
-  "validation_issues": [
-    {
-      "field": "criteria",
-      "message": "Technical scored and cutoff-backed criteria must total 100 points."
-    }
-  ],
+  "validation_issues": [],
   "generated_with": {
     "reasoning_effort": "medium",
-    "generated_at": "2026-04-13T01:55:08.486868+00:00"
+    "generated_at": "2026-04-13T17:14:19.260284+00:00"
   }
 }
