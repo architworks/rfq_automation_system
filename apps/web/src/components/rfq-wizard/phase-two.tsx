@@ -851,6 +851,11 @@ export function ResultsStep({
     ],
     [],
   );
+  const technicalScoreExplanation = technicalThreshold !== null
+    ? `Technical score is the sum of scored technical criteria only, out of 100. A vendor moves forward only if it passes every MAC, clears every cutoff-backed criterion, and meets the aggregate technical threshold of ${formatOptionalNumber(technicalThreshold)} / 100. Commercial pricing does not affect technical qualification.`
+    : "Technical score is the sum of scored technical criteria only, out of 100. A vendor moves forward only if it passes every MAC, clears every cutoff-backed criterion, and meets the aggregate technical threshold set in the locked framework. Commercial pricing does not affect technical qualification.";
+  const commercialCurrencyLabel = comparisonSettings?.base_currency ?? "the RFQ currency";
+  const commercialScoreExplanation = `Commercial scoring starts only after a vendor passes the technical gate and has comparable pricing. Each comparable quote is converted into ${commercialCurrencyLabel}, totaled across the RFQ line items, and then scored using the formula: Commercial Score = 100 × Lowest Comparable Total / Vendor Total.`;
 
   return (
     <div className={styles.reviewPageLayout}>
@@ -909,6 +914,41 @@ export function ResultsStep({
               Automatic normalization basis is unavailable. Set a supported RFQ currency and lock the framework again.
             </div>
           ) : null}
+        </section>
+
+        <section className={styles.card}>
+          <div className={styles.cardHeader}>
+            <div>
+              <h2 className={styles.cardTitle}>How Scores Are Calculated</h2>
+              <p className={styles.cardSubtle}>
+                Quick reference for the two governed scores used in the final award.
+              </p>
+            </div>
+          </div>
+
+          <div className={styles.scoreExplainerGrid}>
+            <div className={styles.scoreExplainerCard}>
+              <div className={styles.scoreExplainerTitle}>How Is Technical Score Calculated?</div>
+              <div className={styles.scoreExplainerBody}>{technicalScoreExplanation}</div>
+            </div>
+            <div className={styles.scoreExplainerCard}>
+              <div className={styles.scoreExplainerTitle}>How Is Commercial Score Calculated?</div>
+              <div className={styles.scoreExplainerBody}>{commercialScoreExplanation}</div>
+            </div>
+          </div>
+
+          <p className={styles.scoreExplainerNote}>
+            For more information, check out the documentation at{" "}
+            <a
+              className={styles.scoreExplainerLink}
+              href="https://rfq-automation-system-docusaurus.vercel.app/"
+              rel="noreferrer"
+              target="_blank"
+            >
+              rfq-automation-system-docusaurus.vercel.app
+            </a>
+            .
+          </p>
         </section>
 
         {!evaluationReport ? (
