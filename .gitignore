@@ -24,3 +24,5 @@ apps/web/.next
 sandbox.py
 2024ltr.pdf
 citation_test.py
+
+.DS_Store
